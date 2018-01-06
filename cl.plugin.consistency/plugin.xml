@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.eclipse.pde.ui.MainPreferencePage"
+            class="cl.plugin.consistency.preferences.PluginConsistencyPreferencePage"
+            id="cl.plugin.consistency.preferences.PluginConsistencyPreferencePage"
+            name="Plugin Consistency">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.startup">
+      <startup
+            class="cl.plugin.consistency.Startup">
+      </startup>
+   </extension>
+   <extension
+         id="cl.plugin.consistency.marker"
+         name="Plugin Consistency Problem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+
+</plugin>

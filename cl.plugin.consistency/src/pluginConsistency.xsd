@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="PluginConsistency" type="pluginConsistency"/>
+
+  <xs:complexType name="type">
+    <xs:sequence/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="typeReference">
+    <xs:sequence/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="pluginConsistency">
+    <xs:sequence>
+      <xs:element name="Types" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Type" type="type" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="PatternInfos" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="PatternInfo" type="patternInfo" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="PluginInfos" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="PluginInfo" type="pluginInfo" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="patternInfo">
+    <xs:sequence/>
+    <xs:attribute name="pattern" type="xs:string" use="required"/>
+    <xs:attribute name="typeReference" type="xs:string"/>
+    <xs:attribute name="forbiddenTypeReference" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="pluginInfo">
+    <xs:sequence>
+      <xs:element name="Types" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="TypeReference" type="typeReference" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="ForbiddenTypes" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="TypeReference" type="typeReference" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="ForbiddenPlugins" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="ForbiddenPlugin" type="forbiddenPlugin" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="forbiddenPlugin">
+    <xs:sequence/>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+  </xs:complexType>
+</xs:schema>
+
