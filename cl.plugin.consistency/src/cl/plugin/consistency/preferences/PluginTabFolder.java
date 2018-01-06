@@ -26,16 +26,16 @@ public class PluginTabFolder
     tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     //
-    pluginTabItem = new PluginTabItem(this);
-
-    //
     typeTabItem = new TypeTabItem(this);
 
     //
     patternTabItem = new PatternTabItem(this);
 
     //
-    tabFolder.setSelection(0);
+    pluginTabItem = new PluginTabItem(this);
+
+    //
+    tabFolder.setSelection(pluginConsistencyPreferencePage.pluginConsistency.typeList.isEmpty()? 0 : 2);
     tabFolder.setFocus();
   }
 

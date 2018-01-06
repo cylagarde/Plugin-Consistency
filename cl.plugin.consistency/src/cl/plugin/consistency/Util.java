@@ -163,20 +163,13 @@ public class Util
 
     // init with default
     if (pluginConsistency.typeList.isEmpty())
+    {
       Arrays.asList("API", "IHM", "IMPLEMENTATION", "TEST").stream().map(name -> {
         Type type = new Type();
         type.name = name;
         return type;
       }).forEach(pluginConsistency.typeList::add);
-
-    //    //
-    //    List<String> validProjectIds = Stream.of(validPluginProjects).map(Util::getPluginId).collect(Collectors.toList());
-    //
-    //    // remove pluginInfo if project doesnt exists
-    //    pluginConsistency.pluginInfoList.removeIf(pluginInfo -> !validProjectIds.contains(pluginInfo.id));
-
-    System.err.println("TODO do no remove project removed/closed/etc...");
-    //    pluginConsistency.pluginInfoList.removeIf(pluginInfo -> !ResourcesPlugin.getWorkspace().getRoot().getProject(pluginInfo.name).exists());
+    }
 
     // add new project to pluginConsistency
     IProject[] validPluginProjects = Util.getValidProjects();
@@ -273,6 +266,74 @@ public class Util
           }
         }
       }
+    }
+  }
+
+  /**
+   * Update all pluginInfos with Pattern information
+   * @param pluginConsistency
+   */
+  public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency)
+  {
+    for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
+      updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
+  }
+
+  /**
+   * Remove pattern in pluginInfo
+   * @param pluginConsistency
+   * @param pluginInfo
+   */
+  private static void removePatternInPluginInfo(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
+  {
+    Set<String> typeSet = pluginInfo.typeReferenceList.stream().map(typeReference -> typeReference.name).collect(Collectors.toSet());
+    Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(typeReference -> typeReference.name).collect(Collectors.toSet());
+
+    for(PatternInfo patternInfo : pluginConsistency.patternList)
+    {
+      String pattern = patternInfo.pattern;
+      if (pluginInfo.name.contains(pattern))
+      {
+        // remove type
+        String[] typeNames = patternInfo.typeReference.split(",");
+        for(String typeName : typeNames)
+        {
+          if (typeSet.contains(typeName))
+            pluginInfo.typeReferenceList.removeIf(typeReference -> typeReference.name.equals(typeName));
+        }
+
+        // remove forbidden type
+        String[] forbiddenTypeNames = patternInfo.forbiddenTypeReference.split(",");
+        for(String forbiddenTypeName : forbiddenTypeNames)
+        {
+          if (forbiddenTypeSet.contains(forbiddenTypeName))
+            pluginInfo.forbiddenTypeList.removeIf(typeReference -> typeReference.name.equals(forbiddenTypeName));
+        }
+      }
+    }
+  }
+
+  /**
+   * Remove pattern in all pluginInfos
+   * @param pluginConsistency
+   */
+  public static void removePatternInAllPluginInfos(PluginConsistency pluginConsistency)
+  {
+    for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
+      removePatternInPluginInfo(pluginConsistency, pluginInfo);
+  }
+
+  /**
+   * Reset types in all pluginInfos
+   * @param pluginConsistency
+   */
+  public static void resetTypesInAllPluginInfos(PluginConsistency pluginConsistency)
+  {
+    for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
+    {
+      pluginInfo.typeReferenceList.clear();
+      pluginInfo.forbiddenTypeList.clear();
+      pluginInfo.forbiddenPluginList.clear();
     }
   }
 

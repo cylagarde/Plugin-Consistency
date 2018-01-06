@@ -106,7 +106,8 @@ public class TypeTabItem
           type.name = newTypeName;
           pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.add(type);
 
-          refresh();
+          // refresh all TabFolder
+          pluginTabFolder.refresh();
         }
       }
     });

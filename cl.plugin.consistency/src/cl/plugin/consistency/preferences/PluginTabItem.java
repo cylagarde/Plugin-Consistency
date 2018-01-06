@@ -255,53 +255,9 @@ public class PluginTabItem
     MenuManager manager = new MenuManager();
     manager.setRemoveAllWhenShown(true);
     Menu menu = manager.createContextMenu(projectTableViewer.getControl());
-
-    manager.addMenuListener(new IMenuListener()
-    {
-      @Override
-      public void menuAboutToShow(IMenuManager manager)
-      {
-        manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
-
-        //
-        if (!projectTableViewer.getSelection().isEmpty())
-        {
-          createRemoveInvalidPluginsMenuItem(manager);
-        }
-      }
-
-      private void createRemoveInvalidPluginsMenuItem(IMenuManager manager)
-      {
-        IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
-        Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
-        Set<PluginInfo> notExistPluginInfoSet = selectedPluginInfoStream.filter(pluginInfo -> !Util.getProject(pluginInfo).exists()).collect(Collectors.toSet());
-        if (!notExistPluginInfoSet.isEmpty())
-        {
-          manager.add(new Action("Remove non-existent plugins")
-          {
-            @Override
-            public void run()
-            {
-              String notExistPluginInfoNames = notExistPluginInfoSet.stream().map(pluginInfo -> pluginInfo.name).collect(Collectors.joining(", "));
-
-              Shell shell = projectTableViewer.getControl().getShell();
-              String message = "Do you want to remove the selected non-existent plugins\n" + notExistPluginInfoNames + " ?";
-              boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
-              if (result)
-              {
-                // remove pluginInfos
-                pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.removeIf(notExistPluginInfoSet::contains);
-
-                // refresh tableViewer
-                refresh();
-              }
-            }
-          });
-        }
-      }
-    });
-
     projectTableViewer.getControl().setMenu(menu);
+
+    manager.addMenuListener(new PluginInfoMenuListener());
   }
 
   /**
@@ -309,12 +265,21 @@ public class PluginTabItem
    */
   void refresh()
   {
-    // Update projectTableViewer
-    projectTableViewer.setInput(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList);
+    try
+    {
+      projectTableViewer.getTable().setRedraw(false);
 
-    // pack columns
-    for(TableColumn tableColumn : projectTableViewer.getTable().getColumns())
-      pack(tableColumn, COLUMN_PREFERRED_WIDTH);
+      // Update projectTableViewer
+      projectTableViewer.setInput(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList);
+
+      // pack columns
+      for(TableColumn tableColumn : projectTableViewer.getTable().getColumns())
+        pack(tableColumn, COLUMN_PREFERRED_WIDTH);
+    }
+    finally
+    {
+      projectTableViewer.getTable().setRedraw(true);
+    }
 
     //
     projectDetail.refresh();
@@ -359,6 +324,106 @@ public class PluginTabItem
       if (Util.isValidPlugin(project))
         return super.getForeground(element);
       return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
+    }
+  }
+
+  /**
+   * The class <b>PluginInfoMenuListener</b> allows to.<br>
+   */
+  class PluginInfoMenuListener implements IMenuListener
+  {
+    @Override
+    public void menuAboutToShow(IMenuManager manager)
+    {
+      manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+
+      //
+      if (!projectTableViewer.getSelection().isEmpty())
+      {
+        createRemoveInvalidPluginsMenuItem(manager);
+      }
+
+      createRemoveTypesFromPatternsMenuItem(manager);
+      createAddTypesFromPatternsMenuItem(manager);
+      createResetTypesMenuItem(manager);
+    }
+
+    private void createRemoveInvalidPluginsMenuItem(IMenuManager manager)
+    {
+      IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+      Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
+      Set<PluginInfo> notExistPluginInfoSet = selectedPluginInfoStream.filter(pluginInfo -> !Util.getProject(pluginInfo).exists()).collect(Collectors.toSet());
+      if (!notExistPluginInfoSet.isEmpty())
+      {
+        manager.add(new Action("Remove non-existent plugins")
+        {
+          @Override
+          public void run()
+          {
+            String notExistPluginInfoNames = notExistPluginInfoSet.stream().map(pluginInfo -> pluginInfo.name).collect(Collectors.joining(", "));
+
+            Shell shell = projectTableViewer.getControl().getShell();
+            String message = "Do you want to remove the selected non-existent plugins\n" + notExistPluginInfoNames + " ?";
+            boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
+            if (result)
+            {
+              // remove pluginInfos
+              pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.removeIf(notExistPluginInfoSet::contains);
+
+              // refresh tableViewer
+              refresh();
+            }
+          }
+        });
+      }
+    }
+
+    private void createRemoveTypesFromPatternsMenuItem(IMenuManager manager)
+    {
+      manager.add(new Action("Remove types from patterns")
+      {
+        @Override
+        public void run()
+        {
+          //
+          Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+          // refresh tableViewer
+          refresh();
+        }
+      });
+    }
+
+    private void createAddTypesFromPatternsMenuItem(IMenuManager manager)
+    {
+      manager.add(new Action("Add types from patterns")
+      {
+        @Override
+        public void run()
+        {
+          //
+          Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+          // refresh tableViewer
+          refresh();
+        }
+      });
+    }
+
+    private void createResetTypesMenuItem(IMenuManager manager)
+    {
+      manager.add(new Action("Reset")
+      {
+        @Override
+        public void run()
+        {
+          //
+          Util.resetTypesInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+          // refresh tableViewer
+          refresh();
+        }
+      });
     }
   }
 }
