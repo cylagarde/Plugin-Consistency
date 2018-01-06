@@ -158,73 +158,85 @@ public class TypeTabItem
     MenuManager manager = new MenuManager();
     manager.setRemoveAllWhenShown(true);
     Menu menu = manager.createContextMenu(typeTableViewer.getControl());
-
-    manager.addMenuListener(new IMenuListener()
-    {
-      @Override
-      public void menuAboutToShow(IMenuManager manager)
-      {
-        manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
-
-        //
-        if (!typeTableViewer.getSelection().isEmpty())
-        {
-          createRemoveTypesMenuItem(manager);
-        }
-      }
-
-      /**
-       */
-      private void createRemoveTypesMenuItem(IMenuManager manager)
-      {
-        manager.add(new Action("Remove selected types")
-        {
-          @Override
-          public void run()
-          {
-            IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
-            Stream<Type> selectedTypeStream = selection.toList().stream().filter(Type.class::isInstance).map(Type.class::cast);
-            Set<Type> selectedTypeSet = selectedTypeStream.collect(Collectors.toSet());
-            Set<String> selectedTypeNameSet = selectedTypeSet.stream().map(type -> type.name).collect(Collectors.toSet());
-            String selectedTypeNames = selectedTypeNameSet.stream().collect(Collectors.joining(", "));
-
-            Shell shell = typeTableViewer.getControl().getShell();
-            String message = "Do you want to remove the selected types\n" + selectedTypeNames + " ?";
-            boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
-            if (result)
-            {
-              // remove types
-              pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.removeIf(selectedTypeSet::contains);
-
-              // remove types in plugin infos
-              Consumer<PluginInfo> removeTypeConsumer = pluginInfo -> {
-                pluginInfo.typeReferenceList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
-                pluginInfo.forbiddenTypeList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
-              };
-              pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeConsumer);
-
-              // refresh all TabFolder
-              pluginTabFolder.refresh();
-            }
-          }
-        });
-      }
-    });
-
-    manager.addMenuListener(mgr -> {
-
-    });
-
     typeTableViewer.getControl().setMenu(menu);
+
+    manager.addMenuListener(new TypeMenuListener());
   }
 
+  /**
+   * Refresh
+   */
   void refresh()
   {
-    // Update typeTableViewer
-    typeTableViewer.setInput(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList);
+    try
+    {
+      typeTableViewer.getTable().setRedraw(false);
 
-    // pack columns
-    for(TableColumn tableColumn : typeTableViewer.getTable().getColumns())
-      PluginTabItem.pack(tableColumn, PluginTabItem.COLUMN_PREFERRED_WIDTH);
+      // Update typeTableViewer
+      typeTableViewer.setInput(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList);
+
+      // pack columns
+      for(TableColumn tableColumn : typeTableViewer.getTable().getColumns())
+        PluginTabItem.pack(tableColumn, PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    }
+    finally
+    {
+      typeTableViewer.getTable().setRedraw(true);
+    }
+  }
+
+  /**
+   * The class <b>TypeMenuListener</b> allows to.<br>
+   */
+  class TypeMenuListener implements IMenuListener
+  {
+    @Override
+    public void menuAboutToShow(IMenuManager manager)
+    {
+      manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+
+      //
+      if (!typeTableViewer.getSelection().isEmpty())
+      {
+        createRemoveTypesMenuItem(manager);
+      }
+    }
+
+    /**
+     */
+    private void createRemoveTypesMenuItem(IMenuManager manager)
+    {
+      manager.add(new Action("Remove selected types")
+      {
+        @Override
+        public void run()
+        {
+          IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
+          Stream<Type> selectedTypeStream = selection.toList().stream().filter(Type.class::isInstance).map(Type.class::cast);
+          Set<Type> selectedTypeSet = selectedTypeStream.collect(Collectors.toSet());
+          Set<String> selectedTypeNameSet = selectedTypeSet.stream().map(type -> type.name).collect(Collectors.toSet());
+          String selectedTypeNames = selectedTypeNameSet.stream().collect(Collectors.joining(", "));
+
+          Shell shell = typeTableViewer.getControl().getShell();
+          String message = "Do you want to remove the selected types\n" + selectedTypeNames + " ?";
+          boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
+          if (result)
+          {
+            // remove types
+            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.removeIf(selectedTypeSet::contains);
+
+            // remove types in plugin infos
+            Consumer<PluginInfo> removeTypeConsumer = pluginInfo -> {
+              pluginInfo.typeReferenceList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
+              pluginInfo.forbiddenTypeList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
+            };
+            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeConsumer);
+
+            // refresh all TabFolder
+            pluginTabFolder.refresh();
+          }
+        }
+      });
+    }
   }
 }
