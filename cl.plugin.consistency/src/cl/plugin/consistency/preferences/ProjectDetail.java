@@ -1,7 +1,6 @@
 package cl.plugin.consistency.preferences;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.layout.GridData;
@@ -105,8 +104,20 @@ class ProjectDetail
     forbiddenPluginComposite.setPluginInfo(pluginInfo);
 
     //
-    IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(pluginInfo.name);
-    boolean validPlugin = Util.isValidPlugin(project);
+    boolean validPlugin = false;
+    if (pluginInfo != null)
+    {
+      IProject project = Util.getProject(pluginInfo);
+      validPlugin = Util.isValidPlugin(project);
+    }
     Util.setEnabled(content, validPlugin);
+  }
+
+  /**
+   * Refresh
+   */
+  public void refresh()
+  {
+    setPluginInfo(pluginInfo);
   }
 }

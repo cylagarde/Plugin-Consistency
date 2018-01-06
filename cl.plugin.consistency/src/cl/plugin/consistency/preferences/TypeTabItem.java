@@ -1,12 +1,21 @@
 package cl.plugin.consistency.preferences;
 
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -17,10 +26,14 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 
+import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 
 /**
@@ -78,17 +91,12 @@ public class TypeTabItem
       {
         Set<String> alreadyExistTypeset = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
-        IInputValidator validator = new IInputValidator()
-        {
-          @Override
-          public String isValid(String newText)
-          {
-            if (newText.isEmpty())
-              return "Value is empty";
-            if (alreadyExistTypeset.contains(newText))
-              return "The type already exists";
-            return null;
-          }
+        IInputValidator validator = newText -> {
+          if (newText.isEmpty())
+            return "Value is empty";
+          if (alreadyExistTypeset.contains(newText))
+            return "The type already exists";
+          return null;
         };
         InputDialog inputDialog = new InputDialog(parent.getShell(), "Add new type", "Enter a value for new type", "", validator);
         if (inputDialog.open() == InputDialog.OK)
@@ -110,7 +118,7 @@ public class TypeTabItem
    */
   private void configureTypeTableViewer(Composite parent)
   {
-    typeTableViewer = new TableViewer(parent);
+    typeTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
     typeTableViewer.getTable().setLayout(new TableLayout());
     typeTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     typeTableViewer.getTable().setHeaderVisible(true);
@@ -135,7 +143,78 @@ public class TypeTabItem
     });
     DefaultLabelViewerComparator.configureForSortingColumn(nameTableViewerColumn);
 
+    //
+    configurePopupMenuForTypeTableViewer();
+
     refresh();
+  }
+
+  /**
+   *
+   */
+  private void configurePopupMenuForTypeTableViewer()
+  {
+    MenuManager manager = new MenuManager();
+    manager.setRemoveAllWhenShown(true);
+    Menu menu = manager.createContextMenu(typeTableViewer.getControl());
+
+    manager.addMenuListener(new IMenuListener()
+    {
+      @Override
+      public void menuAboutToShow(IMenuManager manager)
+      {
+        manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+
+        //
+        if (!typeTableViewer.getSelection().isEmpty())
+        {
+          createRemoveTypesMenuItem(manager);
+        }
+      }
+
+      /**
+       */
+      private void createRemoveTypesMenuItem(IMenuManager manager)
+      {
+        manager.add(new Action("Remove selected types")
+        {
+          @Override
+          public void run()
+          {
+            IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
+            Stream<Type> selectedTypeStream = selection.toList().stream().filter(Type.class::isInstance).map(Type.class::cast);
+            Set<Type> selectedTypeSet = selectedTypeStream.collect(Collectors.toSet());
+            Set<String> selectedTypeNameSet = selectedTypeSet.stream().map(type -> type.name).collect(Collectors.toSet());
+            String selectedTypeNames = selectedTypeNameSet.stream().collect(Collectors.joining(", "));
+
+            Shell shell = typeTableViewer.getControl().getShell();
+            String message = "Do you want to remove the selected types\n" + selectedTypeNames + " ?";
+            boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
+            if (result)
+            {
+              // remove types
+              pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.removeIf(selectedTypeSet::contains);
+
+              // remove types in plugin infos
+              Consumer<PluginInfo> removeTypeConsumer = pluginInfo -> {
+                pluginInfo.typeReferenceList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
+                pluginInfo.forbiddenTypeList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
+              };
+              pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeConsumer);
+
+              // refresh all TabFolder
+              pluginTabFolder.refresh();
+            }
+          }
+        });
+      }
+    });
+
+    manager.addMenuListener(mgr -> {
+
+    });
+
+    typeTableViewer.getControl().setMenu(menu);
   }
 
   void refresh()

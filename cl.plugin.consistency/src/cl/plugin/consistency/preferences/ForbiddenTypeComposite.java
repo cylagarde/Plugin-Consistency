@@ -114,7 +114,7 @@ class ForbiddenTypeComposite
   public void setPluginInfo(PluginInfo pluginInfo)
   {
     this.pluginInfo = pluginInfo;
-    Util.setEnabled(section, pluginInfo != null);
+    //        Util.setEnabled(section, pluginInfo != null);
 
     Stream.of(typeListComposite.getChildren()).forEach(Control::dispose);
     if (pluginInfo != null)

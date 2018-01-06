@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
@@ -117,7 +116,7 @@ class ForbiddenPluginComposite
   public void setPluginInfo(PluginInfo pluginInfo)
   {
     this.pluginInfo = pluginInfo;
-    Util.setEnabled(section, pluginInfo != null);
+    //    Util.setEnabled(section, pluginInfo != null);
 
     // select forbidden plugins for TableViewer
     List<Object> bundleList = new ArrayList<>();
@@ -146,7 +145,7 @@ class ForbiddenPluginComposite
       return;
     }
 
-    IProject workspaceProject = ResourcesPlugin.getWorkspace().getRoot().getProject(pluginInfo.name);
+    IProject workspaceProject = Util.getProject(pluginInfo);
     addPluginAction.setEnabled(workspaceProject != null && workspaceProject.isOpen());
 
     //

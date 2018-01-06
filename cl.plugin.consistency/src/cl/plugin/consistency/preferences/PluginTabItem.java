@@ -1,9 +1,16 @@
 package cl.plugin.consistency.preferences;
 
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.GroupMarker;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -22,9 +29,12 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.ide.IDE.SharedImages;
@@ -47,6 +57,7 @@ public class PluginTabItem
   TableViewerColumn typeTableViewerColumn;
   TableViewerColumn forbiddenTypesTableViewerColumn;
   TableViewerColumn forbiddenBundlesTableViewerColumn;
+  ProjectDetail projectDetail;
 
   /**
    * Constructor
@@ -69,6 +80,9 @@ public class PluginTabItem
     pluginTabComposite.setLayout(pluginTabCompositeLayout);
 
     configureProjectSashForm(pluginTabComposite);
+
+    //
+    refresh();
   }
 
   /**
@@ -97,14 +111,13 @@ public class PluginTabItem
     scrolledComposite.setExpandVertical(true);
 
     //
-    ProjectDetail projectDetail = new ProjectDetail(this, scrolledComposite);
+    projectDetail = new ProjectDetail(this, scrolledComposite);
     scrolledComposite.setContent(projectDetail.content);
     scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
     // selection
     projectTableViewer.addSelectionChangedListener(event -> {
       IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
-
       PluginInfo pluginInfo = (PluginInfo) selection.getFirstElement();
       projectDetail.setPluginInfo(pluginInfo);
     });
@@ -119,7 +132,7 @@ public class PluginTabItem
   private void configureProjectTableViewer(Composite parent)
   {
     //
-    projectTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER);
+    projectTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
     projectTableViewer.getTable().setLayout(new TableLayout());
     projectTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     projectTableViewer.getTable().setHeaderVisible(true);
@@ -145,7 +158,7 @@ public class PluginTabItem
       public Image getImage(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(pluginInfo.name);
+        IProject project = Util.getProject(pluginInfo);
         Image projectImage = PlatformUI.getWorkbench().getSharedImages().getImage(SharedImages.IMG_OBJ_PROJECT);
 
         //
@@ -231,7 +244,64 @@ public class PluginTabItem
     DefaultLabelViewerComparator.configureForSortingColumn(forbiddenBundlesTableViewerColumn);
 
     //
-    refresh();
+    configurePopupMenuForProjectTableViewer();
+  }
+
+  /**
+   *
+   */
+  private void configurePopupMenuForProjectTableViewer()
+  {
+    MenuManager manager = new MenuManager();
+    manager.setRemoveAllWhenShown(true);
+    Menu menu = manager.createContextMenu(projectTableViewer.getControl());
+
+    manager.addMenuListener(new IMenuListener()
+    {
+      @Override
+      public void menuAboutToShow(IMenuManager manager)
+      {
+        manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+
+        //
+        if (!projectTableViewer.getSelection().isEmpty())
+        {
+          createRemoveInvalidPluginsMenuItem(manager);
+        }
+      }
+
+      private void createRemoveInvalidPluginsMenuItem(IMenuManager manager)
+      {
+        IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+        Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
+        Set<PluginInfo> notExistPluginInfoSet = selectedPluginInfoStream.filter(pluginInfo -> !Util.getProject(pluginInfo).exists()).collect(Collectors.toSet());
+        if (!notExistPluginInfoSet.isEmpty())
+        {
+          manager.add(new Action("Remove non-existent plugins")
+          {
+            @Override
+            public void run()
+            {
+              String notExistPluginInfoNames = notExistPluginInfoSet.stream().map(pluginInfo -> pluginInfo.name).collect(Collectors.joining(", "));
+
+              Shell shell = projectTableViewer.getControl().getShell();
+              String message = "Do you want to remove the selected non-existent plugins\n" + notExistPluginInfoNames + " ?";
+              boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
+              if (result)
+              {
+                // remove pluginInfos
+                pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.removeIf(notExistPluginInfoSet::contains);
+
+                // refresh tableViewer
+                refresh();
+              }
+            }
+          });
+        }
+      }
+    });
+
+    projectTableViewer.getControl().setMenu(menu);
   }
 
   /**
@@ -245,6 +315,9 @@ public class PluginTabItem
     // pack columns
     for(TableColumn tableColumn : projectTableViewer.getTable().getColumns())
       pack(tableColumn, COLUMN_PREFERRED_WIDTH);
+
+    //
+    projectDetail.refresh();
   }
 
   /**
@@ -282,7 +355,7 @@ public class PluginTabItem
     public final Color getForeground(Object element)
     {
       PluginInfo pluginInfo = (PluginInfo) element;
-      IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(pluginInfo.name);
+      IProject project = Util.getProject(pluginInfo);
       if (Util.isValidPlugin(project))
         return super.getForeground(element);
       return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);

@@ -253,7 +253,7 @@ public class Util
         String[] typeNames = patternInfo.typeReference.split(",");
         for(String typeName : typeNames)
         {
-          if (availableTypeSet.contains(typeName) && ! typeSet.contains(typeName))
+          if (availableTypeSet.contains(typeName) && !typeSet.contains(typeName))
           {
             TypeReference typeReference = new TypeReference();
             typeReference.name = typeName;
@@ -265,7 +265,7 @@ public class Util
         String[] forbiddenTypeNames = patternInfo.forbiddenTypeReference.split(",");
         for(String forbiddenTypeName : forbiddenTypeNames)
         {
-          if (availableTypeSet.contains(forbiddenTypeName) && ! forbiddenTypeSet.contains(forbiddenTypeName))
+          if (availableTypeSet.contains(forbiddenTypeName) && !forbiddenTypeSet.contains(forbiddenTypeName))
           {
             TypeReference forbiddenTypeReference = new TypeReference();
             forbiddenTypeReference.name = forbiddenTypeName;
@@ -554,7 +554,8 @@ public class Util
     int min = sourceOffset + targetCount - 1;
     int i = min * 0 + fromIndex - 1;
 
-    startSearchForLastChar: while(true)
+    startSearchForLastChar:
+    while(true)
     {
       while(i >= min && source[i] != strLastChar)
         i--;
@@ -612,5 +613,14 @@ public class Util
       String message = "Exception when saving plugin consistency informations : " + e.getLocalizedMessage();
       Activator.logError(message, e);
     }
+  }
+
+  /**
+   * Return the project
+   * @param pluginInfo
+   */
+  public static IProject getProject(PluginInfo pluginInfo)
+  {
+    return ResourcesPlugin.getWorkspace().getRoot().getProject(pluginInfo.name);
   }
 }
