@@ -90,12 +90,12 @@ public class TypeTabItem
       @Override
       public void widgetSelected(SelectionEvent e)
       {
-        Set<String> alreadyExistTypeset = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+        Set<String> alreadyExistTypeSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
         IInputValidator validator = newText -> {
           if (newText.isEmpty())
             return "Value is empty";
-          if (alreadyExistTypeset.contains(newText))
+          if (alreadyExistTypeSet.contains(newText))
             return "The type already exists";
           return null;
         };

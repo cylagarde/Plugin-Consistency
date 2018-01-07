@@ -1,12 +1,20 @@
 package cl.plugin.consistency.preferences;
 
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -18,10 +26,13 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 
+import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
 
 /**
@@ -72,32 +83,31 @@ public class PatternTabItem
     Button addPatternButton = new Button(toolbarComposite, SWT.FLAT);
     addPatternButton.setToolTipText("Add new pattern");
     addPatternButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ISharedImages.IMG_OBJ_ADD));
-    addPatternButton.setEnabled(false);
     addPatternButton.addSelectionListener(new SelectionAdapter()
     {
       @Override
       public void widgetSelected(SelectionEvent e)
       {
-        //        Set<String> alreadyExistTypeset = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-        //
-        //        IInputValidator validator = newText -> {
-        //          if (newText.isEmpty())
-        //            return "Value is empty";
-        //          if (alreadyExistTypeset.contains(newText))
-        //            return "The type already exists";
-        //          return null;
-        //        };
-        //        InputDialog inputDialog = new InputDialog(parent.getShell(), "Add new type", "Enter a value for new type", "", validator);
-        //        if (inputDialog.open() == InputDialog.OK)
-        //        {
-        //          String newTypeName = inputDialog.getValue();
-        //          Type type = new Type();
-        //          type.name = newTypeName;
-        //          pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.add(type);
-        //
-        //          // refresh all TabFolder
-        //          pluginTabFolder.refresh();
-        //        }
+        Set<String> alreadyExistpatternSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().map(patterInfo -> patterInfo.pattern).collect(Collectors.toSet());
+
+        IInputValidator validator = newText -> {
+          if (newText.isEmpty())
+            return "Value is empty";
+          if (alreadyExistpatternSet.contains(newText))
+            return "The pattern already exists";
+          return null;
+        };
+        InputDialog inputDialog = new InputDialog(parent.getShell(), "Add new pattern", "Enter a value for new pattern", "", validator);
+        if (inputDialog.open() == InputDialog.OK)
+        {
+          String newPattern = inputDialog.getValue();
+          PatternInfo patternInfo = new PatternInfo();
+          patternInfo.pattern = newPattern;
+          pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.add(patternInfo);
+
+          // refresh all TabFolder
+          pluginTabFolder.refresh();
+        }
       }
     });
   }
@@ -218,6 +228,47 @@ public class PatternTabItem
     @Override
     public void menuAboutToShow(IMenuManager manager)
     {
+      manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+
+      //
+      if (!patternTableViewer.getSelection().isEmpty())
+      {
+        createRemovePatternsMenuItem(manager);
+      }
+    }
+
+    /**
+     */
+    private void createRemovePatternsMenuItem(IMenuManager manager)
+    {
+      manager.add(new Action("Remove selected patterns")
+      {
+        @Override
+        public void run()
+        {
+          IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+          Stream<PatternInfo> selectedPatternInfoStream = selection.toList().stream().filter(PatternInfo.class::isInstance).map(PatternInfo.class::cast);
+          Set<PatternInfo> selectedPatternInfoSet = selectedPatternInfoStream.collect(Collectors.toSet());
+          Set<String> selectedPatternSet = selectedPatternInfoSet.stream().map(patternInfo -> patternInfo.pattern).collect(Collectors.toSet());
+          String selectedPatterns = selectedPatternSet.stream().collect(Collectors.joining(", "));
+
+          Shell shell = patternTableViewer.getControl().getShell();
+          String message = "Do you want to remove the selected pattern\n" + selectedPatterns + " ?";
+          boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
+          if (result)
+          {
+            Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+            // remove patterns
+            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.removeIf(selectedPatternInfoSet::contains);
+
+            Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+            // refresh all TabFolder
+            pluginTabFolder.refresh();
+          }
+        }
+      });
     }
   }
 }
