@@ -29,20 +29,20 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 
 import cl.plugin.consistency.Util;
-import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.Type;
 
 /**
- * The class <b>TypeComposite</b> allows to.<br>
+ * The class <b>PatternTypeComposite</b> allows to.<br>
  */
-class TypeComposite
+class PatternTypeComposite
 {
-  final ProjectDetail projectDetail;
+  final PatternTabItem patternTabItem;
   final Section section;
   final Composite typeListComposite;
   final ScrolledComposite scrolledComposite;
   IAction addTypeAction;
-  PluginInfo pluginInfo;
+  PatternInfo patternInfo;
   boolean fireEvent = true;
 
   /**
@@ -50,9 +50,9 @@ class TypeComposite
    * @param parent
    * @param style
    */
-  TypeComposite(ProjectDetail projectDetail, Composite parent, int style)
+  PatternTypeComposite(PatternTabItem patternTabItem, Composite parent, int style)
   {
-    this.projectDetail = projectDetail;
+    this.patternTabItem = patternTabItem;
 
     FormToolkit toolkit = new FormToolkit(parent.getDisplay());
     section = toolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
@@ -101,25 +101,25 @@ class TypeComposite
    */
   private List<String> getNotUsedTypes()
   {
-    List<String> types = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).sorted().distinct().collect(Collectors.toList());
+    List<String> types = patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).sorted().distinct().collect(Collectors.toList());
     types.add(0, "");
-    List<String> forbiddenTypes = pluginInfo.typeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toList());
+    List<String> forbiddenTypes = patternInfo.typeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toList());
     types.removeAll(forbiddenTypes);
     return types;
   }
 
   /**
-   * @param pluginInfo
+   * @param patternInfo
    */
-  public void setPluginInfo(PluginInfo pluginInfo)
+  public void setPatternInfo(PatternInfo patternInfo)
   {
-    this.pluginInfo = pluginInfo;
+    this.patternInfo = patternInfo;
     //    Util.setEnabled(section, pluginInfo != null);
 
     Stream.of(typeListComposite.getChildren()).forEach(Control::dispose);
-    if (pluginInfo != null)
+    if (patternInfo != null)
     {
-      for(Type type : pluginInfo.typeList)
+      for(Type type : patternInfo.typeList)
       {
         TypeBiConsumer typeBiConsumer = new TypeBiConsumer();
         List<String> types = getNotUsedTypes();
@@ -152,9 +152,9 @@ class TypeComposite
       String selectedTypeName = (String) newStructuredSelection.getFirstElement();
       if (selectedTypeName == null || selectedTypeName.isEmpty())
       {
-        if (forbiddenTypeIndex < pluginInfo.typeList.size())
+        if (forbiddenTypeIndex < patternInfo.typeList.size())
         {
-          pluginInfo.typeList.remove(forbiddenTypeIndex);
+          patternInfo.typeList.remove(forbiddenTypeIndex);
         }
 
         // remove typeComboViewer
@@ -164,10 +164,10 @@ class TypeComposite
       }
       else
       {
-        if (forbiddenTypeIndex < pluginInfo.typeList.size())
+        if (forbiddenTypeIndex < patternInfo.typeList.size())
         {
           // same -> no change
-          Type type = pluginInfo.typeList.get(forbiddenTypeIndex);
+          Type type = patternInfo.typeList.get(forbiddenTypeIndex);
           if (type.name == selectedTypeName)
             return;
           type.name = selectedTypeName;
@@ -176,7 +176,7 @@ class TypeComposite
         {
           Type type = new Type();
           type.name = selectedTypeName;
-          pluginInfo.typeList.add(type);
+          patternInfo.typeList.add(type);
         }
       }
 
@@ -208,7 +208,7 @@ class TypeComposite
         fireEvent = true;
       }
 
-      projectDetail.pluginTabItem.refreshPluginInfo(pluginInfo);
+      patternTabItem.refreshPatternInfo(patternInfo);
     }
   }
 

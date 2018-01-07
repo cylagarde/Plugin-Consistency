@@ -271,4 +271,24 @@ public class PatternTabItem
       });
     }
   }
+
+  /**
+   * Refresh for PatternInfo
+   */
+  void refreshPatternInfo(PatternInfo patternInfo)
+  {
+    patternTableViewer.getTable().setRedraw(false);
+    try
+    {
+      patternTableViewer.refresh(patternInfo);
+
+      // pack columns
+      for(TableColumn tableColumn : patternTableViewer.getTable().getColumns())
+        PluginTabItem.pack(tableColumn, PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    }
+    finally
+    {
+      patternTableViewer.getTable().setRedraw(true);
+    }
+  }
 }

@@ -265,10 +265,10 @@ public class PluginTabItem
    */
   void refresh()
   {
+    projectTableViewer.getTable().setRedraw(false);
+
     try
     {
-      projectTableViewer.getTable().setRedraw(false);
-
       // Update projectTableViewer
       projectTableViewer.setInput(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList);
 
@@ -307,9 +307,17 @@ public class PluginTabItem
    */
   void refreshPluginInfo(PluginInfo pluginInfo)
   {
-    projectTableViewer.refresh(pluginInfo);
-    pack(typeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
-    pack(forbiddenTypesTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
+    projectTableViewer.getTable().setRedraw(false);
+    try
+    {
+      projectTableViewer.refresh(pluginInfo);
+      pack(typeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
+      pack(forbiddenTypesTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
+    }
+    finally
+    {
+      projectTableViewer.getTable().setRedraw(true);
+    }
   }
 
   /**

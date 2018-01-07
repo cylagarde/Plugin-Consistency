@@ -231,7 +231,7 @@ class ForbiddenTypeComposite
 
       typeComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 
-      addTypeAction.setEnabled(false);
+      setEnabled(false);
       typeListComposite.layout();
       scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
