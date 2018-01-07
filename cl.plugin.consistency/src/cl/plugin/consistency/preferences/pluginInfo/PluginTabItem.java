@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences;
+package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,15 +42,17 @@ import org.eclipse.ui.ide.IDE.SharedImages;
 import cl.plugin.consistency.Activator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
+import cl.plugin.consistency.preferences.PluginTabFolder;
 
 /**
  * The class <b>PluginTabItem</b> allows to.<br>
  */
 public class PluginTabItem
 {
-  static final int COLUMN_PREFERRED_WIDTH = 200;
-  static final String COLUMN_SPACE_KEY = "COLUMN_SPACE";
-  static final int COLUMN_SPACE = 5;
+  public static final int COLUMN_PREFERRED_WIDTH = 200;
+  public static final String COLUMN_SPACE_KEY = "COLUMN_SPACE";
+  public static final int COLUMN_SPACE = 5;
 
   final PluginTabFolder pluginTabFolder;
   TableViewer projectTableViewer;
@@ -263,7 +265,7 @@ public class PluginTabItem
   /**
    * Refresh
    */
-  void refresh()
+  public void refresh()
   {
     projectTableViewer.getTable().setRedraw(false);
 
@@ -290,7 +292,7 @@ public class PluginTabItem
    * @param tableColumn
    * @param maxWidth
    */
-  static void pack(TableColumn tableColumn, int maxWidth)
+  public static void pack(TableColumn tableColumn, int maxWidth)
   {
     tableColumn.pack();
     Object columnSpace = tableColumn.getData(COLUMN_SPACE_KEY);

@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences;
+package cl.plugin.consistency.preferences.pattern;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,6 +19,8 @@ import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -31,16 +33,20 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
+import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
+import cl.plugin.consistency.preferences.PluginTabFolder;
+import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
 
 /**
  * The class <b>PatternTabItem</b> allows to.<br>
  */
 public class PatternTabItem
 {
-  final PluginTabFolder pluginTabFolder;
+  public final PluginTabFolder pluginTabFolder;
   TableViewer patternTableViewer;
 
   /**
@@ -66,7 +72,46 @@ public class PatternTabItem
     configurateToobar(patternTabComposite);
 
     //
-    configurePatternTableViewer(patternTabComposite);
+    configurePatternSashForm(patternTabComposite);
+  }
+
+  /**
+   * @param parent
+   */
+  private void configurePatternSashForm(Composite parent)
+  {
+    FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
+
+    //
+    SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL | SWT.SMOOTH);
+    formToolkit.adapt(sashForm);
+    //    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+    GridData layoutData = new GridData(GridData.FILL_BOTH);
+    //    layoutData.widthHint = 1000;
+    //    layoutData.heightHint = 1;
+    sashForm.setLayoutData(layoutData);
+
+    //
+    configurePatternTableViewer(sashForm);
+
+    //
+    ScrolledComposite scrolledComposite = new ScrolledComposite(sashForm, SWT.H_SCROLL | SWT.V_SCROLL);
+    scrolledComposite.setExpandHorizontal(true);
+    scrolledComposite.setExpandVertical(true);
+
+    //
+    PatternTypeComposite patternTypeComposite = new PatternTypeComposite(this, scrolledComposite, SWT.NONE);
+    scrolledComposite.setContent(patternTypeComposite.section);
+    scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+    // selection
+    patternTableViewer.addSelectionChangedListener(event -> {
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
+      patternTypeComposite.setPatternInfo(patternInfo);
+    });
+
+    sashForm.setWeights(new int[]{2, 1});
   }
 
   /**
@@ -201,7 +246,7 @@ public class PatternTabItem
   /**
    *
    */
-  void refresh()
+  public void refresh()
   {
     try
     {
@@ -275,7 +320,7 @@ public class PatternTabItem
   /**
    * Refresh for PatternInfo
    */
-  void refreshPatternInfo(PatternInfo patternInfo)
+  public void refreshPatternInfo(PatternInfo patternInfo)
   {
     patternTableViewer.getTable().setRedraw(false);
     try

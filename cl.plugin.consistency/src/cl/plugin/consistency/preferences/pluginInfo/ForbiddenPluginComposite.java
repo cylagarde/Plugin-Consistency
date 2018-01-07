@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences;
+package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.ArrayList;
 import java.util.Arrays;

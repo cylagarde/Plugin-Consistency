@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences;
+package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -146,9 +146,7 @@ class ForbiddenTypeComposite
     public void accept(IStructuredSelection oldStructuredSelection, IStructuredSelection newStructuredSelection)
     {
       if (!fireEvent)
-      {
         return;
-      }
       int forbiddenTypeIndex = Arrays.asList(typeListComposite.getChildren()).indexOf(typeComboViewer.getControl());
 
       String selectedTypeName = (String) newStructuredSelection.getFirstElement();

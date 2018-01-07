@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences;
+package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.Set;
 
@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 import cl.plugin.consistency.Images;
+import cl.plugin.consistency.preferences.PluginConsistencyPreferencePage;
 
 /**
  * The class <b>BundlesLabelProvider</b> allows to.<br>

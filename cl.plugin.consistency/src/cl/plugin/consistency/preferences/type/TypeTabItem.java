@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences;
+package cl.plugin.consistency.preferences.type;
 
 import java.util.Set;
 import java.util.function.Consumer;
@@ -36,6 +36,9 @@ import org.eclipse.ui.PlatformUI;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
+import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
+import cl.plugin.consistency.preferences.PluginTabFolder;
+import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
 
 /**
  * The class <b>TypeTabItem</b> allows to.<br>
@@ -167,7 +170,7 @@ public class TypeTabItem
   /**
    * Refresh
    */
-  void refresh()
+  public void refresh()
   {
     try
     {

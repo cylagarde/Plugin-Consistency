@@ -38,7 +38,7 @@ import cl.plugin.consistency.model.util.PluginConsistencyLoader;
 public class PluginConsistencyPreferencePage extends PreferencePage implements IWorkbenchPreferencePage
 {
   //
-  PluginConsistency pluginConsistency;
+  public PluginConsistency pluginConsistency;
 
   //
   Button activateButton;

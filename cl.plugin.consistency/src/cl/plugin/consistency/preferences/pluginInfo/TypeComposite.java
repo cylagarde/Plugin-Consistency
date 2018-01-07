@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences;
+package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,20 +29,20 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 
 import cl.plugin.consistency.Util;
-import cl.plugin.consistency.model.PatternInfo;
+import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 
 /**
- * The class <b>PatternTypeComposite</b> allows to.<br>
+ * The class <b>TypeComposite</b> allows to.<br>
  */
-class PatternTypeComposite
+class TypeComposite
 {
-  final PatternTabItem patternTabItem;
+  final ProjectDetail projectDetail;
   final Section section;
   final Composite typeListComposite;
   final ScrolledComposite scrolledComposite;
   IAction addTypeAction;
-  PatternInfo patternInfo;
+  PluginInfo pluginInfo;
   boolean fireEvent = true;
 
   /**
@@ -50,9 +50,9 @@ class PatternTypeComposite
    * @param parent
    * @param style
    */
-  PatternTypeComposite(PatternTabItem patternTabItem, Composite parent, int style)
+  TypeComposite(ProjectDetail projectDetail, Composite parent, int style)
   {
-    this.patternTabItem = patternTabItem;
+    this.projectDetail = projectDetail;
 
     FormToolkit toolkit = new FormToolkit(parent.getDisplay());
     section = toolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
@@ -101,25 +101,25 @@ class PatternTypeComposite
    */
   private List<String> getNotUsedTypes()
   {
-    List<String> types = patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).sorted().distinct().collect(Collectors.toList());
+    List<String> types = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).sorted().distinct().collect(Collectors.toList());
     types.add(0, "");
-    List<String> forbiddenTypes = patternInfo.typeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toList());
+    List<String> forbiddenTypes = pluginInfo.typeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toList());
     types.removeAll(forbiddenTypes);
     return types;
   }
 
   /**
-   * @param patternInfo
+   * @param pluginInfo
    */
-  public void setPatternInfo(PatternInfo patternInfo)
+  public void setPluginInfo(PluginInfo pluginInfo)
   {
-    this.patternInfo = patternInfo;
+    this.pluginInfo = pluginInfo;
     //    Util.setEnabled(section, pluginInfo != null);
 
     Stream.of(typeListComposite.getChildren()).forEach(Control::dispose);
-    if (patternInfo != null)
+    if (pluginInfo != null)
     {
-      for(Type type : patternInfo.typeList)
+      for(Type type : pluginInfo.typeList)
       {
         TypeBiConsumer typeBiConsumer = new TypeBiConsumer();
         List<String> types = getNotUsedTypes();
@@ -152,9 +152,9 @@ class PatternTypeComposite
       String selectedTypeName = (String) newStructuredSelection.getFirstElement();
       if (selectedTypeName == null || selectedTypeName.isEmpty())
       {
-        if (forbiddenTypeIndex < patternInfo.typeList.size())
+        if (forbiddenTypeIndex < pluginInfo.typeList.size())
         {
-          patternInfo.typeList.remove(forbiddenTypeIndex);
+          pluginInfo.typeList.remove(forbiddenTypeIndex);
         }
 
         // remove typeComboViewer
@@ -164,10 +164,10 @@ class PatternTypeComposite
       }
       else
       {
-        if (forbiddenTypeIndex < patternInfo.typeList.size())
+        if (forbiddenTypeIndex < pluginInfo.typeList.size())
         {
           // same -> no change
-          Type type = patternInfo.typeList.get(forbiddenTypeIndex);
+          Type type = pluginInfo.typeList.get(forbiddenTypeIndex);
           if (type.name == selectedTypeName)
             return;
           type.name = selectedTypeName;
@@ -176,7 +176,7 @@ class PatternTypeComposite
         {
           Type type = new Type();
           type.name = selectedTypeName;
-          patternInfo.typeList.add(type);
+          pluginInfo.typeList.add(type);
         }
       }
 
@@ -208,7 +208,7 @@ class PatternTypeComposite
         fireEvent = true;
       }
 
-      patternTabItem.refreshPatternInfo(patternInfo);
+      projectDetail.pluginTabItem.refreshPluginInfo(pluginInfo);
     }
   }
 

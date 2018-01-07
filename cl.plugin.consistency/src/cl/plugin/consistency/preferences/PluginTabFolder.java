@@ -4,13 +4,17 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TabFolder;
 
+import cl.plugin.consistency.preferences.pattern.PatternTabItem;
+import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
+import cl.plugin.consistency.preferences.type.TypeTabItem;
+
 /**
- *
+ * The class <b>PluginTabFolder</b> allows to.<br>
  */
 public class PluginTabFolder
 {
-  final PluginConsistencyPreferencePage pluginConsistencyPreferencePage;
-  final TabFolder tabFolder;
+  public final PluginConsistencyPreferencePage pluginConsistencyPreferencePage;
+  public final TabFolder tabFolder;
   final PluginTabItem pluginTabItem;
   final TypeTabItem typeTabItem;
   final PatternTabItem patternTabItem;
