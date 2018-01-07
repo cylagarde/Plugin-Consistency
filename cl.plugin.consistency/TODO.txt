@@ -1,4 +1,8 @@
-proposer de supprimer la ligne lorsque le project n'est pas valide
+supprimer "API", "IHM", "IMPLEMENTATION", "TEST"
+OK rajout des menus contextuels 
+	pour initialiser les types avec les patterns
+	pour resetter tous les types
+OK proposer de supprimer la ligne lorsque le project n'est pas valide
 
 detecter les chgts de nom de projet, d'id de plugin, open/close/delete project, refresh, clean
 Avoir un expandatableComposite 

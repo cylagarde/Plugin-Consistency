@@ -1,5 +1,8 @@
 package cl.plugin.consistency.preferences.pluginInfo;
 
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
@@ -10,6 +13,9 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.preferences.TypeElement;
+import cl.plugin.consistency.preferences.impl.ElementManagerComposite;
+import cl.plugin.consistency.preferences.impl.IElementManagerDataModel;
 
 /**
  * The class <b>ProjectDetail</b> allows to.<br>
@@ -18,8 +24,8 @@ class ProjectDetail
 {
   final PluginTabItem pluginTabItem;
   PluginInfo pluginInfo;
-  TypeComposite typeComposite;
-  ForbiddenTypeComposite forbiddenTypeComposite;
+  ElementManagerComposite<TypeElement, PluginInfoData> typeComposite;
+  ElementManagerComposite<TypeElement, PluginInfoData> forbiddenTypeComposite;
   ForbiddenPluginComposite forbiddenPluginComposite;
   Composite content;
 
@@ -70,7 +76,34 @@ class ProjectDetail
    */
   private void createTypeComposite(Composite parent)
   {
-    typeComposite = new TypeComposite(this, parent, SWT.NONE);
+    IElementManagerDataModel<TypeElement, PluginInfoData> typeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PluginInfoData>()
+    {
+      @Override
+      public void refreshData(PluginInfoData pluginInfoData)
+      {
+        pluginTabItem.refreshPluginInfo(pluginInfo);
+      }
+
+      @Override
+      public Collection<TypeElement> getElements()
+      {
+        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+      }
+
+      @Override
+      public String getSectionTitle()
+      {
+        return "Types";
+      }
+
+      @Override
+      public String getAddElementToolTipText()
+      {
+        return "Add new type";
+      }
+    };
+
+    typeComposite = new ElementManagerComposite<>(typeElementManagerDataModel, parent, SWT.NONE);
   }
 
   /**
@@ -78,7 +111,34 @@ class ProjectDetail
    */
   private void createForbiddenTypeComposite(Composite parent)
   {
-    forbiddenTypeComposite = new ForbiddenTypeComposite(this, parent, SWT.NONE);
+    IElementManagerDataModel<TypeElement, PluginInfoData> forbiddenTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PluginInfoData>()
+    {
+      @Override
+      public void refreshData(PluginInfoData pluginInfoData)
+      {
+        pluginTabItem.refreshPluginInfo(pluginInfo);
+      }
+
+      @Override
+      public Collection<TypeElement> getElements()
+      {
+        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+      }
+
+      @Override
+      public String getSectionTitle()
+      {
+        return "Forbidden types";
+      }
+
+      @Override
+      public String getAddElementToolTipText()
+      {
+        return "Add new forbidden type";
+      }
+    };
+
+    forbiddenTypeComposite = new ElementManagerComposite<>(forbiddenTypeElementManagerDataModel, parent, SWT.NONE);
   }
 
   /**
@@ -97,16 +157,16 @@ class ProjectDetail
   public void setPluginInfo(PluginInfo pluginInfo)
   {
     this.pluginInfo = pluginInfo;
+    boolean validPlugin = false;
 
     // recreate
-    typeComposite.setPluginInfo(pluginInfo);
-    forbiddenTypeComposite.setPluginInfo(pluginInfo);
-    forbiddenPluginComposite.setPluginInfo(pluginInfo);
-
-    //
-    boolean validPlugin = false;
     if (pluginInfo != null)
     {
+      typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.typeList));
+      forbiddenTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList));
+      forbiddenPluginComposite.setPluginInfo(pluginInfo);
+
+      //
       IProject project = Util.getProject(pluginInfo);
       validPlugin = Util.isValidPlugin(project);
     }

@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences.pattern;
+package cl.plugin.consistency.preferences.impl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,20 +29,18 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 
 import cl.plugin.consistency.Util;
-import cl.plugin.consistency.model.PatternInfo;
-import cl.plugin.consistency.model.Type;
 
 /**
- * The class <b>PatternTypeComposite</b> allows to.<br>
+ * The class <b>ElementManagerComposite</b> allows to.<br>
  */
-public class PatternTypeComposite
+public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 {
-  final PatternTabItem patternTabItem;
+  final IElementManagerDataModel<E, T> elementManagerDataModel;
   public final Section section;
-  final Composite typeListComposite;
+  final Composite elementListComposite;
   final ScrolledComposite scrolledComposite;
-  IAction addTypeAction;
-  PatternInfo patternInfo;
+  T data;
+  IAction addElementAction;
   boolean fireEvent = true;
 
   /**
@@ -50,22 +48,22 @@ public class PatternTypeComposite
    * @param parent
    * @param style
    */
-  public PatternTypeComposite(PatternTabItem patternTabItem, Composite parent, int style)
+  public ElementManagerComposite(IElementManagerDataModel<E, T> elementManagerDataModel, Composite parent, int style)
   {
-    this.patternTabItem = patternTabItem;
+    this.elementManagerDataModel = elementManagerDataModel;
 
     FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
 
     section = formToolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
-    section.setText("Types");
+    section.setText(elementManagerDataModel.getSectionTitle());
     section.setLayout(new GridLayout());
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
     final ToolBar toolbar = toolBarManager.createControl(section);
-    addTypeAction = new AddTypeAction();
+    addElementAction = new AddElementAction();
 
-    toolBarManager.add(addTypeAction);
+    toolBarManager.add(addElementAction);
     toolBarManager.update(true);
     section.setTextClient(toolbar);
 
@@ -78,12 +76,12 @@ public class PatternTypeComposite
     section.setClient(scrolledComposite);
 
     //
-    typeListComposite = formToolkit.createComposite(scrolledComposite);
+    elementListComposite = formToolkit.createComposite(scrolledComposite);
     GridLayout gridLayout = new GridLayout();
     gridLayout.marginWidth = gridLayout.marginHeight = 0;
     gridLayout.marginTop = gridLayout.marginLeft = gridLayout.marginRight = gridLayout.marginBottom = 0;
-    typeListComposite.setLayout(gridLayout);
-    scrolledComposite.setContent(typeListComposite);
+    elementListComposite.setLayout(gridLayout);
+    scrolledComposite.setContent(elementListComposite);
 
     //
     scrolledComposite.addControlListener(new ControlAdapter()
@@ -100,106 +98,103 @@ public class PatternTypeComposite
   /**
    * Return the not used types
    */
-  private List<String> getNotUsedTypes()
+  private List<String> getNotUsedElements()
   {
-    List<String> types = patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).sorted().distinct().collect(Collectors.toList());
-    types.add(0, "");
-    List<String> forbiddenTypes = patternInfo.typeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toList());
-    types.removeAll(forbiddenTypes);
-    return types;
+    List<String> elements = elementManagerDataModel.getElements().stream().map(E::getName).sorted().distinct().collect(Collectors.toList());
+    elements.add(0, "");
+    List<String> currentElements = data.getElements().stream().map(E::getName).collect(Collectors.toList());
+    elements.removeAll(currentElements);
+    return elements;
   }
 
   /**
-   * @param patternInfo
+   * @param data
    */
-  public void setPatternInfo(PatternInfo patternInfo)
+  public void setData(T data)
   {
-    this.patternInfo = patternInfo;
+    this.data = data;
     //    Util.setEnabled(section, pluginInfo != null);
 
-    Stream.of(typeListComposite.getChildren()).forEach(Control::dispose);
-    if (patternInfo != null)
+    Stream.of(elementListComposite.getChildren()).forEach(Control::dispose);
+    if (data != null)
     {
-      for(Type type : patternInfo.typeList)
+      for(E element : data.getElements())
       {
-        TypeBiConsumer typeBiConsumer = new TypeBiConsumer();
-        List<String> types = getNotUsedTypes();
-        types.add(type.name);
-        Collections.sort(types);
-        ComboViewer typeComboViewer = Util.createCombo(typeListComposite, types, type.name, typeBiConsumer);
-        typeBiConsumer.typeComboViewer = typeComboViewer;
+        ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
+        List<String> elements = getNotUsedElements();
+        elements.add(element.getName());
+        Collections.sort(elements);
+        ComboViewer elementComboViewer = Util.createCombo(elementListComposite, elements, element.getName(), elementBiConsumer);
+        elementBiConsumer.elementComboViewer = elementComboViewer;
 
-        typeComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+        elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
       }
     }
-    typeListComposite.layout();
+    elementListComposite.layout();
     scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
   /**
-   * The class <b>TypeBiConsumer</b> allows to.<br>
+   * The class <b>ElementBiConsumer</b> allows to.<br>
    */
-  class TypeBiConsumer implements BiConsumer<IStructuredSelection, IStructuredSelection>
+  class ElementBiConsumer implements BiConsumer<IStructuredSelection, IStructuredSelection>
   {
-    ComboViewer typeComboViewer;
+    ComboViewer elementComboViewer;
 
     @Override
     public void accept(IStructuredSelection oldStructuredSelection, IStructuredSelection newStructuredSelection)
     {
       if (!fireEvent)
         return;
-      int forbiddenTypeIndex = Arrays.asList(typeListComposite.getChildren()).indexOf(typeComboViewer.getControl());
+      int elementIndex = Arrays.asList(elementListComposite.getChildren()).indexOf(elementComboViewer.getControl());
 
-      String selectedTypeName = (String) newStructuredSelection.getFirstElement();
-      if (selectedTypeName == null || selectedTypeName.isEmpty())
+      String selectedElementName = (String) newStructuredSelection.getFirstElement();
+      if (selectedElementName == null || selectedElementName.isEmpty())
       {
-        if (forbiddenTypeIndex < patternInfo.typeList.size())
-        {
-          patternInfo.typeList.remove(forbiddenTypeIndex);
-        }
+        if (elementIndex < data.getElementCount())
+          data.removeElementAt(elementIndex);
 
-        // remove typeComboViewer
-        typeComboViewer.getControl().dispose();
-        typeListComposite.layout();
+        // remove ElementComboViewer
+        elementComboViewer.getControl().dispose();
+        elementListComposite.layout();
         scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
       }
       else
       {
-        if (forbiddenTypeIndex < patternInfo.typeList.size())
+        if (elementIndex < data.getElementCount())
         {
           // same -> no change
-          Type type = patternInfo.typeList.get(forbiddenTypeIndex);
-          if (type.name == selectedTypeName)
+          E element = data.getElementAt(elementIndex);
+          if (element.getName().equals(selectedElementName))
             return;
-          type.name = selectedTypeName;
+          element.setName(selectedElementName);
         }
         else
         {
-          Type type = new Type();
-          type.name = selectedTypeName;
-          patternInfo.typeList.add(type);
+          E element = data.createElement(selectedElementName);
+          data.addElement(element);
         }
       }
 
       // enable if last combo dont use empty selection
-      Control[] children = typeListComposite.getChildren();
+      Control[] children = elementListComposite.getChildren();
       Combo combo = children.length == 0? null : (Combo) children[children.length - 1];
-      addTypeAction.setEnabled(combo == null || (combo.getSelectionIndex() != 0 && getNotUsedTypes().size() != 1));
+      addElementAction.setEnabled(combo == null || (combo.getSelectionIndex() != 0 && getNotUsedElements().size() != 1));
 
       // reconstruct items for all combos
       try
       {
         fireEvent = false;
-        for(Control control : typeListComposite.getChildren())
+        for(Control control : elementListComposite.getChildren())
         {
           if (control instanceof Combo)
           {
             Combo child = (Combo) control;
-            List<String> types = getNotUsedTypes();
+            List<String> elements = getNotUsedElements();
             String selection = child.getText();
-            types.add(selection);
+            elements.add(selection);
             ComboViewer comboViewer = (ComboViewer) child.getData("ComboViewer");
-            comboViewer.setInput(types);
+            comboViewer.setInput(elements);
             comboViewer.setSelection(new StructuredSelection(selection));
           }
         }
@@ -209,31 +204,31 @@ public class PatternTypeComposite
         fireEvent = true;
       }
 
-      patternTabItem.refreshPatternInfo(patternInfo);
+      elementManagerDataModel.refreshData(data);
     }
   }
 
   /**
-   * The class <b>AddTypeAction</b> allows to.<br>
+   * The class <b>AddElementAction</b> allows to.<br>
    */
-  class AddTypeAction extends Action
+  class AddElementAction extends Action
   {
     {
       setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(org.eclipse.ui.ISharedImages.IMG_OBJ_ADD));
-      setToolTipText("Add type");
+      setToolTipText(elementManagerDataModel.getAddElementToolTipText());
     }
 
     @Override
     public void run()
     {
-      TypeBiConsumer typeBiConsumer = new TypeBiConsumer();
-      ComboViewer typeComboViewer = Util.createCombo(typeListComposite, getNotUsedTypes(), "", typeBiConsumer);
-      typeBiConsumer.typeComboViewer = typeComboViewer;
+      ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
+      ComboViewer elementComboViewer = Util.createCombo(elementListComposite, getNotUsedElements(), "", elementBiConsumer);
+      elementBiConsumer.elementComboViewer = elementComboViewer;
 
-      typeComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+      elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 
       setEnabled(false);
-      typeListComposite.layout();
+      elementListComposite.layout();
       scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
     }
   }

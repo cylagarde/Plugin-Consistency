@@ -1,5 +1,6 @@
 package cl.plugin.consistency.preferences.pattern;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -39,6 +40,9 @@ import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
+import cl.plugin.consistency.preferences.TypeElement;
+import cl.plugin.consistency.preferences.impl.ElementManagerComposite;
+import cl.plugin.consistency.preferences.impl.IElementManagerDataModel;
 import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
 
 /**
@@ -129,18 +133,93 @@ public class PatternTabItem
     sashForm.setLayoutData(layoutData);
 
     //
-    PatternTypeComposite patternTypeComposite = new PatternTypeComposite(this, sashForm, SWT.NONE);
-    PatternForbiddenTypeComposite patternForbiddenTypeComposite = new PatternForbiddenTypeComposite(this, sashForm, SWT.NONE);
+    ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = createTypeComposite(sashForm);
+
+    //
+    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenTypeComposite = createForbiddenTypeComposite(sashForm);
 
     // selection
     patternTableViewer.addSelectionChangedListener(event -> {
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
-      patternTypeComposite.setPatternInfo(patternInfo);
-      patternForbiddenTypeComposite.setPatternInfo(patternInfo);
+      patternTypeComposite.setData(new PatternInfoData(patternInfo, patternInfo.typeList));
+      patternForbiddenTypeComposite.setData(new PatternInfoData(patternInfo, patternInfo.forbiddenTypeList));
     });
 
     sashForm.setWeights(new int[]{1, 1});
+  }
+
+  /**
+   * @param parent
+   */
+  private ElementManagerComposite<TypeElement, PatternInfoData> createTypeComposite(Composite parent)
+  {
+    //
+    IElementManagerDataModel<TypeElement, PatternInfoData> typeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>()
+    {
+      @Override
+      public void refreshData(PatternInfoData patternInfoData)
+      {
+        refreshPatternInfo(patternInfoData.patternInfo);
+      }
+
+      @Override
+      public Collection<TypeElement> getElements()
+      {
+        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+      }
+
+      @Override
+      public String getSectionTitle()
+      {
+        return "Types";
+      }
+
+      @Override
+      public String getAddElementToolTipText()
+      {
+        return "Add new type";
+      }
+    };
+
+    ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = new ElementManagerComposite<>(typeElementManagerDataModel, parent, SWT.NONE);
+    return patternTypeComposite;
+  }
+
+  /**
+   * @param parent
+   */
+  private ElementManagerComposite<TypeElement, PatternInfoData> createForbiddenTypeComposite(Composite parent)
+  {
+    IElementManagerDataModel<TypeElement, PatternInfoData> forbiddenTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>()
+    {
+      @Override
+      public void refreshData(PatternInfoData patternInfoData)
+      {
+        refreshPatternInfo(patternInfoData.patternInfo);
+      }
+
+      @Override
+      public Collection<TypeElement> getElements()
+      {
+        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+      }
+
+      @Override
+      public String getSectionTitle()
+      {
+        return "Forbidden types";
+      }
+
+      @Override
+      public String getAddElementToolTipText()
+      {
+        return "Add new forbidden type";
+      }
+    };
+
+    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenTypeComposite = new ElementManagerComposite<>(forbiddenTypeElementManagerDataModel, parent, SWT.NONE);
+    return patternForbiddenTypeComposite;
   }
 
   /**
