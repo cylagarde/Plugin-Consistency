@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 
+import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 
@@ -226,11 +227,18 @@ public class TypeTabItem
             pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.removeIf(selectedTypeSet::contains);
 
             // remove types in plugin infos
-            Consumer<PluginInfo> removeTypeConsumer = pluginInfo -> {
+            Consumer<PluginInfo> removeTypeInPluginInfoConsumer = pluginInfo -> {
               pluginInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
               pluginInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
             };
-            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeConsumer);
+            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeInPluginInfoConsumer);
+
+            // remove types in pattern infos
+            Consumer<PatternInfo> removeTypeInPatternInfoConsumer = patternInfo -> {
+              patternInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+              patternInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+            };
+            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(removeTypeInPatternInfoConsumer);
 
             // refresh all TabFolder
             pluginTabFolder.refresh();
