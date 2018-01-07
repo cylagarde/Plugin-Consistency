@@ -202,8 +202,64 @@ public class TypeTabItem
       //
       if (!typeTableViewer.getSelection().isEmpty())
       {
+        createRenameTypeMenuItem(manager);
         createRemoveTypesMenuItem(manager);
       }
+    }
+
+    /**
+     */
+    private void createRenameTypeMenuItem(IMenuManager manager)
+    {
+      IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
+      if (selection.toList().size() != 1)
+        return;
+      Type selectedType = (Type) selection.getFirstElement();
+      String selectedTypeName = selectedType.name;
+
+      manager.add(new Action("Rename type")
+      {
+        @Override
+        public void run()
+        {
+          Set<String> alreadyExistTypeSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+
+          Shell shell = typeTableViewer.getControl().getShell();
+
+          IInputValidator validator = newText -> {
+            if (newText.isEmpty())
+              return "Value is empty";
+            if (alreadyExistTypeSet.contains(newText))
+              return "The type already exists";
+            return null;
+          };
+          InputDialog inputDialog = new InputDialog(shell, "Rename type", "Enter a new name", selectedTypeName, validator);
+          if (inputDialog.open() == InputDialog.OK)
+          {
+            String newTypeName = inputDialog.getValue();
+
+            // rename type
+            selectedType.name = newTypeName;
+
+            // rename types in plugin infos
+            Consumer<PluginInfo> renameTypeInPluginInfoConsumer = pluginInfo -> {
+              pluginInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+              pluginInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+            };
+            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(renameTypeInPluginInfoConsumer);
+
+            // rename types in pattern infos
+            Consumer<PatternInfo> renameTypeInPatternInfoConsumer = patternInfo -> {
+              patternInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+              patternInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+            };
+            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(renameTypeInPatternInfoConsumer);
+
+            // refresh all TabFolder
+            pluginTabFolder.refresh();
+          }
+        }
+      });
     }
 
     /**

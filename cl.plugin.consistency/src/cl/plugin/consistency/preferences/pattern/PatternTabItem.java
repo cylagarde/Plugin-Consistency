@@ -307,8 +307,54 @@ public class PatternTabItem
       //
       if (!patternTableViewer.getSelection().isEmpty())
       {
+        createRenamePatternMenuItem(manager);
         createRemovePatternsMenuItem(manager);
       }
+    }
+
+    /**
+     */
+    private void createRenamePatternMenuItem(IMenuManager manager)
+    {
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      if (selection.toList().size() != 1)
+        return;
+      PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
+      String selectedPattern = selectedPatternInfo.pattern;
+
+      manager.add(new Action("Rename pattern")
+      {
+        @Override
+        public void run()
+        {
+          Set<String> alreadyExistPatternSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().map(patternInfo -> patternInfo.pattern).collect(Collectors.toSet());
+
+          Shell shell = patternTableViewer.getControl().getShell();
+
+          IInputValidator validator = newText -> {
+            if (newText.isEmpty())
+              return "Value is empty";
+            if (alreadyExistPatternSet.contains(newText))
+              return "The pattern already exists";
+            return null;
+          };
+          InputDialog inputDialog = new InputDialog(shell, "Rename pattern", "Enter a new name", selectedPattern, validator);
+          if (inputDialog.open() == InputDialog.OK)
+          {
+            String newPattern = inputDialog.getValue();
+
+            Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+            // rename type
+            selectedPatternInfo.pattern = newPattern;
+
+            Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+            // refresh all TabFolder
+            pluginTabFolder.refresh();
+          }
+        }
+      });
     }
 
     /**
