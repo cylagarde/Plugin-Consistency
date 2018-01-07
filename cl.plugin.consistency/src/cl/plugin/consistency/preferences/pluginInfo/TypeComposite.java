@@ -54,8 +54,9 @@ class TypeComposite
   {
     this.projectDetail = projectDetail;
 
-    FormToolkit toolkit = new FormToolkit(parent.getDisplay());
-    section = toolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
+    FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
+
+    section = formToolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
     section.setText("Types");
     section.setLayout(new GridLayout());
 
@@ -77,7 +78,7 @@ class TypeComposite
     section.setClient(scrolledComposite);
 
     //
-    typeListComposite = toolkit.createComposite(scrolledComposite);
+    typeListComposite = formToolkit.createComposite(scrolledComposite);
     GridLayout gridLayout = new GridLayout();
     gridLayout.marginWidth = gridLayout.marginHeight = 0;
     gridLayout.marginTop = gridLayout.marginLeft = gridLayout.marginRight = gridLayout.marginBottom = 0;

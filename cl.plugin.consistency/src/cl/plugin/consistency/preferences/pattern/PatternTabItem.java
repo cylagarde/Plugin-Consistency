@@ -100,18 +100,47 @@ public class PatternTabItem
     scrolledComposite.setExpandVertical(true);
 
     //
-    PatternTypeComposite patternTypeComposite = new PatternTypeComposite(this, scrolledComposite, SWT.NONE);
-    scrolledComposite.setContent(patternTypeComposite.section);
+    createPatternDetailSashForm(scrolledComposite);
     scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+    sashForm.setWeights(new int[]{2, 1});
+  }
+
+  private void createPatternDetailSashForm(ScrolledComposite scrolledComposite)
+  {
+    FormToolkit formToolkit = new FormToolkit(scrolledComposite.getDisplay());
+
+    //
+    Composite content = formToolkit.createComposite(scrolledComposite);
+
+    GridLayout gridLayout = new GridLayout(1, false);
+    gridLayout.marginWidth = gridLayout.marginHeight = 2;
+    gridLayout.marginBottom = 3;
+    content.setLayout(gridLayout);
+    scrolledComposite.setContent(content);
+
+    //
+    SashForm sashForm = new SashForm(content, SWT.VERTICAL | SWT.SMOOTH);
+    formToolkit.adapt(sashForm);
+    //    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+    GridData layoutData = new GridData(GridData.FILL_BOTH);
+    //    layoutData.widthHint = 1000;
+    //    layoutData.heightHint = 1;
+    sashForm.setLayoutData(layoutData);
+
+    //
+    PatternTypeComposite patternTypeComposite = new PatternTypeComposite(this, sashForm, SWT.NONE);
+    PatternForbiddenTypeComposite patternForbiddenTypeComposite = new PatternForbiddenTypeComposite(this, sashForm, SWT.NONE);
 
     // selection
     patternTableViewer.addSelectionChangedListener(event -> {
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
       patternTypeComposite.setPatternInfo(patternInfo);
+      patternForbiddenTypeComposite.setPatternInfo(patternInfo);
     });
 
-    sashForm.setWeights(new int[]{2, 1});
+    sashForm.setWeights(new int[]{1, 1});
   }
 
   /**

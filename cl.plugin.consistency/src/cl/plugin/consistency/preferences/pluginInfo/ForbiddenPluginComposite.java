@@ -73,7 +73,7 @@ class ForbiddenPluginComposite
 
   /**
    * Constructor
-   * @param pluginConsistencyPreferencePage
+   * @param projectDetail
    * @param parent
    * @param style
    */
@@ -85,8 +85,9 @@ class ForbiddenPluginComposite
     validProjects = Util.getValidProjects();
 
     //
-    FormToolkit toolkit = new FormToolkit(parent.getDisplay());
-    section = toolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
+    FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
+
+    section = formToolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
     section.setText("Forbidden bundles/projects");
     section.setLayout(new GridLayout());
 

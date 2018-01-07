@@ -26,16 +26,16 @@ class ProjectDetail
   /**
    * Constructor
    *
-   * @param pluginConsistencyPreferencePage
+   * @param pluginTabItem
    * @param parent
    */
   ProjectDetail(PluginTabItem pluginTabItem, Composite parent)
   {
     this.pluginTabItem = pluginTabItem;
 
-    FormToolkit toolkit = new FormToolkit(parent.getDisplay());
+    FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
 
-    content = toolkit.createComposite(parent);
+    content = formToolkit.createComposite(parent);
 
     GridLayout gridLayout = new GridLayout(1, false);
     gridLayout.marginWidth = gridLayout.marginHeight = 2;
@@ -45,7 +45,7 @@ class ProjectDetail
     //
     SashForm sashForm = new SashForm(content, SWT.VERTICAL | SWT.SMOOTH);
     //    sashForm.setBackground(new Color(null, 255,0,0));
-    toolkit.adapt(sashForm);
+    formToolkit.adapt(sashForm);
 
     GridData sashFormLayoutData = new GridData(SWT.FILL, SWT.FILL, true, true);
     sashFormLayoutData.heightHint = 0;
