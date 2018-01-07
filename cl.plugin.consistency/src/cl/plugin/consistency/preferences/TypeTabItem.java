@@ -37,7 +37,7 @@ import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 
 /**
- *
+ * The class <b>TypeTabItem</b> allows to.<br>
  */
 public class TypeTabItem
 {

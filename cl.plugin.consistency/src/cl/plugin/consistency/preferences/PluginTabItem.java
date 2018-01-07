@@ -44,7 +44,7 @@ import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginInfo;
 
 /**
- *
+ * The class <b>PluginTabItem</b> allows to.<br>
  */
 public class PluginTabItem
 {
