@@ -40,7 +40,6 @@ import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginConsistency;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
-import cl.plugin.consistency.model.TypeReference;
 import cl.plugin.consistency.model.util.PluginConsistencyLoader;
 
 /**
@@ -234,8 +233,8 @@ public class Util
   private static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
   {
     Set<String> availableTypeSet = pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-    Set<String> typeSet = pluginInfo.typeReferenceList.stream().map(typeReference -> typeReference.name).collect(Collectors.toSet());
-    Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(typeReference -> typeReference.name).collect(Collectors.toSet());
+    Set<String> typeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
@@ -243,26 +242,26 @@ public class Util
       if (pluginInfo.name.contains(pattern))
       {
         // add type
-        String[] typeNames = patternInfo.typeReference.split(",");
-        for(String typeName : typeNames)
+        for(Type type : patternInfo.typeList)
         {
+          String typeName = type.name;
           if (availableTypeSet.contains(typeName) && !typeSet.contains(typeName))
           {
-            TypeReference typeReference = new TypeReference();
-            typeReference.name = typeName;
-            pluginInfo.typeReferenceList.add(typeReference);
+            type = new Type();
+            type.name = typeName;
+            pluginInfo.typeList.add(type);
           }
         }
 
         // add forbidden type
-        String[] forbiddenTypeNames = patternInfo.forbiddenTypeReference.split(",");
-        for(String forbiddenTypeName : forbiddenTypeNames)
+        for(Type type : patternInfo.forbiddenTypeList)
         {
+          String forbiddenTypeName = type.name;
           if (availableTypeSet.contains(forbiddenTypeName) && !forbiddenTypeSet.contains(forbiddenTypeName))
           {
-            TypeReference forbiddenTypeReference = new TypeReference();
-            forbiddenTypeReference.name = forbiddenTypeName;
-            pluginInfo.forbiddenTypeList.add(forbiddenTypeReference);
+            Type forbiddenType = new Type();
+            forbiddenType.name = forbiddenTypeName;
+            pluginInfo.forbiddenTypeList.add(forbiddenType);
           }
         }
       }
@@ -286,8 +285,8 @@ public class Util
    */
   private static void removePatternInPluginInfo(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
   {
-    Set<String> typeSet = pluginInfo.typeReferenceList.stream().map(typeReference -> typeReference.name).collect(Collectors.toSet());
-    Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(typeReference -> typeReference.name).collect(Collectors.toSet());
+    Set<String> typeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
@@ -295,19 +294,19 @@ public class Util
       if (pluginInfo.name.contains(pattern))
       {
         // remove type
-        String[] typeNames = patternInfo.typeReference.split(",");
-        for(String typeName : typeNames)
+        for(Type type : patternInfo.typeList)
         {
+          String typeName = type.name;
           if (typeSet.contains(typeName))
-            pluginInfo.typeReferenceList.removeIf(typeReference -> typeReference.name.equals(typeName));
+            pluginInfo.typeList.removeIf(type_ -> type_.name.equals(typeName));
         }
 
         // remove forbidden type
-        String[] forbiddenTypeNames = patternInfo.forbiddenTypeReference.split(",");
-        for(String forbiddenTypeName : forbiddenTypeNames)
+        for(Type forbiddenType : patternInfo.forbiddenTypeList)
         {
+          String forbiddenTypeName = forbiddenType.name;
           if (forbiddenTypeSet.contains(forbiddenTypeName))
-            pluginInfo.forbiddenTypeList.removeIf(typeReference -> typeReference.name.equals(forbiddenTypeName));
+            pluginInfo.forbiddenTypeList.removeIf(forbiddenType_ -> forbiddenType_.name.equals(forbiddenTypeName));
         }
       }
     }
@@ -331,7 +330,7 @@ public class Util
   {
     for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
     {
-      pluginInfo.typeReferenceList.clear();
+      pluginInfo.typeList.clear();
       pluginInfo.forbiddenTypeList.clear();
       pluginInfo.forbiddenPluginList.clear();
     }
@@ -376,9 +375,9 @@ public class Util
           if (optional.isPresent())
           {
             PluginInfo requirePluginInfo = optional.get();
-            for(TypeReference typeReference : requirePluginInfo.typeReferenceList)
+            for(Type type : requirePluginInfo.typeList)
             {
-              String typeName = typeReference.name;
+              String typeName = type.name;
               // check forbidden type
               if (forbiddenTypeSet.contains(typeName))
               {

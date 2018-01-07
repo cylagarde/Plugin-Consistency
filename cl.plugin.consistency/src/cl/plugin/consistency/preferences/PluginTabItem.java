@@ -206,7 +206,7 @@ public class PluginTabItem
       public String getText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String types = pluginInfo.typeReferenceList.stream().map(type -> type.name).collect(Collectors.joining(", "));
+        String types = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.joining(", "));
         return types;
       }
     });
@@ -313,6 +313,7 @@ public class PluginTabItem
   }
 
   /**
+   * The class <b>PluginInfoColumnLabelProvider</b> allows to.<br>
    */
   static class PluginInfoColumnLabelProvider extends ColumnLabelProvider
   {

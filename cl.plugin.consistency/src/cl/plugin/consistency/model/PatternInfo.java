@@ -1,6 +1,11 @@
 package cl.plugin.consistency.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 
 /**
  * The class <b>PatternInfo</b> allows to.<br>
@@ -10,11 +15,13 @@ public class PatternInfo
   @XmlAttribute(name = "pattern", required = true)
   public String pattern;
 
-  @XmlAttribute(name = "typeReference")
-  public String typeReference;
+  @XmlElementWrapper(name = "Types")
+  @XmlElement(name = "Type")
+  public List<Type> typeList = new ArrayList<>();
 
-  @XmlAttribute(name = "forbiddenTypeReference")
-  public String forbiddenTypeReference;
+  @XmlElementWrapper(name = "ForbiddenTypes")
+  @XmlElement(name = "Type")
+  public List<Type> forbiddenTypeList = new ArrayList<>();
 
   /*
    * @see java.lang.Object#toString()

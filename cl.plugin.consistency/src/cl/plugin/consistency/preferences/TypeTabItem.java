@@ -227,8 +227,8 @@ public class TypeTabItem
 
             // remove types in plugin infos
             Consumer<PluginInfo> removeTypeConsumer = pluginInfo -> {
-              pluginInfo.typeReferenceList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
-              pluginInfo.forbiddenTypeList.removeIf(typeReference -> selectedTypeNameSet.contains(typeReference.name));
+              pluginInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+              pluginInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
             };
             pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeConsumer);
 

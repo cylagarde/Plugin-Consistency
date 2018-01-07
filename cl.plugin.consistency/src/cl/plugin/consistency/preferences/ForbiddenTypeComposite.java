@@ -30,7 +30,7 @@ import org.eclipse.ui.forms.widgets.Section;
 
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginInfo;
-import cl.plugin.consistency.model.TypeReference;
+import cl.plugin.consistency.model.Type;
 
 /**
  * The class <b>ForbiddenTypeComposite</b> allows to.<br>
@@ -119,13 +119,13 @@ class ForbiddenTypeComposite
     Stream.of(typeListComposite.getChildren()).forEach(Control::dispose);
     if (pluginInfo != null)
     {
-      for(TypeReference typeReference : pluginInfo.forbiddenTypeList)
+      for(Type type : pluginInfo.forbiddenTypeList)
       {
         TypeBiConsumer typeBiConsumer = new TypeBiConsumer();
         List<String> types = getNotUsedTypes();
-        types.add(typeReference.name);
+        types.add(type.name);
         Collections.sort(types);
-        ComboViewer typeComboViewer = Util.createCombo(typeListComposite, types, typeReference.name, typeBiConsumer);
+        ComboViewer typeComboViewer = Util.createCombo(typeListComposite, types, type.name, typeBiConsumer);
         typeBiConsumer.typeComboViewer = typeComboViewer;
 
         typeComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
@@ -167,16 +167,16 @@ class ForbiddenTypeComposite
         if (forbiddenTypeIndex < pluginInfo.forbiddenTypeList.size())
         {
           // same -> no change
-          TypeReference forbiddenTypeReference = pluginInfo.forbiddenTypeList.get(forbiddenTypeIndex);
-          if (forbiddenTypeReference.name == selectedTypeName)
+          Type forbiddenType = pluginInfo.forbiddenTypeList.get(forbiddenTypeIndex);
+          if (forbiddenType.name == selectedTypeName)
             return;
-          forbiddenTypeReference.name = selectedTypeName;
+          forbiddenType.name = selectedTypeName;
         }
         else
         {
-          TypeReference forbiddenTypeReference = new TypeReference();
-          forbiddenTypeReference.name = selectedTypeName;
-          pluginInfo.forbiddenTypeList.add(forbiddenTypeReference);
+          Type forbiddenType = new Type();
+          forbiddenType.name = selectedTypeName;
+          pluginInfo.forbiddenTypeList.add(forbiddenType);
         }
       }
 

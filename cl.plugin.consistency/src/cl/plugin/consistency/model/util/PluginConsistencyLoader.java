@@ -46,7 +46,7 @@ public class PluginConsistencyLoader
     pluginConsistency.typeList = new ArrayList<>(new LinkedHashSet<>(pluginConsistency.typeList));
     for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
     {
-      pluginInfo.typeReferenceList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.typeReferenceList));
+      pluginInfo.typeList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.typeList));
       pluginInfo.forbiddenTypeList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.forbiddenTypeList));
       pluginInfo.forbiddenPluginList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.forbiddenPluginList));
     }

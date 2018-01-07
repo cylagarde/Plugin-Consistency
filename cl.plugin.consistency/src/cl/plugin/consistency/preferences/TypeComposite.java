@@ -30,7 +30,7 @@ import org.eclipse.ui.forms.widgets.Section;
 
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginInfo;
-import cl.plugin.consistency.model.TypeReference;
+import cl.plugin.consistency.model.Type;
 
 /**
  * The class <b>ForbiddenTypeComposite</b> allows to.<br>
@@ -103,7 +103,7 @@ class TypeComposite
   {
     List<String> types = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).sorted().distinct().collect(Collectors.toList());
     types.add(0, "");
-    List<String> forbiddenTypes = pluginInfo.typeReferenceList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toList());
+    List<String> forbiddenTypes = pluginInfo.typeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toList());
     types.removeAll(forbiddenTypes);
     return types;
   }
@@ -119,13 +119,13 @@ class TypeComposite
     Stream.of(typeListComposite.getChildren()).forEach(Control::dispose);
     if (pluginInfo != null)
     {
-      for(TypeReference typeReference : pluginInfo.typeReferenceList)
+      for(Type type : pluginInfo.typeList)
       {
         TypeBiConsumer typeBiConsumer = new TypeBiConsumer();
         List<String> types = getNotUsedTypes();
-        types.add(typeReference.name);
+        types.add(type.name);
         Collections.sort(types);
-        ComboViewer typeComboViewer = Util.createCombo(typeListComposite, types, typeReference.name, typeBiConsumer);
+        ComboViewer typeComboViewer = Util.createCombo(typeListComposite, types, type.name, typeBiConsumer);
         typeBiConsumer.typeComboViewer = typeComboViewer;
 
         typeComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
@@ -154,9 +154,9 @@ class TypeComposite
       String selectedTypeName = (String) newStructuredSelection.getFirstElement();
       if (selectedTypeName == null || selectedTypeName.isEmpty())
       {
-        if (forbiddenTypeIndex < pluginInfo.typeReferenceList.size())
+        if (forbiddenTypeIndex < pluginInfo.typeList.size())
         {
-          pluginInfo.typeReferenceList.remove(forbiddenTypeIndex);
+          pluginInfo.typeList.remove(forbiddenTypeIndex);
         }
 
         // remove typeComboViewer
@@ -166,21 +166,21 @@ class TypeComposite
       }
       else
       {
-        if (forbiddenTypeIndex < pluginInfo.typeReferenceList.size())
+        if (forbiddenTypeIndex < pluginInfo.typeList.size())
         {
           // same -> no change
-          TypeReference typeReference = pluginInfo.typeReferenceList.get(forbiddenTypeIndex);
-          if (typeReference.name == selectedTypeName)
+          Type type = pluginInfo.typeList.get(forbiddenTypeIndex);
+          if (type.name == selectedTypeName)
           {
             return;
           }
-          typeReference.name = selectedTypeName;
+          type.name = selectedTypeName;
         }
         else
         {
-          TypeReference typeReference = new TypeReference();
-          typeReference.name = selectedTypeName;
-          pluginInfo.typeReferenceList.add(typeReference);
+          Type type = new Type();
+          type.name = selectedTypeName;
+          pluginInfo.typeList.add(type);
         }
       }
 

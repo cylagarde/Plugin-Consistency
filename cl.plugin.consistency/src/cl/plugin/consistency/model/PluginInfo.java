@@ -20,12 +20,12 @@ public class PluginInfo
   public String name;
 
   @XmlElementWrapper(name = "Types")
-  @XmlElement(name = "TypeReference")
-  public List<TypeReference> typeReferenceList = new ArrayList<>();
+  @XmlElement(name = "Type")
+  public List<Type> typeList = new ArrayList<>();
 
   @XmlElementWrapper(name = "ForbiddenTypes")
-  @XmlElement(name = "TypeReference")
-  public List<TypeReference> forbiddenTypeList = new ArrayList<>();
+  @XmlElement(name = "Type")
+  public List<Type> forbiddenTypeList = new ArrayList<>();
 
   @XmlElementWrapper(name = "ForbiddenPlugins")
   @XmlElement(name = "ForbiddenPlugin")
@@ -34,7 +34,7 @@ public class PluginInfo
   @Override
   public String toString()
   {
-    String types = typeReferenceList.stream().map(typeRef -> typeRef.name).collect(Collectors.joining(", ", "[", "]"));
+    String types = typeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
     String forbiddenTypes = forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.joining(", ", "[", "]"));
     String forbiddenPlugins = forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).collect(Collectors.joining(", ", "[", "]"));
     return "PluginInfo[id=" + id + ", name=" + name + ", types=" + types + ", forbiddenTypes=" + forbiddenTypes + ", forbiddenPlugins=" + forbiddenPlugins + "]";
@@ -44,10 +44,8 @@ public class PluginInfo
    */
   public boolean isModified()
   {
-    if (!typeReferenceList.isEmpty() || !forbiddenTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
-    {
+    if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
       return true;
-    }
     return false;
   }
 
