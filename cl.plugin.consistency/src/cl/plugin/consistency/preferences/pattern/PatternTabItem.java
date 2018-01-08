@@ -266,9 +266,9 @@ public class PatternTabItem
   }
 
   /**
-  *
-  * @param parent
-  */
+   *
+   * @param parent
+   */
   private void configurePatternTableViewer(Composite parent)
   {
     patternTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
@@ -308,7 +308,7 @@ public class PatternTabItem
       public String getText(Object element)
       {
         PatternInfo patternInfo = (PatternInfo) element;
-        String txt = patternInfo.typeList.stream().map(type -> type.name).collect(Collectors.joining(", "));
+        String txt = patternInfo.typeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "));
         return txt;
       }
     });
@@ -326,7 +326,7 @@ public class PatternTabItem
       public String getText(Object element)
       {
         PatternInfo patternInfo = (PatternInfo) element;
-        String txt = patternInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.joining(", "));
+        String txt = patternInfo.forbiddenTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "));
         return txt;
       }
     });

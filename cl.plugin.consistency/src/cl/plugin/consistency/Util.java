@@ -230,7 +230,7 @@ public class Util
    * @param pluginConsistency
    * @param pluginInfo
    */
-  private static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
+  public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
   {
     Set<String> availableTypeSet = pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
     Set<String> typeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
@@ -247,9 +247,9 @@ public class Util
           String typeName = type.name;
           if (availableTypeSet.contains(typeName) && !typeSet.contains(typeName))
           {
-            type = new Type();
-            type.name = typeName;
-            pluginInfo.typeList.add(type);
+            Type newType = new Type();
+            newType.name = typeName;
+            pluginInfo.typeList.add(newType);
           }
         }
 
@@ -283,7 +283,7 @@ public class Util
    * @param pluginConsistency
    * @param pluginInfo
    */
-  private static void removePatternInPluginInfo(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
+  public static void removePatternInPluginInfo(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
   {
     Set<String> typeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
     Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
@@ -329,11 +329,18 @@ public class Util
   public static void resetTypesInAllPluginInfos(PluginConsistency pluginConsistency)
   {
     for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
-    {
-      pluginInfo.typeList.clear();
-      pluginInfo.forbiddenTypeList.clear();
-      pluginInfo.forbiddenPluginList.clear();
-    }
+      resetTypesInPluginInfo(pluginInfo);
+  }
+
+  /**
+   * Reset types in pluginInfo
+   * @param pluginInfo
+   */
+  public static void resetTypesInPluginInfo(PluginInfo pluginInfo)
+  {
+    pluginInfo.typeList.clear();
+    pluginInfo.forbiddenTypeList.clear();
+    pluginInfo.forbiddenPluginList.clear();
   }
 
   private static final String CL_PLUGIN_CONSISTENCY_MARKER = "cl.plugin.consistency.marker";
@@ -682,5 +689,42 @@ public class Util
   public static IProject getProject(PluginInfo pluginInfo)
   {
     return ResourcesPlugin.getWorkspace().getRoot().getProject(pluginInfo.name);
+  }
+
+  /**
+   * Launch job for checking projects
+   * @param pluginConsistency
+   */
+  public static void launchConsistencyCheck(PluginConsistency pluginConsistency)
+  {
+    // launch project checking
+    WorkspaceJob job = new WorkspaceJob("Check Project Consistency")
+    {
+      @Override
+      public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
+      {
+        IProject[] validProjects = Util.getValidProjects();
+        monitor.beginTask("Checking projects consistency ...", validProjects.length);
+        for(IProject project : validProjects)
+        {
+          if (monitor.isCanceled())
+            break;
+          try
+          {
+            monitor.subTask("Checking project " + project.getName());
+            checkProjectConsistency(pluginConsistency, project);
+            monitor.worked(1);
+          }
+          catch(Exception e)
+          {
+            Activator.logError("Error when checking onsistency on project " + project.getDefaultCharset(), e);
+          }
+        }
+        monitor.done();
+
+        return Status.OK_STATUS;
+      }
+    };
+    job.schedule();
   }
 }

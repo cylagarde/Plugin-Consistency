@@ -1,3 +1,9 @@
+OK copier/coller les types
+pas de mise à jour apres le renseignement des types ds la partie pattern
+OK check long sur S3
+apres la creation d'un pattern, le sélectionner
+OK pas de tri des types dans la table
+
 supprimer "API", "IHM", "IMPLEMENTATION", "TEST"
 OK rajout des menus contextuels 
 	pour initialiser les types avec les patterns

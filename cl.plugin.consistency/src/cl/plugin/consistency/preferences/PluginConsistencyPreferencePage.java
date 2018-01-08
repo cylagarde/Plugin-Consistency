@@ -225,43 +225,13 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     {
       Activator.getDefault().setPluginConsistency(compactPluginConsistency);
       Activator.getDefault().activate();
-
-      // launch project checking
-      WorkspaceJob job = new WorkspaceJob("Check Project Consistency")
-      {
-        @Override
-        public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
-        {
-          IProject[] validProjects = Util.getValidProjects();
-          monitor.beginTask("Checking projects consistency ...", validProjects.length);
-          for(IProject project : validProjects)
-          {
-            if (monitor.isCanceled())
-              break;
-            try
-            {
-              monitor.subTask("Checking project " + project.getName());
-              Util.checkProjectConsistency(compactPluginConsistency, project);
-              monitor.worked(1);
-            }
-            catch(Exception e)
-            {
-              Activator.logError("Error when checking onsistency on project " + project.getDefaultCharset(), e);
-            }
-          }
-          monitor.done();
-
-          return Status.OK_STATUS;
-        }
-      };
-      job.schedule();
     }
     else
     {
-      Activator.getDefault().desactivate();
       Activator.getDefault().setPluginConsistency(null);
+      Activator.getDefault().desactivate();
 
-      // launch project check
+      // launch project uncheck
       WorkspaceJob job = new WorkspaceJob("Remove Project Consistency")
       {
         @Override

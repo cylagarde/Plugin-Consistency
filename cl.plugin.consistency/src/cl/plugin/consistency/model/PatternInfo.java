@@ -31,4 +31,13 @@ public class PatternInfo
   {
     return "Pattern[pattern=" + pattern + "]";
   }
+
+  /**
+   */
+  public boolean isModified()
+  {
+    if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty())
+      return true;
+    return false;
+  }
 }

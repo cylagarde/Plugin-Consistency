@@ -2,7 +2,6 @@ package cl.plugin.consistency;
 
 import java.io.File;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspace;
@@ -102,22 +101,7 @@ public class Activator extends AbstractUIPlugin
       workspace.addResourceChangeListener(checkPluginConsistencyResourceChangeListener, IResourceChangeEvent.POST_CHANGE);
     }
 
-    // remove useless pluginInfo
-    PluginConsistency compactPluginConsistency = getPluginConsistency().compact();
-
-    //
-    IProject[] validProjects = Util.getValidProjects();
-    for(IProject project : validProjects)
-    {
-      try
-      {
-        Util.checkProjectConsistency(compactPluginConsistency, project);
-      }
-      catch(Exception e)
-      {
-        Activator.logError("Error when checking consistency on project "+project.getName(), e);
-      }
-    }
+    Util.launchConsistencyCheck(getPluginConsistency());
   }
 
   /**

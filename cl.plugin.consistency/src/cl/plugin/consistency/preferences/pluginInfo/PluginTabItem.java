@@ -1,5 +1,6 @@
 package cl.plugin.consistency.preferences.pluginInfo;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -10,6 +11,7 @@ import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -41,7 +43,9 @@ import org.eclipse.ui.ide.IDE.SharedImages;
 
 import cl.plugin.consistency.Activator;
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
 
@@ -208,7 +212,7 @@ public class PluginTabItem
       public String getText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String types = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.joining(", "));
+        String types = pluginInfo.typeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "));
         return types;
       }
     });
@@ -223,7 +227,7 @@ public class PluginTabItem
       public String getText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String forbiddenTypes = pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.joining(", "));
+        String forbiddenTypes = pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).sorted().collect(Collectors.joining(", "));
         return forbiddenTypes;
       }
     });
@@ -239,7 +243,7 @@ public class PluginTabItem
       public String getText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String forbiddenBundles = pluginInfo.forbiddenPluginList.stream().map(forbiddenPluginInfo -> forbiddenPluginInfo.id).collect(Collectors.joining(", "));
+        String forbiddenBundles = pluginInfo.forbiddenPluginList.stream().map(forbiddenPluginInfo -> forbiddenPluginInfo.id).sorted().collect(Collectors.joining(", "));
         return forbiddenBundles;
       }
     });
@@ -343,22 +347,117 @@ public class PluginTabItem
    */
   class PluginInfoMenuListener implements IMenuListener
   {
+    Set<String> copiedTypeSet = Collections.emptySet();
+    Set<String> copiedForbiddenTypeSet = Collections.emptySet();
+
     @Override
     public void menuAboutToShow(IMenuManager manager)
     {
       manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 
-      //
-      if (!projectTableViewer.getSelection().isEmpty())
-      {
-        createRemoveInvalidPluginsMenuItem(manager);
-      }
+      if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.isEmpty())
+        return;
 
-      createRemoveTypesFromPatternsMenuItem(manager);
-      createAddTypesFromPatternsMenuItem(manager);
-      createResetTypesMenuItem(manager);
+      //
+      createCopyPasteTypesMenuItems(manager);
+      createAddTypesFromPatternsMenuItems(manager);
+      createRemoveTypesFromPatternsMenuItems(manager);
+      createResetTypesMenuItems(manager);
+      createRemoveInvalidPluginsMenuItem(manager);
     }
 
+    /**
+     *
+     * @param manager
+     */
+    private void createCopyPasteTypesMenuItems(IMenuManager manager)
+    {
+      boolean separatorAdded = false;
+
+      IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+      Stream<PluginInfo> pluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
+      Set<PluginInfo> selectedPluginInfoSet = pluginInfoStream.collect(Collectors.toSet());
+      if (selectedPluginInfoSet.size() == 1)
+      {
+        PluginInfo pluginInfo = selectedPluginInfoSet.iterator().next();
+        if (pluginInfo.isModified())
+        {
+          Set<String> currentTypeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+          Set<String> currentForbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+          if (! currentTypeSet.equals(copiedTypeSet) || ! currentForbiddenTypeSet.equals(copiedForbiddenTypeSet))
+          {
+            if (manager.getItems().length > 1)
+              manager.add(new Separator());
+            separatorAdded = true;
+
+            manager.add(new Action("Copy types in memory")
+            {
+              @Override
+              public void run()
+              {
+                copiedTypeSet = currentTypeSet;
+                copiedForbiddenTypeSet = currentForbiddenTypeSet;
+              }
+            });
+          }
+        }
+      }
+
+      if (! copiedTypeSet.isEmpty() || ! copiedForbiddenTypeSet.isEmpty())
+      {
+        if (! selectedPluginInfoSet.isEmpty())
+        {
+          if (! separatorAdded && manager.getItems().length > 1)
+            manager.add(new Separator());
+
+          manager.add(new Action("Paste and replace types from memory")
+          {
+            @Override
+            public void run()
+            {
+              Set<String> availableTypeSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+
+              for(PluginInfo pluginInfo : selectedPluginInfoSet)
+              {
+                // clear
+                pluginInfo.typeList.clear();
+                pluginInfo.forbiddenTypeList.clear();
+
+                // copy type
+                for(String typeName : copiedTypeSet)
+                {
+                  if (availableTypeSet.contains(typeName))
+                  {
+                    Type newType = new Type();
+                    newType.name = typeName;
+                    pluginInfo.typeList.add(newType);
+                  }
+                }
+
+                // copy forbidden type
+                for(String forbiddenTypeName : copiedForbiddenTypeSet)
+                {
+                  if (availableTypeSet.contains(forbiddenTypeName))
+                  {
+                    Type newForbiddentType = new Type();
+                    newForbiddentType.name = forbiddenTypeName;
+                    pluginInfo.forbiddenTypeList.add(newForbiddentType);
+                  }
+                }
+              }
+
+              // refresh tableViewer
+              refresh();
+            }
+          });
+        }
+      }
+    }
+
+    /**
+     *
+     * @param manager
+     */
     private void createRemoveInvalidPluginsMenuItem(IMenuManager manager)
     {
       IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
@@ -366,6 +465,9 @@ public class PluginTabItem
       Set<PluginInfo> notExistPluginInfoSet = selectedPluginInfoStream.filter(pluginInfo -> !Util.getProject(pluginInfo).exists()).collect(Collectors.toSet());
       if (!notExistPluginInfoSet.isEmpty())
       {
+        if (manager.getItems().length > 1)
+          manager.add(new Separator());
+
         manager.add(new Action("Remove non-existent plugins")
         {
           @Override
@@ -389,52 +491,180 @@ public class PluginTabItem
       }
     }
 
-    private void createRemoveTypesFromPatternsMenuItem(IMenuManager manager)
+    /**
+     *
+     * @param manager
+     */
+    private void createRemoveTypesFromPatternsMenuItems(IMenuManager manager)
     {
-      manager.add(new Action("Remove types from patterns")
+      if (! pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.isEmpty())
       {
-        @Override
-        public void run()
-        {
-          //
-          Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+        boolean separatorAdded = false;
 
-          // refresh tableViewer
-          refresh();
+        IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+        Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
+        Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::isModified).collect(Collectors.toSet());
+        if (!modifiedSelectedPluginInfoSet.isEmpty())
+        {
+          if (manager.getItems().length > 1)
+            manager.add(new Separator());
+          separatorAdded = true;
+
+          manager.add(new Action("Remove types from patterns on selected plugins")
+          {
+            @Override
+            public void run()
+            {
+              //
+              for(PluginInfo pluginInfo : modifiedSelectedPluginInfoSet)
+                Util.removePatternInPluginInfo(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo);
+
+              // refresh tableViewer
+              refresh();
+            }
+          });
         }
-      });
+
+        Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::isModified).collect(Collectors.toSet());
+        if (!modifiedPluginInfoSet.isEmpty())
+        {
+          if (! separatorAdded && manager.getItems().length > 1)
+            manager.add(new Separator());
+
+          manager.add(new Action("Remove types from patterns on all plugins")
+          {
+            @Override
+            public void run()
+            {
+              //
+              for(PluginInfo pluginInfo : modifiedPluginInfoSet)
+                Util.removePatternInPluginInfo(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo);
+
+              // refresh tableViewer
+              refresh();
+            }
+          });
+        }
+      }
     }
 
-    private void createAddTypesFromPatternsMenuItem(IMenuManager manager)
+    /**
+     *
+     * @param manager
+     */
+    private void createAddTypesFromPatternsMenuItems(IMenuManager manager)
     {
-      manager.add(new Action("Add types from patterns")
+      Set<PatternInfo> modifiedPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(PatternInfo::isModified).collect(Collectors.toSet());
+      if (!modifiedPatternInfoSet.isEmpty())
       {
-        @Override
-        public void run()
-        {
-          //
-          Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+        if (manager.getItems().length > 1)
+          manager.add(new Separator());
 
-          // refresh tableViewer
-          refresh();
+        //
+        IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+        Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
+        Set<PluginInfo> modifiedPluginInfoSet = selectedPluginInfoStream.collect(Collectors.toSet());
+
+        boolean found = false;
+        loop:
+          for(PatternInfo patternInfo : modifiedPatternInfoSet)
+          {
+            String pattern = patternInfo.pattern;
+            for(PluginInfo pluginInfo : modifiedPluginInfoSet)
+            {
+              if (pluginInfo.name.contains(pattern))
+              {
+                found = true;
+                break loop;
+              }
+            }
+          }
+
+        if (found)
+        {
+          manager.add(new Action("Add types from patterns on selected plugins")
+          {
+            @Override
+            public void run()
+            {
+              //
+              for(PluginInfo pluginInfo : modifiedPluginInfoSet)
+                Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo);
+
+              // refresh tableViewer
+              refresh();
+            }
+          });
         }
-      });
+
+        manager.add(new Action("Add types from patterns on all plugins")
+        {
+          @Override
+          public void run()
+          {
+            //
+            Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+            // refresh tableViewer
+            refresh();
+          }
+        });
+      }
     }
 
-    private void createResetTypesMenuItem(IMenuManager manager)
+    /**
+     *
+     * @param manager
+     */
+    private void createResetTypesMenuItems(IMenuManager manager)
     {
-      manager.add(new Action("Reset")
-      {
-        @Override
-        public void run()
-        {
-          //
-          Util.resetTypesInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+      boolean separatorAdded = false;
 
-          // refresh tableViewer
-          refresh();
-        }
-      });
+      IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+      Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
+      Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::isModified).collect(Collectors.toSet());
+      if (!modifiedSelectedPluginInfoSet.isEmpty())
+      {
+        if (manager.getItems().length > 1)
+          manager.add(new Separator());
+        separatorAdded = true;
+
+        manager.add(new Action("Reset types on selected plugins")
+        {
+          @Override
+          public void run()
+          {
+            //
+            for(PluginInfo pluginInfo : modifiedSelectedPluginInfoSet)
+              Util.resetTypesInPluginInfo(pluginInfo);
+
+            // refresh tableViewer
+            refresh();
+          }
+        });
+      }
+
+      Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::isModified).collect(Collectors.toSet());
+      if (!modifiedPluginInfoSet.isEmpty())
+      {
+        if (! separatorAdded && manager.getItems().length > 1)
+          manager.add(new Separator());
+
+
+        manager.add(new Action("Reset types on all plugins")
+        {
+          @Override
+          public void run()
+          {
+            //
+            for(PluginInfo pluginInfo : modifiedPluginInfoSet)
+              Util.resetTypesInPluginInfo(pluginInfo);
+
+            // refresh tableViewer
+            refresh();
+          }
+        });
+      }
     }
   }
 }
