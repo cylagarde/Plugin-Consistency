@@ -157,16 +157,16 @@ class ProjectDetail
   public void setPluginInfo(PluginInfo pluginInfo)
   {
     this.pluginInfo = pluginInfo;
-    boolean validPlugin = false;
 
     // recreate
+    typeComposite.setData(pluginInfo == null? null : new PluginInfoData(pluginInfo, pluginInfo.typeList));
+    forbiddenTypeComposite.setData(pluginInfo == null? null : new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList));
+    forbiddenPluginComposite.setPluginInfo(pluginInfo);
+
+    //
+    boolean validPlugin = false;
     if (pluginInfo != null)
     {
-      typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.typeList));
-      forbiddenTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList));
-      forbiddenPluginComposite.setPluginInfo(pluginInfo);
-
-      //
       IProject project = Util.getProject(pluginInfo);
       validPlugin = Util.isValidPlugin(project);
     }

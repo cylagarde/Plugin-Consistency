@@ -16,6 +16,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -142,8 +143,8 @@ public class PatternTabItem
     patternTableViewer.addSelectionChangedListener(event -> {
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
-      patternTypeComposite.setData(new PatternInfoData(patternInfo, patternInfo.typeList));
-      patternForbiddenTypeComposite.setData(new PatternInfoData(patternInfo, patternInfo.forbiddenTypeList));
+      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.typeList));
+      patternForbiddenTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.forbiddenTypeList));
     });
 
     sashForm.setWeights(new int[]{1, 1});
@@ -260,6 +261,8 @@ public class PatternTabItem
 
           // refresh all TabFolder
           pluginTabFolder.refresh();
+
+          patternTableViewer.setSelection(new StructuredSelection(patternInfo));
         }
       }
     });
