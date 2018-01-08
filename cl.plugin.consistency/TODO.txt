@@ -1,26 +1,26 @@
-OK copier/coller les types
 pas de mise à jour apres le renseignement des types ds la partie pattern
-OK check long sur S3
-OK apres la creation d'un pattern, le sélectionner
-OK pas de tri des types dans la table
-
 supprimer "API", "IHM", "IMPLEMENTATION", "TEST"
-OK rajout des menus contextuels 
+
+OK : copier/coller les types
+OK : check long sur S3
+OK : apres la creation d'un pattern, le sélectionner
+OK : pas de tri des types dans la table
+OK : rajout des menus contextuels 
 	pour initialiser les types avec les patterns
 	pour resetter tous les types
-OK proposer de supprimer la ligne lorsque le project n'est pas valide
+OK : proposer de supprimer la ligne lorsque le project n'est pas valide
 
 detecter les chgts de nom de projet, d'id de plugin, open/close/delete project, refresh, clean
 Avoir un expandatableComposite 
-ajouter la création de nouveaux types (permettre de définir les anti types par défaut, API dont use IMPLEMENTATION, TEST, IHM)
-ajouter une liste de bundles pour les typer
+OK : ajouter la création de nouveaux types 
+permettre de définir les anti types par défaut, API dont use IMPLEMENTATION, TEST
 mettre un decoration sur le textfield pour importer un fichier consistency
 check les features : si un projet est fermé alors vérifier si une feature le contient et envoyer une erreur
 
 
-OK définir un pattern pour typer directement les plugins (plugin contenant functional alors Type="FUNCTIONAL_COMMON")
-OK définir un pattern pour typer directement les forbidden plugins (plugin contenant functional alors ForbiddenType="IBD")
-OK ne pas supprimer les projects fermés ou inexistants mais plutot afficher une icone d'erreur et griser la ligne
+OK : définir un pattern pour typer directement les plugins (plugin contenant functional alors Type="FUNCTIONAL_COMMON")
+OK : définir un pattern pour typer directement les forbidden plugins (plugin contenant functional alors ForbiddenType="IBD")
+OK : ne pas supprimer les projects fermés ou inexistants mais plutot afficher une icone d'erreur et griser la ligne
 OK : deplacer le WorkspaceJob
 OK : sort types
 OK : ameliorer la recherche de la ligne du require bundle

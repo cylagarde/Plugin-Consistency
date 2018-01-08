@@ -39,6 +39,8 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
+import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
 import cl.plugin.consistency.preferences.TypeElement;
@@ -151,6 +153,45 @@ public class PatternTabItem
   }
 
   /**
+   * @param patternInfoData
+   */
+  void updateAllPluginInfosWithPatternInfo(PatternInfoData patternInfoData)
+  {
+    String pattern = patternInfoData.patternInfo.pattern;
+
+    for(PluginInfo pluginInfo : pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList)
+    {
+      if (pluginInfo.name.contains(pattern))
+      {
+        // types
+        if (patternInfoData.typeList == patternInfoData.patternInfo.typeList)
+        {
+          pluginInfo.typeList.removeIf(type -> patternInfoData.oldTypeSet.contains(type.name));
+          patternInfoData.typeList.forEach(type -> {
+            Type newType = new Type();
+            newType.name = type.name;
+            pluginInfo.typeList.add(newType);
+          });
+        }
+        // forbiddenTypes
+        else
+        {
+          pluginInfo.forbiddenTypeList.removeIf(type -> patternInfoData.oldTypeSet.contains(type.name));
+          patternInfoData.typeList.forEach(type -> {
+            Type newType = new Type();
+            newType.name = type.name;
+            pluginInfo.forbiddenTypeList.add(newType);
+          });
+        }
+      }
+    }
+
+    // refresh all TabFolder
+    pluginTabFolder.refresh();
+    //    refreshPatternInfo(patternInfoData.patternInfo);
+  }
+
+  /**
    * @param parent
    */
   private ElementManagerComposite<TypeElement, PatternInfoData> createTypeComposite(Composite parent)
@@ -161,7 +202,7 @@ public class PatternTabItem
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
-        refreshPatternInfo(patternInfoData.patternInfo);
+        updateAllPluginInfosWithPatternInfo(patternInfoData);
       }
 
       @Override
@@ -197,7 +238,7 @@ public class PatternTabItem
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
-        refreshPatternInfo(patternInfoData.patternInfo);
+        updateAllPluginInfosWithPatternInfo(patternInfoData);
       }
 
       @Override
