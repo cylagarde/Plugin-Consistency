@@ -317,6 +317,7 @@ public class PluginTabItem
     try
     {
       projectTableViewer.refresh(pluginInfo);
+
       pack(typeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
       pack(forbiddenTypesTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
     }
@@ -384,7 +385,7 @@ public class PluginTabItem
         {
           Set<String> currentTypeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
           Set<String> currentForbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
-          if (! currentTypeSet.equals(copiedTypeSet) || ! currentForbiddenTypeSet.equals(copiedForbiddenTypeSet))
+          if (!currentTypeSet.equals(copiedTypeSet) || !currentForbiddenTypeSet.equals(copiedForbiddenTypeSet))
           {
             if (manager.getItems().length > 1)
               manager.add(new Separator());
@@ -403,11 +404,11 @@ public class PluginTabItem
         }
       }
 
-      if (! copiedTypeSet.isEmpty() || ! copiedForbiddenTypeSet.isEmpty())
+      if (!copiedTypeSet.isEmpty() || !copiedForbiddenTypeSet.isEmpty())
       {
-        if (! selectedPluginInfoSet.isEmpty())
+        if (!selectedPluginInfoSet.isEmpty())
         {
-          if (! separatorAdded && manager.getItems().length > 1)
+          if (!separatorAdded && manager.getItems().length > 1)
             manager.add(new Separator());
 
           manager.add(new Action("Paste and replace types from memory")
@@ -497,7 +498,7 @@ public class PluginTabItem
      */
     private void createRemoveTypesFromPatternsMenuItems(IMenuManager manager)
     {
-      if (! pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.isEmpty())
+      if (!pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.isEmpty())
       {
         boolean separatorAdded = false;
 
@@ -528,7 +529,7 @@ public class PluginTabItem
         Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::isModified).collect(Collectors.toSet());
         if (!modifiedPluginInfoSet.isEmpty())
         {
-          if (! separatorAdded && manager.getItems().length > 1)
+          if (!separatorAdded && manager.getItems().length > 1)
             manager.add(new Separator());
 
           manager.add(new Action("Remove types from patterns on all plugins")
@@ -567,18 +568,18 @@ public class PluginTabItem
 
         boolean found = false;
         loop:
-          for(PatternInfo patternInfo : modifiedPatternInfoSet)
+        for(PatternInfo patternInfo : modifiedPatternInfoSet)
+        {
+          String pattern = patternInfo.pattern;
+          for(PluginInfo pluginInfo : modifiedPluginInfoSet)
           {
-            String pattern = patternInfo.pattern;
-            for(PluginInfo pluginInfo : modifiedPluginInfoSet)
+            if (pluginInfo.name.contains(pattern))
             {
-              if (pluginInfo.name.contains(pattern))
-              {
-                found = true;
-                break loop;
-              }
+              found = true;
+              break loop;
             }
           }
+        }
 
         if (found)
         {
@@ -647,9 +648,8 @@ public class PluginTabItem
       Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::isModified).collect(Collectors.toSet());
       if (!modifiedPluginInfoSet.isEmpty())
       {
-        if (! separatorAdded && manager.getItems().length > 1)
+        if (!separatorAdded && manager.getItems().length > 1)
           manager.add(new Separator());
-
 
         manager.add(new Action("Reset types on all plugins")
         {

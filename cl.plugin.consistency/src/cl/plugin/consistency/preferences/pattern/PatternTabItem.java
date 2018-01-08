@@ -1,6 +1,8 @@
 package cl.plugin.consistency.preferences.pattern;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -80,6 +82,8 @@ public class PatternTabItem
 
     //
     configurePatternSashForm(patternTabComposite);
+
+    refresh();
   }
 
   /**
@@ -145,7 +149,11 @@ public class PatternTabItem
     patternTableViewer.addSelectionChangedListener(event -> {
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
+
+      Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name));
       patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.typeList));
+
+      Collections.sort(patternInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
       patternForbiddenTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.forbiddenTypeList));
     });
 
@@ -378,8 +386,6 @@ public class PatternTabItem
 
     //
     configurePopupMenuForTypeTableViewer();
-
-    refresh();
   }
 
   /**
@@ -518,7 +524,7 @@ public class PatternTabItem
   /**
    * Refresh for PatternInfo
    */
-  public void refreshPatternInfo(PatternInfo patternInfo)
+  void refreshPatternInfo(PatternInfo patternInfo)
   {
     patternTableViewer.getTable().setRedraw(false);
     try

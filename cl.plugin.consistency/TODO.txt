@@ -1,6 +1,10 @@
-pas de mise à jour apres le renseignement des types ds la partie pattern
+detecter les chgts de nom de projet, d'id de plugin, open/close/delete project, refresh, clean
 supprimer "API", "IHM", "IMPLEMENTATION", "TEST"
+permettre de définir les anti types par défaut, API dont use IMPLEMENTATION, TEST
+mettre un decoration sur le textfield pour importer un fichier consistency
+check les features : si un projet est fermé alors vérifier si une feature le contient et envoyer une erreur
 
+OK : pas de mise à jour apres le renseignement des types ds la partie pattern
 OK : copier/coller les types
 OK : check long sur S3
 OK : apres la creation d'un pattern, le sélectionner
@@ -9,15 +13,7 @@ OK : rajout des menus contextuels
 	pour initialiser les types avec les patterns
 	pour resetter tous les types
 OK : proposer de supprimer la ligne lorsque le project n'est pas valide
-
-detecter les chgts de nom de projet, d'id de plugin, open/close/delete project, refresh, clean
-Avoir un expandatableComposite 
 OK : ajouter la création de nouveaux types 
-permettre de définir les anti types par défaut, API dont use IMPLEMENTATION, TEST
-mettre un decoration sur le textfield pour importer un fichier consistency
-check les features : si un projet est fermé alors vérifier si une feature le contient et envoyer une erreur
-
-
 OK : définir un pattern pour typer directement les plugins (plugin contenant functional alors Type="FUNCTIONAL_COMMON")
 OK : définir un pattern pour typer directement les forbidden plugins (plugin contenant functional alors ForbiddenType="IBD")
 OK : ne pas supprimer les projects fermés ou inexistants mais plutot afficher une icone d'erreur et griser la ligne

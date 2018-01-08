@@ -121,10 +121,10 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
       for(E element : data.getElements())
       {
         ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
-        List<String> elements = getNotUsedElements();
-        elements.add(element.getName());
-        Collections.sort(elements);
-        ComboViewer elementComboViewer = Util.createCombo(elementListComposite, elements, element.getName(), elementBiConsumer);
+        List<String> notUsedElements = getNotUsedElements();
+        notUsedElements.add(element.getName());
+        Collections.sort(notUsedElements);
+        ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, element.getName(), elementBiConsumer);
         elementBiConsumer.elementComboViewer = elementComboViewer;
 
         elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));

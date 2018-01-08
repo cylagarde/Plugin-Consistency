@@ -1,6 +1,8 @@
 package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IProject;
@@ -158,9 +160,21 @@ class ProjectDetail
   {
     this.pluginInfo = pluginInfo;
 
-    // recreate
-    typeComposite.setData(pluginInfo == null? null : new PluginInfoData(pluginInfo, pluginInfo.typeList));
-    forbiddenTypeComposite.setData(pluginInfo == null? null : new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList));
+    if (pluginInfo != null)
+    {
+      // sort
+      Collections.sort(pluginInfo.typeList, Comparator.comparing(type -> type.name));
+      Collections.sort(pluginInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
+
+      typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.typeList));
+      forbiddenTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList));
+    }
+    else
+    {
+      typeComposite.setData(null);
+      forbiddenTypeComposite.setData(null);
+    }
+
     forbiddenPluginComposite.setPluginInfo(pluginInfo);
 
     //
