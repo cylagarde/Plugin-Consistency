@@ -171,10 +171,10 @@ public class Util
     }
 
     // add new project to pluginConsistency
-    IProject[] validPluginProjects = Util.getValidProjects();
+    IProject[] validPluginProjects = getValidProjects();
     for(IProject pluginProject : validPluginProjects)
     {
-      String id = Util.getPluginId(pluginProject);
+      String id = getPluginId(pluginProject);
       if (id == null)
       {
         Activator.logError("id null for '" + pluginProject + "'");
@@ -200,7 +200,7 @@ public class Util
       if (pluginInfoWithNameOptional.isPresent())
       {
         PluginInfo pluginInfo = pluginInfoWithNameOptional.get();
-        pluginInfo.id = Util.getPluginId(pluginProject);
+        pluginInfo.id = getPluginId(pluginProject);
 
         //
         updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
@@ -353,14 +353,14 @@ public class Util
    */
   public static void checkProjectConsistency(PluginConsistency pluginConsistency, IProject project) throws Exception
   {
-    if (!project.exists() || !project.isOpen())
+    if (!isValidPlugin(project))
       return;
     IFile manifest = PDEProject.getManifest(project);
     IMarker[] pbMarkers = manifest.findMarkers(CL_PLUGIN_CONSISTENCY_MARKER, false, 0);
     List<IMarker> newMarkerList = new ArrayList<>();
     List<Runnable> runnableList = new ArrayList<>();
 
-    Optional<PluginInfo> optionalPluginInfo = pluginConsistency.pluginInfoList.stream().filter(pInfo -> pInfo.name.equals(project.getName()) || pInfo.id.equals(Util.getPluginId(project))).findAny();
+    Optional<PluginInfo> optionalPluginInfo = pluginConsistency.pluginInfoList.stream().filter(pInfo -> pInfo.name.equals(project.getName()) || pInfo.id.equals(getPluginId(project))).findAny();
     if (optionalPluginInfo.isPresent())
     {
       PluginInfo pluginInfo = optionalPluginInfo.get();
@@ -398,7 +398,7 @@ public class Util
 
                   // save
                   File consistencyFile = new File(Activator.getDefault().getConsistencyFilePath());
-                  Util.savePluginConsistency(pluginConsistency, consistencyFile);
+                  savePluginConsistency(pluginConsistency, consistencyFile);
                 }
 
                 //
@@ -437,7 +437,7 @@ public class Util
 
               // save
               File consistencyFile = new File(Activator.getDefault().getConsistencyFilePath());
-              Util.savePluginConsistency(pluginConsistency, consistencyFile);
+              savePluginConsistency(pluginConsistency, consistencyFile);
             }
 
             //
@@ -703,7 +703,7 @@ public class Util
       @Override
       public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
       {
-        IProject[] validProjects = Util.getValidProjects();
+        IProject[] validProjects = getValidProjects();
         monitor.beginTask("Checking projects consistency ...", validProjects.length);
         for(IProject project : validProjects)
         {

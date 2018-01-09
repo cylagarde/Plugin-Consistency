@@ -53,9 +53,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
     {
       PluginConsistency pluginConsistency = Activator.getDefault().getPluginConsistency();
       if (pluginConsistency != null)
-      {
         Util.checkProjectConsistency(pluginConsistency, project);
-      }
     }
     catch(Exception e)
     {
@@ -104,10 +102,13 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
         return true;
       if (res.getType() == IResource.PROJECT)
       {
-        checkAndUpdateForRenamingProject(delta);
-
         IProject project = res.getProject();
-        launchProjectConsistency(project);
+        if (Util.isValidPlugin(project))
+        {
+          checkAndUpdateForRenamingProject(delta);
+
+          launchProjectConsistency(project);
+        }
       }
       return false;
 
