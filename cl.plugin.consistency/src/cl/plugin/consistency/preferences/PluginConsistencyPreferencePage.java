@@ -27,7 +27,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.osgi.framework.Bundle;
 
-import cl.plugin.consistency.Activator;
+import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginConsistency;
 import cl.plugin.consistency.model.util.PluginConsistencyLoader;
@@ -50,12 +50,12 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
    */
   public PluginConsistencyPreferencePage()
   {
-    setPreferenceStore(Activator.getDefault().getPreferenceStore());
+    setPreferenceStore(PluginConsistencyActivator.getDefault().getPreferenceStore());
     noDefaultAndApplyButton();
     //    setDescription("Plugin consistency");
 
     //
-    String consistency_file_path = getPreferenceStore().getString(Activator.CONSISTENCY_FILE_PATH);
+    String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
     File consistencyFile = new File(consistency_file_path);
     pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile, true);
   }
@@ -90,7 +90,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     //
     activateButton = new Button(content, SWT.CHECK);
     activateButton.setText("Activate plugin consistency");
-    boolean activation = Activator.getDefault().isPluginConsistencyActivated();
+    boolean activation = PluginConsistencyActivator.getDefault().isPluginConsistencyActivated();
     activateButton.setSelection(activation);
 
     //
@@ -121,7 +121,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     pluginConsistencyFileText = new Text(pluginConsistencyFileComposite, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH);
     pluginConsistencyFileText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-    String consistency_file_path = getPreferenceStore().getString(Activator.CONSISTENCY_FILE_PATH);
+    String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
     pluginConsistencyFileText.setText(consistency_file_path);
 
     //
@@ -211,25 +211,25 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     catch(Exception e)
     {
       String message = "Exception when saving plugin consistency informations : " + e.getLocalizedMessage();
-      Activator.logError(message, e);
+      PluginConsistencyActivator.logError(message, e);
       MessageDialog.openError(getShell(), "Error", message);
       return false;
     }
 
     //
-    getPreferenceStore().setValue(Activator.CONSISTENCY_ACTIVATION, activateButton.getSelection());
-    getPreferenceStore().setValue(Activator.CONSISTENCY_FILE_PATH, consistency_file_path);
+    getPreferenceStore().setValue(PluginConsistencyActivator.CONSISTENCY_ACTIVATION, activateButton.getSelection());
+    getPreferenceStore().setValue(PluginConsistencyActivator.CONSISTENCY_FILE_PATH, consistency_file_path);
 
     //
     if (activateButton.getSelection())
     {
-      Activator.getDefault().setPluginConsistency(compactPluginConsistency);
-      Activator.getDefault().activate();
+      PluginConsistencyActivator.getDefault().setPluginConsistency(compactPluginConsistency);
+      PluginConsistencyActivator.getDefault().activate();
     }
     else
     {
-      Activator.getDefault().setPluginConsistency(null);
-      Activator.getDefault().desactivate();
+      PluginConsistencyActivator.getDefault().setPluginConsistency(null);
+      PluginConsistencyActivator.getDefault().desactivate();
 
       // launch project uncheck
       WorkspaceJob job = new WorkspaceJob("Remove Project Consistency")
@@ -252,7 +252,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
             }
             catch(Exception e)
             {
-              Activator.logError("Error when removing consistency check on project " + project.getName(), e);
+              PluginConsistencyActivator.logError("Error when removing consistency check on project " + project.getName(), e);
             }
           }
 

@@ -27,5 +27,40 @@
             value="true">
       </persistent>
    </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            description="Plugin consistency commands"
+            id="cl.plugin_consistency.commands"
+            name="Plugin consistency commands">
+      </category>
+      <command
+            categoryId="cl.plugin_consistency.commands"
+            defaultHandler="cl.plugin.consistency.handlers.LaunchCheckConsistencyHandler"
+            description="Launch check consistency"
+            id="cl.plugin_consistency.launch_check_consistency.command"
+            name="Launch check consistency">
+      </command>
+   </extension>
+   <extension
+         id="cl.plugin.consistency.menus"
+         name="Plugin consistency menus"
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+         <toolbar
+               id="cl.plugin.consistency.toolbar"
+               label="Plugin consistency toolbar">
+            <command
+                  commandId="cl.plugin_consistency.launch_check_consistency.command"
+                  icon="icons/launch_check_consistency.png"
+                  label="Launch check consistency"
+                  style="push"
+                  tooltip="Launch check consistency">
+            </command>
+         </toolbar>
+      </menuContribution>
+   </extension>
 
 </plugin>

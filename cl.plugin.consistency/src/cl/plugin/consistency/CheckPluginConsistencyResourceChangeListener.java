@@ -24,7 +24,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
   @Override
   public void resourceChanged(IResourceChangeEvent event)
   {
-    if (!Activator.getDefault().isPluginConsistencyActivated())
+    if (!PluginConsistencyActivator.getDefault().isPluginConsistencyActivated())
       return;
 
     //
@@ -37,7 +37,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
         }
         catch(CoreException e)
         {
-          Activator.logError("Error: "+e, e);
+          PluginConsistencyActivator.logError("Error: "+e, e);
         }
         break;
     }
@@ -51,13 +51,13 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
     // check
     try
     {
-      PluginConsistency pluginConsistency = Activator.getDefault().getPluginConsistency();
+      PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
       if (pluginConsistency != null)
         Util.checkProjectConsistency(pluginConsistency, project);
     }
     catch(Exception e)
     {
-      Activator.logError("Cannot check consistency on project "+project.getName(), e);
+      PluginConsistencyActivator.logError("Cannot check consistency on project "+project.getName(), e);
     }
   }
 
@@ -141,7 +141,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
       if (delta.getKind() == IResourceDelta.REMOVED)
       {
         //        System.out.println("-------------REMOVED " + project.getName());
-        PluginConsistency pluginConsistency = Activator.getDefault().getPluginConsistency();
+        PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
         if (addedProject != null)
         {
           removedPluginInfoOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> pluginInfo.name.equals(project.getName())).filter(pluginInfo -> pluginInfo.isModified()).findAny();
@@ -151,7 +151,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
             if (pluginInfo.id.equals(Util.getPluginId(addedProject)))
             {
               pluginInfo.name = addedProject.getName();
-              File consistencyFile = new File(Activator.getDefault().getConsistencyFilePath());
+              File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
               Util.savePluginConsistency(pluginConsistency, consistencyFile);
 
               // check
@@ -167,14 +167,14 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
       else if (delta.getKind() == IResourceDelta.ADDED)
       {
         //        System.out.println("+++++++++++++ADDED " + project.getName());
-        PluginConsistency pluginConsistency = Activator.getDefault().getPluginConsistency();
+        PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
         if (removedPluginInfoOptional != null && removedPluginInfoOptional.isPresent())
         {
           PluginInfo pluginInfo = removedPluginInfoOptional.get();
           if (pluginInfo.id.equals(Util.getPluginId(project)))
           {
             pluginInfo.name = project.getName();
-            File consistencyFile = new File(Activator.getDefault().getConsistencyFilePath());
+            File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
             Util.savePluginConsistency(pluginConsistency, consistencyFile);
 
             // check

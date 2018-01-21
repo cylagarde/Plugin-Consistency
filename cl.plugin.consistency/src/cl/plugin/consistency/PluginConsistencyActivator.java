@@ -25,7 +25,7 @@ import cl.plugin.consistency.model.PluginConsistency;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class Activator extends AbstractUIPlugin
+public class PluginConsistencyActivator extends AbstractUIPlugin
 {
   // The plug-in ID
   public static final String PLUGIN_ID = "cl.plugin.consistency"; //$NON-NLS-1$
@@ -34,7 +34,7 @@ public class Activator extends AbstractUIPlugin
   public static final String CONSISTENCY_ACTIVATION = "CONSISTENCY_ACTIVATION";
 
   // The shared instance
-  private static Activator plugin;
+  private static PluginConsistencyActivator plugin;
 
   // The shared instance
   private static IBundleProjectService bundleProjectService;
@@ -49,7 +49,7 @@ public class Activator extends AbstractUIPlugin
   /**
    * The constructor
    */
-  public Activator()
+  public PluginConsistencyActivator()
   {
   }
 
@@ -197,7 +197,7 @@ public class Activator extends AbstractUIPlugin
    *
    * @return the shared instance
    */
-  public static Activator getDefault()
+  public static PluginConsistencyActivator getDefault()
   {
     return plugin;
   }
@@ -228,7 +228,7 @@ public class Activator extends AbstractUIPlugin
    */
   public static void log(int severity, String message, Throwable e)
   {
-    ILog log = plugin != null? plugin.getLog() : Platform.getLog(FrameworkUtil.getBundle(Activator.class));
+    ILog log = plugin != null? plugin.getLog() : Platform.getLog(FrameworkUtil.getBundle(PluginConsistencyActivator.class));
     log = log != null? log : IDEWorkbenchPlugin.getDefault().getLog();
 
     log.log(new Status(severity, PLUGIN_ID, message, e));

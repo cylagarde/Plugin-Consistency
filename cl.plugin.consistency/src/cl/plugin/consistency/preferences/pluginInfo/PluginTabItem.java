@@ -41,7 +41,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.ide.IDE.SharedImages;
 
-import cl.plugin.consistency.Activator;
+import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
@@ -173,13 +173,13 @@ public class PluginTabItem
 
         // invalid project
         String key = SharedImages.IMG_OBJ_PROJECT + ":" + ISharedImages.IMG_DEC_FIELD_ERROR;
-        Image img = Activator.getDefault().getImageRegistry().get(key);
+        Image img = PluginConsistencyActivator.getDefault().getImageRegistry().get(key);
         if (img == null)
         {
           ImageDescriptor imageDescriptor = PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(ISharedImages.IMG_DEC_FIELD_ERROR);
           DecorationOverlayIcon resultIcon = new DecorationOverlayIcon(projectImage, imageDescriptor, IDecoration.BOTTOM_LEFT);
           img = resultIcon.createImage();
-          Activator.getDefault().getImageRegistry().put(key, img);
+          PluginConsistencyActivator.getDefault().getImageRegistry().put(key, img);
         }
 
         return img;

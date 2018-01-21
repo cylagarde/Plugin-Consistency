@@ -61,7 +61,7 @@ public class Util
     }
     catch(Exception e)
     {
-      Activator.logError("Error: " + e, e);
+      PluginConsistencyActivator.logError("Error: " + e, e);
     }
     return false;
   }
@@ -154,7 +154,7 @@ public class Util
     }
     catch(Exception e)
     {
-      Activator.logError("Cannot load consistency file", e);
+      PluginConsistencyActivator.logError("Cannot load consistency file", e);
     }
 
     if (pluginConsistency == null)
@@ -177,7 +177,7 @@ public class Util
       String id = getPluginId(pluginProject);
       if (id == null)
       {
-        Activator.logError("id null for '" + pluginProject + "'");
+        PluginConsistencyActivator.logError("id null for '" + pluginProject + "'");
         continue;
       }
       String name = pluginProject.getName();
@@ -366,7 +366,7 @@ public class Util
       PluginInfo pluginInfo = optionalPluginInfo.get();
 
       // get IBundleProjectDescription
-      IBundleProjectService bundleProjectService = Activator.getBundleProjectService();
+      IBundleProjectService bundleProjectService = PluginConsistencyActivator.getBundleProjectService();
       IBundleProjectDescription bundleProjectDescription = bundleProjectService.getDescription(project);
       IRequiredBundleDescription[] requiredBundles = bundleProjectDescription.getRequiredBundles();
 
@@ -397,7 +397,7 @@ public class Util
                   pluginInfo.id = pluginId;
 
                   // save
-                  File consistencyFile = new File(Activator.getDefault().getConsistencyFilePath());
+                  File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
                   savePluginConsistency(pluginConsistency, consistencyFile);
                 }
 
@@ -414,7 +414,7 @@ public class Util
                   }
                   catch(Exception e)
                   {
-                    Activator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
+                    PluginConsistencyActivator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
                   }
                 };
                 runnableList.add(runnable);
@@ -436,7 +436,7 @@ public class Util
               pluginInfo.id = pluginId;
 
               // save
-              File consistencyFile = new File(Activator.getDefault().getConsistencyFilePath());
+              File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
               savePluginConsistency(pluginConsistency, consistencyFile);
             }
 
@@ -453,7 +453,7 @@ public class Util
               }
               catch(Exception e)
               {
-                Activator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
+                PluginConsistencyActivator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
               }
             };
             runnableList.add(runnable);
@@ -678,7 +678,7 @@ public class Util
     catch(Exception e)
     {
       String message = "Exception when saving plugin consistency informations : " + e.getLocalizedMessage();
-      Activator.logError(message, e);
+      PluginConsistencyActivator.logError(message, e);
     }
   }
 
@@ -717,7 +717,7 @@ public class Util
           }
           catch(Exception e)
           {
-            Activator.logError("Error when checking onsistency on project " + project.getDefaultCharset(), e);
+            PluginConsistencyActivator.logError("Error when checking onsistency on project " + project.getDefaultCharset(), e);
           }
         }
         monitor.done();

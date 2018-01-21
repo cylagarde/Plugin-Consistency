@@ -1,3 +1,6 @@
+rajouter un menu (package explorer, project explorer) pour checker un projet ou tous les projets
+pb de perfo :: rajouter une fenetre qui affiche tous les checks qui sont fait
+
 detecter les chgts de nom de projet, d'id de plugin, open/close/delete project, refresh, clean
 supprimer "API", "IHM", "IMPLEMENTATION", "TEST"
 permettre de définir les anti types par défaut, API dont use IMPLEMENTATION, TEST

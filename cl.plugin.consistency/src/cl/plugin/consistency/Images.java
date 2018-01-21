@@ -16,7 +16,7 @@ public enum Images {
   public final String path;
 
   private Images(String path) {
-    this(Activator.PLUGIN_ID, path);
+    this(PluginConsistencyActivator.PLUGIN_ID, path);
   }
 
   private Images(String pluginId, String path) {
@@ -25,7 +25,7 @@ public enum Images {
   }
 
   public Image getImage() {
-    return Activator.getDefault().getImageRegistry().get(getKey());
+    return PluginConsistencyActivator.getDefault().getImageRegistry().get(getKey());
   }
 
   String getKey() {

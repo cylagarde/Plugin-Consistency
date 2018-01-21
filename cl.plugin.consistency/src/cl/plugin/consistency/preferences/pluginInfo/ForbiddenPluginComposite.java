@@ -50,7 +50,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.osgi.framework.Bundle;
 
-import cl.plugin.consistency.Activator;
+import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.ForbiddenPlugin;
@@ -81,7 +81,7 @@ class ForbiddenPluginComposite
   {
     this.projectDetail = projectDetail;
 
-    bundles = Activator.getDefault().getBundle().getBundleContext().getBundles();
+    bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
     validProjects = Util.getValidProjects();
 
     //
@@ -159,7 +159,7 @@ class ForbiddenPluginComposite
         Set<String> requireBundleSet = null;
         try
         {
-          IBundleProjectService bundleProjectService = Activator.getBundleProjectService();
+          IBundleProjectService bundleProjectService = PluginConsistencyActivator.getBundleProjectService();
           IBundleProjectDescription bundleProjectDescription = bundleProjectService.getDescription(project);
 
           IRequiredBundleDescription[] requiredBundles = bundleProjectDescription.getRequiredBundles();
@@ -174,7 +174,7 @@ class ForbiddenPluginComposite
         }
         catch(CoreException e)
         {
-          Activator.logError("Error: " + e, e);
+          PluginConsistencyActivator.logError("Error: " + e, e);
         }
 
         return requireBundleSet;
@@ -204,7 +204,7 @@ class ForbiddenPluginComposite
       }
       catch(InterruptedException | ExecutionException e)
       {
-        Activator.logError("Error: " + e, e);
+        PluginConsistencyActivator.logError("Error: " + e, e);
         tmpSet = Collections.emptySet();
       }
       Set<String> requireBundleSet = tmpSet;
@@ -385,7 +385,6 @@ class ForbiddenPluginComposite
 
           return label;
         }
-
       };
       dialog.setTitle("Bundles and worskspace projects");
       dialog.setMessage("Select the forbidden plugins:");
