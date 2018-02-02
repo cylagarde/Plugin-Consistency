@@ -272,4 +272,12 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
     log(IStatus.WARNING, message);
   }
 
+  /**
+   * Convenience method for logging information in the workbench
+   * @param message the message to display
+   */
+  public static void logInfo(String message)
+  {
+    log(IStatus.INFO, message);
+  }
 }

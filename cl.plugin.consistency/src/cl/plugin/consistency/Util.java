@@ -355,6 +355,8 @@ public class Util
   {
     if (!isValidPlugin(project))
       return;
+    long time = System.currentTimeMillis();
+
     IFile manifest = PDEProject.getManifest(project);
     IMarker[] pbMarkers = manifest.findMarkers(CL_PLUGIN_CONSISTENCY_MARKER, false, 0);
     List<IMarker> newMarkerList = new ArrayList<>();
@@ -462,6 +464,7 @@ public class Util
       }
     }
 
+    // launch job
     if (!runnableList.isEmpty() || pbMarkers.length != 0)
     {
       WorkspaceJob workspaceJob = new WorkspaceJob("Check consistency '" + project.getName() + "'")
@@ -486,6 +489,8 @@ public class Util
       };
       workspaceJob.schedule();
     }
+
+    PluginConsistencyActivator.logInfo("Check consistency on project " + project + " TIME=" + (System.currentTimeMillis() - time));
   }
 
   /**
