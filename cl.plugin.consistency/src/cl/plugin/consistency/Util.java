@@ -143,7 +143,7 @@ public class Util
   /**
    * Load And Update Plugin Consistency File
    */
-  public static PluginConsistency loadAndUpdateConsistencyFile(File consistencyFile, boolean addAll)
+  public static PluginConsistency loadAndUpdateConsistencyFile(File consistencyFile)
   {
     PluginConsistency pluginConsistency = null;
 
@@ -208,18 +208,16 @@ public class Util
         continue;
       }
 
-      if (addAll)
-      {
-        PluginInfo pluginInfo = new PluginInfo();
-        pluginInfo.id = id;
-        pluginInfo.name = pluginProject.getName();
+      // add
+      PluginInfo pluginInfo = new PluginInfo();
+      pluginInfo.id = id;
+      pluginInfo.name = pluginProject.getName();
 
-        //
-        updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
+      //
+      updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
 
-        //
-        pluginConsistency.pluginInfoList.add(pluginInfo);
-      }
+      //
+      pluginConsistency.pluginInfoList.add(pluginInfo);
     }
 
     return pluginConsistency;

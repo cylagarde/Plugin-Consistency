@@ -57,7 +57,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     //
     String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
     File consistencyFile = new File(consistency_file_path);
-    pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile, true);
+    pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
   }
 
   /*
@@ -133,7 +133,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       public void widgetSelected(SelectionEvent se)
       {
         String filePath = pluginConsistencyFileText.getText();
-        pluginConsistency = Util.loadAndUpdateConsistencyFile(new File(filePath), true);
+        pluginConsistency = Util.loadAndUpdateConsistencyFile(new File(filePath));
 
         pluginTabFolder.refresh();
       }
@@ -157,7 +157,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
           pluginConsistencyFileText.setText(filePath);
 
           //
-          pluginConsistency = Util.loadAndUpdateConsistencyFile(new File(filePath), true);
+          pluginConsistency = Util.loadAndUpdateConsistencyFile(new File(filePath));
 
           pluginTabFolder.refresh();
         }
