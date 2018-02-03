@@ -50,8 +50,8 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.osgi.framework.Bundle;
 
-import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Images;
+import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PluginInfo;
@@ -89,7 +89,6 @@ class ForbiddenPluginComposite
 
     section = formToolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
     section.setText("Forbidden bundles/projects");
-    section.setLayout(new GridLayout());
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);

@@ -56,7 +56,6 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 
     section = formToolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
     section.setText(elementManagerDataModel.getSectionTitle());
-    section.setLayout(new GridLayout());
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
