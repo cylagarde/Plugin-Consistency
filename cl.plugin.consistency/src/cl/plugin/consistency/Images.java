@@ -8,7 +8,10 @@ import org.eclipse.ui.PlatformUI;
  */
 public enum Images {
 
-  PLUGIN("icons/plugin.gif"),
+  PLUGIN("icons/plugin.png"),
+  TYPE("icons/type.png"),
+  FORBIDDEN_TYPE("icons/forbidden_type.png"),
+  PATTERN("icons/pattern.png"),
   CLEAR(PlatformUI.PLUGIN_ID, "$nl$/icons/full/etool16/clear_co.png"),
   ;
 
@@ -25,7 +28,7 @@ public enum Images {
   }
 
   public Image getImage() {
-    return PluginConsistencyActivator.getDefault().getImageRegistry().get(getKey());
+    return PluginConsistencyActivator.getImage(this);
   }
 
   String getKey() {

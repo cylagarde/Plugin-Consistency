@@ -27,6 +27,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -39,6 +40,7 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
@@ -68,6 +70,7 @@ public class PatternTabItem
     //
     TabItem patternTabItem = new TabItem(pluginTabFolder.tabFolder, SWT.NONE);
     patternTabItem.setText("Patterns");
+    patternTabItem.setImage(Images.PATTERN.getImage());
 
     //
     Composite patternTabComposite = new Composite(pluginTabFolder.tabFolder, SWT.NONE);
@@ -226,6 +229,12 @@ public class PatternTabItem
       }
 
       @Override
+      public Image getSectionImage()
+      {
+        return Images.TYPE.getImage();
+      }
+
+      @Override
       public String getAddElementToolTipText()
       {
         return "Add new type";
@@ -259,6 +268,12 @@ public class PatternTabItem
       public String getSectionTitle()
       {
         return "Forbidden types";
+      }
+
+      @Override
+      public Image getSectionImage()
+      {
+        return Images.FORBIDDEN_TYPE.getImage();
       }
 
       @Override

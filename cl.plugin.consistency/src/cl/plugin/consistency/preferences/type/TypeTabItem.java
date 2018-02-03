@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 
+import cl.plugin.consistency.Images;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
@@ -58,6 +59,7 @@ public class TypeTabItem
     //
     TabItem typeTabItem = new TabItem(pluginTabFolder.tabFolder, SWT.NONE);
     typeTabItem.setText("Types");
+    typeTabItem.setImage(Images.TYPE.getImage());
 
     //
     Composite typeTabComposite = new Composite(pluginTabFolder.tabFolder, SWT.NONE);

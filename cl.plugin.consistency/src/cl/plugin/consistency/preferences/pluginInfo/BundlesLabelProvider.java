@@ -43,32 +43,20 @@ class BundlesLabelProvider extends LabelProvider implements IColorProvider
   public Image getImage(Object element)
   {
     if (element instanceof IProject)
-    {
       return PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT);
-    }
     return Images.PLUGIN.getImage();
   }
 
-  /*
-   * @see org.eclipse.jface.viewers.IColorProvider#getForeground(java.lang.Object)
-   */
   @Override
   public Color getForeground(Object element)
   {
     if (requireBundleSet == null)
-    {
       return null;
-    }
     if (requireBundleSet.contains(getText(element)))
-    {
       return Display.getDefault().getSystemColor(SWT.COLOR_RED);
-    }
     return null;
   }
 
-  /*
-   * @see org.eclipse.jface.viewers.IColorProvider#getBackground(java.lang.Object)
-   */
   @Override
   public Color getBackground(Object element)
   {

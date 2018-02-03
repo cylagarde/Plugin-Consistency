@@ -43,11 +43,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.CheckedTreeSelectionDialog;
-import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.Section;
 import org.osgi.framework.Bundle;
 
 import cl.plugin.consistency.Images;
@@ -55,6 +52,7 @@ import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.preferences.SectionPane;
 
 /**
  * The class <b>ForbiddenPluginComposite</b> allows to.<br>
@@ -62,7 +60,6 @@ import cl.plugin.consistency.model.PluginInfo;
 class ForbiddenPluginComposite
 {
   final ProjectDetail projectDetail;
-  final Section section;
   final TableViewer forbiddenPluginTableViewer;
   final Bundle[] bundles;
   final IProject[] validProjects;
@@ -85,28 +82,24 @@ class ForbiddenPluginComposite
     validProjects = Util.getValidProjects();
 
     //
-    FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
-
-    section = formToolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
-    section.setText("Forbidden bundles/projects");
+    SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
+    sectionPane.getHeaderSection().setText("Forbidden bundles/projects");
+    sectionPane.getHeaderSection().setImage(Images.PLUGIN.getImage());
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
-    final ToolBar toolbar = toolBarManager.createControl(section);
+    sectionPane.createToolBar(toolBarManager);
 
     addPluginAction = new AddPluginAction();
     toolBarManager.add(addPluginAction);
     toolBarManager.update(true);
-    section.setTextClient(toolbar);
 
     //
-    forbiddenPluginTableViewer = new TableViewer(section, SWT.BORDER);
+    forbiddenPluginTableViewer = new TableViewer(sectionPane, SWT.BORDER);
     forbiddenPluginTableViewer.getTable().setLinesVisible(true);
     forbiddenPluginTableViewer.setLabelProvider(new BundlesLabelProvider(projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage));
     forbiddenPluginTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     forbiddenPluginTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-
-    section.setClient(forbiddenPluginTableViewer.getTable());
   }
 
   /**
@@ -210,7 +203,7 @@ class ForbiddenPluginComposite
 
       //
       BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage, requireBundleSet);
-      CheckedTreeSelectionDialog dialog = new CheckedTreeSelectionDialog(section.getShell(), bundlesLabelProvider, new BundleTreeContentProvider())
+      CheckedTreeSelectionDialog dialog = new CheckedTreeSelectionDialog(forbiddenPluginTableViewer.getControl().getShell(), bundlesLabelProvider, new BundleTreeContentProvider())
       {
         Text searchPluginText;
 

@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.ToolBarManager;
+import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -23,12 +24,11 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
-import org.eclipse.ui.forms.widgets.Section;
 
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.preferences.SectionPane;
 
 /**
  * The class <b>ElementManagerComposite</b> allows to.<br>
@@ -36,7 +36,6 @@ import cl.plugin.consistency.Util;
 public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 {
   final IElementManagerDataModel<E, T> elementManagerDataModel;
-  public final Section section;
   final Composite elementListComposite;
   final ScrolledComposite scrolledComposite;
   T data;
@@ -54,25 +53,23 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 
     FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
 
-    section = formToolkit.createSection(parent, Section.TITLE_BAR | Section.EXPANDED);
-    section.setText(elementManagerDataModel.getSectionTitle());
+    SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
+    sectionPane.getHeaderSection().setText(elementManagerDataModel.getSectionTitle());
+    sectionPane.getHeaderSection().setImage(elementManagerDataModel.getSectionImage());
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
-    final ToolBar toolbar = toolBarManager.createControl(section);
-    addElementAction = new AddElementAction();
+    sectionPane.createToolBar(toolBarManager);
 
+    addElementAction = new AddElementAction();
     toolBarManager.add(addElementAction);
     toolBarManager.update(true);
-    section.setTextClient(toolbar);
 
     //
-    scrolledComposite = new ScrolledComposite(section, SWT.H_SCROLL | SWT.V_SCROLL);
+    scrolledComposite = new ScrolledComposite(sectionPane, SWT.H_SCROLL | SWT.V_SCROLL);
     scrolledComposite.setExpandHorizontal(true);
     scrolledComposite.setExpandVertical(true);
-    scrolledComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-    section.setClient(scrolledComposite);
+    scrolledComposite.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).indent(6, 0).create());
 
     //
     elementListComposite = formToolkit.createComposite(scrolledComposite);

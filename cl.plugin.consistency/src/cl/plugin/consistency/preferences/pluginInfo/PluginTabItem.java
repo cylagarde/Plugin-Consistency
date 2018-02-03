@@ -75,6 +75,7 @@ public class PluginTabItem
     //
     TabItem pluginTabItem = new TabItem(pluginTabFolder.tabFolder, SWT.NONE);
     pluginTabItem.setText("Plugins");
+    pluginTabItem.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
 
     //
     Composite pluginTabComposite = new Composite(pluginTabFolder.tabFolder, SWT.NONE);

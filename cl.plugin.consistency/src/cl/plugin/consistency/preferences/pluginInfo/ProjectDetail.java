@@ -8,11 +8,13 @@ import java.util.stream.Collectors;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.preferences.TypeElement;
@@ -99,6 +101,12 @@ class ProjectDetail
       }
 
       @Override
+      public Image getSectionImage()
+      {
+        return Images.TYPE.getImage();
+      }
+
+      @Override
       public String getAddElementToolTipText()
       {
         return "Add new type";
@@ -131,6 +139,12 @@ class ProjectDetail
       public String getSectionTitle()
       {
         return "Forbidden types";
+      }
+
+      @Override
+      public Image getSectionImage()
+      {
+        return Images.FORBIDDEN_TYPE.getImage();
       }
 
       @Override
