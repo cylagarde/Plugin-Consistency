@@ -5,13 +5,15 @@ import java.util.Set;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.pde.internal.ui.PDEPlugin;
+import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.Bundle;
 
-import cl.plugin.consistency.Images;
 import cl.plugin.consistency.preferences.PluginConsistencyPreferencePage;
 
 /**
@@ -44,7 +46,14 @@ class BundlesLabelProvider extends LabelProvider implements IColorProvider
   {
     if (element instanceof IProject)
       return PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT);
-    return Images.PLUGIN.getImage();
+    if (element instanceof Bundle)
+    {
+      Bundle bundle = (Bundle) element;
+      if (bundle.getHeaders().get("Fragment-Host") != null)
+        return PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_FRAGMENT_OBJ);
+      return PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_PLUGIN_OBJ);
+    }
+    return null;
   }
 
   @Override

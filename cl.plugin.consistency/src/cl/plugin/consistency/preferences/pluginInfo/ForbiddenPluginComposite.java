@@ -30,6 +30,8 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.pde.core.project.IBundleProjectDescription;
 import org.eclipse.pde.core.project.IBundleProjectService;
 import org.eclipse.pde.core.project.IRequiredBundleDescription;
+import org.eclipse.pde.internal.ui.PDEPlugin;
+import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -84,7 +86,7 @@ class ForbiddenPluginComposite
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
     sectionPane.getHeaderSection().setText("Forbidden bundles/projects");
-    sectionPane.getHeaderSection().setImage(Images.PLUGIN.getImage());
+    sectionPane.getHeaderSection().setImage(PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_PLUGIN_OBJ));
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);

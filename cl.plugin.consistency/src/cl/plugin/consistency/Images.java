@@ -8,7 +8,6 @@ import org.eclipse.ui.PlatformUI;
  */
 public enum Images {
 
-  PLUGIN("icons/plugin.png"),
   TYPE("icons/type.png"),
   FORBIDDEN_TYPE("icons/forbidden_type.png"),
   PATTERN("icons/pattern.png"),
