@@ -150,8 +150,10 @@ public class PatternTabItem
 
     // selection
     patternTableViewer.addSelectionChangedListener(event -> {
+
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
+      Util.setEnabled(content, patternInfo != null);
 
       Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name));
       patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.typeList));
@@ -161,6 +163,8 @@ public class PatternTabItem
     });
 
     sashForm.setWeights(new int[]{1, 1});
+
+    Util.setEnabled(content, false);
   }
 
   /**
