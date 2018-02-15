@@ -121,9 +121,7 @@ class ForbiddenPluginComposite
       {
         Bundle bundle = Platform.getBundle(forbiddenPluginInfo.id);
         if (bundle != null)
-        {
           bundleList.add(bundle);
-        }
         else
         {
           Optional<IProject> optional = Stream.of(validProjects).filter(project -> projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(project).equals(forbiddenPluginInfo.id)).findFirst();
@@ -136,9 +134,7 @@ class ForbiddenPluginComposite
 
     //
     if (pluginInfo == null)
-    {
       return;
-    }
 
     IProject workspaceProject = Util.getProject(pluginInfo);
     addPluginAction.setEnabled(workspaceProject != null && workspaceProject.isOpen());
@@ -158,13 +154,9 @@ class ForbiddenPluginComposite
 
           IRequiredBundleDescription[] requiredBundles = bundleProjectDescription.getRequiredBundles();
           if (requiredBundles == null)
-          {
             requireBundleSet = Collections.emptySet();
-          }
           else
-          {
             requireBundleSet = Stream.of(requiredBundles).map(bundleDescription -> bundleDescription.getName()).collect(Collectors.toSet());
-          }
         }
         catch(CoreException e)
         {
@@ -227,9 +219,6 @@ class ForbiddenPluginComposite
           //
           seeRequirePluginButton.addSelectionListener(new SelectionAdapter()
           {
-            boolean seeOnlyRequirePlugin = true;
-            //                  Object[] checkedElements;
-
             ViewerFilter seeRequirePluginViewerFilter = new ViewerFilter()
             {
               @Override
@@ -245,26 +234,17 @@ class ForbiddenPluginComposite
               // init searchPluginText
               searchPluginText.setText("");
 
-              seeCheckedPluginButton.setEnabled(!seeOnlyRequirePlugin);
-              if (seeOnlyRequirePlugin)
-              {
-                seeOnlyRequirePlugin = false;
-                //                      checkedElements = getTreeViewer().getCheckedElements();
+              seeCheckedPluginButton.setEnabled(!seeRequirePluginButton.getSelection());
+              if (seeRequirePluginButton.getSelection())
                 getTreeViewer().addFilter(seeRequirePluginViewerFilter);
-              }
               else
-              {
-                seeOnlyRequirePlugin = true;
                 getTreeViewer().removeFilter(seeRequirePluginViewerFilter);
-                //                      getTreeViewer().setCheckedElements(checkedElements); // faux car la sélection a pu changer
-              }
             }
           });
 
           //
           seeCheckedPluginButton.addSelectionListener(new SelectionAdapter()
           {
-            boolean seeOnlyCheckedPlugin = true;
             ViewerFilter seeOnlyCheckedPluginViewerFilter = new ViewerFilter()
             {
               @Override
@@ -280,17 +260,11 @@ class ForbiddenPluginComposite
               // init searchPluginText
               searchPluginText.setText("");
 
-              seeRequirePluginButton.setEnabled(!seeOnlyCheckedPlugin);
-              if (seeOnlyCheckedPlugin)
-              {
-                seeOnlyCheckedPlugin = false;
+              seeRequirePluginButton.setEnabled(!seeCheckedPluginButton.getSelection());
+              if (seeCheckedPluginButton.getSelection())
                 getTreeViewer().addFilter(seeOnlyCheckedPluginViewerFilter);
-              }
               else
-              {
-                seeOnlyCheckedPlugin = true;
                 getTreeViewer().removeFilter(seeOnlyCheckedPluginViewerFilter);
-              }
             }
           });
 
@@ -347,9 +321,7 @@ class ForbiddenPluginComposite
                   public boolean select(Viewer viewer, Object parentElement, Object element)
                   {
                     if (text.length() == 0)
-                    {
                       return true;
-                    }
 
                     String lowerCaseText = bundlesLabelProvider.getText(element).toLowerCase();
                     boolean result = containsStar? pattern.matcher(lowerCaseText).find() : lowerCaseText.contains(text);
@@ -443,5 +415,5 @@ class ForbiddenPluginComposite
         return false;
       }
     }
-  };
+  }
 }
