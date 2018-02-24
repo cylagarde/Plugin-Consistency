@@ -167,9 +167,7 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
   {
     //
     for(Images img : Images.values())
-    {
       imageRegistry.put(img.getKey(), imageDescriptorFromPlugin(img.pluginId, img.path));
-    }
   }
 
   /**

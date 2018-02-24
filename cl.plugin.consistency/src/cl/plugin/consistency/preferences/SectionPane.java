@@ -40,24 +40,6 @@ public class SectionPane extends Composite
     headerSection.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
   }
 
-  //  /**
-  //   * Set title
-  //   * @param title
-  //   */
-  //  public void setTitle(String title)
-  //  {
-  //    headerSection.setText(title);
-  //  }
-  //
-  //  /**
-  //   * Set title image
-  //   * @param image
-  //   */
-  //  public void setTitleImage(Image image)
-  //  {
-  //    headerSection.setImage(image);
-  //  }
-
   /**
    * @param toolBarManager
    */
@@ -68,6 +50,9 @@ public class SectionPane extends Composite
     return toolbar;
   }
 
+  /**
+   * @return
+   */
   public TitledSection getHeaderSection()
   {
     return headerSection;
@@ -117,10 +102,7 @@ public class SectionPane extends Composite
       imageLabel = new Label(headerComposite, SWT.NONE);
       spaceLabel = new Label(headerComposite, SWT.NONE);
       spaceLabel.setLayoutData(GridDataFactory.swtDefaults().hint(5, 0).exclude(true).create());
-      //      imageLabel.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_BLUE));
-      //
       titleLabel = new Label(headerComposite, SWT.WRAP);
-      //      titleLabel.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_GREEN));
 
       FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
       formToolkit.adapt(this, true, true);
@@ -131,7 +113,6 @@ public class SectionPane extends Composite
       setTitleBarBackground(colors.getColor(IFormColors.TB_BG));
       setTitleBarBorderColor(colors.getColor(IFormColors.TB_BORDER));
       setTitleBarForeground(colors.getColor(IFormColors.TB_TOGGLE));
-      //formToolkit.dispose();
     }
 
     /**
