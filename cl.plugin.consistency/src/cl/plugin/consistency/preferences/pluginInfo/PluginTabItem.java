@@ -54,7 +54,7 @@ import cl.plugin.consistency.preferences.PluginTabFolder;
  */
 public class PluginTabItem
 {
-  public static final int COLUMN_PREFERRED_WIDTH = 200;
+  public static final int COLUMN_PREFERRED_WIDTH = 250;
   public static final String COLUMN_SPACE_KEY = "COLUMN_SPACE";
   public static final int COLUMN_SPACE = 5;
 
@@ -105,7 +105,7 @@ public class PluginTabItem
     formToolkit.adapt(sashForm);
     //    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
     GridData layoutData = new GridData(GridData.FILL_BOTH);
-    layoutData.widthHint = 1000;
+    //    layoutData.widthHint = 800;
     layoutData.heightHint = 1;
     sashForm.setLayoutData(layoutData);
 
@@ -148,7 +148,7 @@ public class PluginTabItem
 
     // 'Project' TableViewerColumn
     TableViewerColumn projectTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    projectTableViewerColumn.getColumn().setText("Project");
+    projectTableViewerColumn.getColumn().setText("Project id");
     projectTableViewerColumn.getColumn().setWidth(COLUMN_PREFERRED_WIDTH);
     projectTableViewerColumn.getColumn().setData(COLUMN_SPACE_KEY, COLUMN_SPACE);
 
@@ -158,7 +158,10 @@ public class PluginTabItem
       public String getText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        return pluginInfo.name;
+        String text = pluginInfo.id;
+        if (!text.equals(pluginInfo.name))
+          text += " (" + pluginInfo.name + ")";
+        return text;
       }
 
       @Override
@@ -187,22 +190,6 @@ public class PluginTabItem
       }
     });
     DefaultLabelViewerComparator.configureForSortingColumn(projectTableViewerColumn);
-
-    // 'Plugin Id' TableViewerColumn
-    TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    pluginIdTableViewerColumn.getColumn().setText("Plugin Id");
-    pluginIdTableViewerColumn.getColumn().setWidth(COLUMN_PREFERRED_WIDTH);
-    pluginIdTableViewerColumn.getColumn().setData(COLUMN_SPACE_KEY, COLUMN_SPACE);
-    pluginIdTableViewerColumn.setLabelProvider(new PluginInfoColumnLabelProvider()
-    {
-      @Override
-      public String getText(Object element)
-      {
-        PluginInfo pluginInfo = (PluginInfo) element;
-        return pluginInfo.id;
-      }
-    });
-    DefaultLabelViewerComparator.configureForSortingColumn(pluginIdTableViewerColumn);
 
     // 'Type' TableViewerColumn
     typeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
@@ -237,7 +224,6 @@ public class PluginTabItem
     // 'Forbidden bundles' TableViewerColumn
     forbiddenBundlesTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
     forbiddenBundlesTableViewerColumn.getColumn().setText("Forbidden bundles");
-    //    forbiddenBundlesTableViewerColumn.getColumn().setWidth(200);
     forbiddenBundlesTableViewerColumn.setLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override

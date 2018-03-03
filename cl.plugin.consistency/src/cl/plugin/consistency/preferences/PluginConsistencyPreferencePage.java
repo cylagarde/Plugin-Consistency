@@ -83,7 +83,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     content.setLayout(contentGridLayout);
 
     GridData layoutData = new GridData(GridData.FILL_BOTH);
-    layoutData.widthHint = 900; // decommenter
+    layoutData.widthHint = 800; // decommenter
     layoutData.heightHint = 500; // commenter
     content.setLayoutData(layoutData);
 
