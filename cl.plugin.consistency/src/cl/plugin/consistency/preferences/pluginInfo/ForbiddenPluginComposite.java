@@ -363,6 +363,10 @@ class ForbiddenPluginComposite
       };
       TreeSet<Object> set = new TreeSet<>(bundleProjectComparator);
       set.addAll(Arrays.asList(validProjects));
+
+      // remove current plugin/project
+      set.removeIf(o -> projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(o).equals(pluginInfo.id));
+
       set.addAll(Arrays.asList(bundles));
 
       //
