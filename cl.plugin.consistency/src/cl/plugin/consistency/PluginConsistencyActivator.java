@@ -101,7 +101,7 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
       workspace.addResourceChangeListener(checkPluginConsistencyResourceChangeListener, IResourceChangeEvent.POST_CHANGE);
     }
 
-    Util.launchConsistencyCheck(getPluginConsistency());
+    Util.launchConsistencyCheck(getPluginConsistency(), null);
   }
 
   /**
@@ -109,7 +109,6 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
    */
   public void desactivate()
   {
-    //
     if (checkPluginConsistencyResourceChangeListener != null)
     {
       IWorkspace workspace = ResourcesPlugin.getWorkspace();

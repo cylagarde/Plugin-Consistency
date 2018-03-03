@@ -9,7 +9,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -348,11 +350,12 @@ public class Util
    * Check project consistency
    * @param pluginConsistency
    * @param project
+   * @param markerConsumer
    */
-  public static void checkProjectConsistency(PluginConsistency pluginConsistency, IProject project) throws Exception
+  public static WorkspaceJob checkProjectConsistency(PluginConsistency pluginConsistency, IProject project, Consumer<List<IMarker>> markerConsumer) throws Exception
   {
     if (!isValidPlugin(project))
-      return;
+      return null;
     long time = System.currentTimeMillis();
 
     IFile manifest = PDEProject.getManifest(project);
@@ -462,16 +465,21 @@ public class Util
       }
     }
 
+    WorkspaceJob workspaceJob = null;
+
     // launch job
     if (!runnableList.isEmpty() || pbMarkers.length != 0)
     {
-      WorkspaceJob workspaceJob = new WorkspaceJob("Check consistency '" + project.getName() + "'")
+      workspaceJob = new WorkspaceJob("Check consistency '" + project.getName() + "'")
       {
         @Override
         public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
         {
           for(Runnable runnable : runnableList)
             runnable.run();
+
+          if (markerConsumer != null)
+            markerConsumer.accept(newMarkerList);
 
           // remove old markers
           for(IMarker pbMarker : pbMarkers)
@@ -489,6 +497,8 @@ public class Util
     }
 
     PluginConsistencyActivator.logInfo("Check consistency on project " + project + " TIME=" + (System.currentTimeMillis() - time));
+
+    return workspaceJob;
   }
 
   /**
@@ -697,17 +707,23 @@ public class Util
   /**
    * Launch job for checking projects
    * @param pluginConsistency
+   * @param markerConsumer
    */
-  public static void launchConsistencyCheck(PluginConsistency pluginConsistency)
+  public static void launchConsistencyCheck(PluginConsistency pluginConsistency, Consumer<List<IMarker>> markerConsumer)
   {
     // launch project checking
-    WorkspaceJob job = new WorkspaceJob("Check Project Consistency")
+    WorkspaceJob job = new WorkspaceJob("Check all projects consistency")
     {
       @Override
       public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
       {
+        List<IMarker> markerList = new CopyOnWriteArrayList<>();
+        Consumer<List<IMarker>> addMarkerConsumer = markerList::addAll;
+
         IProject[] validProjects = getValidProjects();
         monitor.beginTask("Checking projects consistency ...", validProjects.length);
+
+        List<WorkspaceJob> workspaceJobList = new ArrayList<>();
         for(IProject project : validProjects)
         {
           if (monitor.isCanceled())
@@ -715,7 +731,9 @@ public class Util
           try
           {
             monitor.subTask("Checking project " + project.getName());
-            checkProjectConsistency(pluginConsistency, project);
+            WorkspaceJob workspaceJob = checkProjectConsistency(pluginConsistency, project, addMarkerConsumer);
+            if (workspaceJob != null)
+              workspaceJobList.add(workspaceJob);
             monitor.worked(1);
           }
           catch(Exception e)
@@ -723,11 +741,31 @@ public class Util
             PluginConsistencyActivator.logError("Error when checking onsistency on project " + project.getDefaultCharset(), e);
           }
         }
+        workspaceJobList.forEach(Util::join);
         monitor.done();
+
+        if (markerConsumer != null)
+          markerConsumer.accept(markerList);
 
         return Status.OK_STATUS;
       }
     };
     job.schedule();
+  }
+
+  /**
+   * Join WorkspaceJob
+   * @param workspaceJob
+   */
+  private static void join(WorkspaceJob workspaceJob)
+  {
+    try
+    {
+      workspaceJob.join();
+    }
+    catch(Exception e)
+    {
+      PluginConsistencyActivator.logError("Error when joining WorkspaceJob", e);
+    }
   }
 }

@@ -53,7 +53,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
     {
       PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
       if (pluginConsistency != null)
-        Util.checkProjectConsistency(pluginConsistency, project);
+        Util.checkProjectConsistency(pluginConsistency, project, null);
     }
     catch(Exception e)
     {
