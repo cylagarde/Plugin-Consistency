@@ -38,7 +38,14 @@ class BundlesLabelProvider extends LabelProvider implements IColorProvider
   @Override
   public String getText(Object element)
   {
-    return pluginConsistencyPreferencePage.getIdInCache(element);
+    String id = pluginConsistencyPreferencePage.getIdInCache(element);
+    if (element instanceof IProject)
+    {
+      IProject project = (IProject) element;
+      if (!id.equals(project.getName()))
+        id += " (" + project.getName() + ")";
+    }
+    return id;
   }
 
   @Override
