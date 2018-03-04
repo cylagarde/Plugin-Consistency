@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/cl.pde.views.features_1.6.1.qualifier.jar" id="cl.pde.views.features" version="1.6.1.qualifier">
+   <feature url="features/cl.plugin.consistency.features_1.2.1.qualifier.jar" id="cl.plugin.consistency.features" version="1.2.1.qualifier">
       <category name="Plugin_Consistency_features"/>
    </feature>
    <category-def name="Plugin_Consistency_features" label="Plugin Consistency Features">
