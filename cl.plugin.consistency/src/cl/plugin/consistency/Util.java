@@ -127,7 +127,6 @@ public class Util
     });
 
     comboViewer.getControl().setData("ComboViewer", comboViewer);
-    comboViewer.getControl().setFocus();
 
     return comboViewer;
   }

@@ -219,6 +219,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
     {
       ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
       ComboViewer elementComboViewer = Util.createCombo(elementListComposite, getNotUsedElements(), "", elementBiConsumer);
+      elementComboViewer.getControl().setFocus();
       elementBiConsumer.elementComboViewer = elementComboViewer;
 
       elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
