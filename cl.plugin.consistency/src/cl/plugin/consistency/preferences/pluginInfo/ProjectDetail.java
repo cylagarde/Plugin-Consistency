@@ -71,8 +71,6 @@ class ProjectDetail
     createForbiddenPluginComposite(sashForm);
 
     sashForm.setWeights(new int[]{2, 2, 3});
-
-    Util.setEnabled(content, false);
   }
 
   /**
