@@ -1,6 +1,7 @@
 package cl.plugin.consistency.preferences.impl;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -109,8 +110,18 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
   public void setData(T data)
   {
     this.data = data;
-    //    Util.setEnabled(section, pluginInfo != null);
 
+    // enable add action if elements are available
+    Collection<E> elements = elementManagerDataModel.getElements();
+    if (data != null)
+    {
+      // remove all elements present in data
+      List<E> dataElements = data.getElements();
+      elements.removeAll(dataElements);
+    }
+    addElementAction.setEnabled(!elements.isEmpty());
+
+    // remove all controls
     Stream.of(elementListComposite.getChildren()).forEach(Control::dispose);
     if (data != null)
     {
@@ -175,7 +186,8 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
       // enable if last combo dont use empty selection
       Control[] children = elementListComposite.getChildren();
       Combo combo = children.length == 0? null : (Combo) children[children.length - 1];
-      addElementAction.setEnabled(combo == null || (combo.getSelectionIndex() != 0 && getNotUsedElements().size() != 1));
+      boolean enabled = combo == null || (combo.getSelectionIndex() != 0 && getNotUsedElements().size() != 1);
+      addElementAction.setEnabled(enabled);
 
       // reconstruct items for all combos
       try
