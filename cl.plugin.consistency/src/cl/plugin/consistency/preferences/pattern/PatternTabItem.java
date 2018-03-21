@@ -155,10 +155,12 @@ public class PatternTabItem
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
       Util.setEnabled(content, patternInfo != null);
 
-      Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name));
+      if (patternInfo != null)
+        Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name));
       patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.typeList));
 
-      Collections.sort(patternInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
+      if (patternInfo != null)
+        Collections.sort(patternInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
       patternForbiddenTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.forbiddenTypeList));
     });
 
