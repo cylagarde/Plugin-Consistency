@@ -80,4 +80,13 @@ class PatternInfoData implements IData<TypeElement>
     type.name = name;
     return new TypeElement(type);
   }
+
+  /*
+   * @see java.lang.Object#toString()
+   */
+  @Override
+  public String toString()
+  {
+    return "PatternInfoData[types=" + oldTypeSet + "]";
+  }
 }

@@ -181,8 +181,8 @@ public class PatternTabItem
         // types
         if (patternInfoData.typeList == patternInfoData.patternInfo.typeList)
         {
-          pluginInfo.typeList.removeIf(type -> patternInfoData.oldTypeSet.contains(type.name));
-          patternInfoData.typeList.forEach(type -> {
+          Set<String> alreadySet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+          patternInfoData.typeList.stream().filter(type -> !alreadySet.contains(type.name)).forEach(type -> {
             Type newType = new Type();
             newType.name = type.name;
             pluginInfo.typeList.add(newType);
@@ -191,8 +191,8 @@ public class PatternTabItem
         // forbiddenTypes
         else
         {
-          pluginInfo.forbiddenTypeList.removeIf(type -> patternInfoData.oldTypeSet.contains(type.name));
-          patternInfoData.typeList.forEach(type -> {
+          Set<String> alreadySet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+          patternInfoData.typeList.stream().filter(type -> !alreadySet.contains(type.name)).forEach(type -> {
             Type newType = new Type();
             newType.name = type.name;
             pluginInfo.forbiddenTypeList.add(newType);
