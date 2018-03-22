@@ -123,6 +123,8 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 
     // remove all controls
     Stream.of(elementListComposite.getChildren()).forEach(Control::dispose);
+
+    // create all combos
     if (data != null)
     {
       for(E element : data.getElements())
@@ -231,7 +233,9 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
     public void run()
     {
       ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
-      ComboViewer elementComboViewer = Util.createCombo(elementListComposite, getNotUsedElements(), "", elementBiConsumer);
+      List<String> notUsedElements = getNotUsedElements();
+      Collections.sort(notUsedElements);
+      ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, "", elementBiConsumer);
       elementComboViewer.getControl().setFocus();
       elementBiConsumer.elementComboViewer = elementComboViewer;
 

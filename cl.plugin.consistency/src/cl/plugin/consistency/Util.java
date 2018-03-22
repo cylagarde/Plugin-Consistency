@@ -78,6 +78,7 @@ public class Util
       IStructuredSelection selection = (IStructuredSelection) comboViewer.getSelection();
       selectionConsumer.accept(oldStructuredSelection[0], selection);
       oldStructuredSelection[0] = selection;
+      parent.layout();
     });
 
     comboViewer.getControl().setData("ComboViewer", comboViewer);
