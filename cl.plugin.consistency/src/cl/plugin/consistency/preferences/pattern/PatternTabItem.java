@@ -165,6 +165,8 @@ public class PatternTabItem
     });
 
     sashForm.setWeights(new int[]{1, 1});
+
+    Util.setEnabled(content, false);
   }
 
   /**
