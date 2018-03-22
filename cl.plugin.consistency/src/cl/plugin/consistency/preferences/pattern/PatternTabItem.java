@@ -203,7 +203,6 @@ public class PatternTabItem
 
     // refresh all TabFolder
     pluginTabFolder.refresh();
-    //    refreshPatternInfo(patternInfoData.patternInfo);
   }
 
   /**

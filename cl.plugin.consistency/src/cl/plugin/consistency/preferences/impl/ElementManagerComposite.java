@@ -97,7 +97,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
    */
   private List<String> getNotUsedElements()
   {
-    List<String> elements = elementManagerDataModel.getElements().stream().map(E::getName).sorted().distinct().collect(Collectors.toList());
+    List<String> elements = elementManagerDataModel.getElements().stream().map(E::getName).distinct().collect(Collectors.toList());
     elements.add(0, "");
     List<String> currentElements = data.getElements().stream().map(E::getName).collect(Collectors.toList());
     elements.removeAll(currentElements);
@@ -198,11 +198,12 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
           if (control instanceof Combo)
           {
             Combo child = (Combo) control;
-            List<String> elements = getNotUsedElements();
+            List<String> notUsedElements = getNotUsedElements();
             String selection = child.getText();
-            elements.add(selection);
+            notUsedElements.add(selection);
+            Collections.sort(notUsedElements);
             ComboViewer comboViewer = (ComboViewer) child.getData("ComboViewer");
-            comboViewer.setInput(elements);
+            comboViewer.setInput(notUsedElements);
             comboViewer.setSelection(new StructuredSelection(selection));
           }
         }
