@@ -41,6 +41,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.ide.IDE.SharedImages;
 
+import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
@@ -59,6 +60,7 @@ public class PluginTabItem
   public static final int COLUMN_SPACE = 5;
 
   final PluginTabFolder pluginTabFolder;
+  final Cache cache;
   TableViewer projectTableViewer;
   TableViewerColumn typeTableViewerColumn;
   TableViewerColumn forbiddenTypesTableViewerColumn;
@@ -71,6 +73,7 @@ public class PluginTabItem
   public PluginTabItem(PluginTabFolder pluginTabFolder)
   {
     this.pluginTabFolder = pluginTabFolder;
+    cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
     //
     TabItem pluginTabItem = new TabItem(pluginTabFolder.tabFolder, SWT.NONE);
@@ -172,7 +175,8 @@ public class PluginTabItem
         Image projectImage = PlatformUI.getWorkbench().getSharedImages().getImage(SharedImages.IMG_OBJ_PROJECT);
 
         //
-        if (Util.isValidPlugin(project))
+        Boolean isValidPlugin = cache.isValidProjectWithCache(project);
+        if (isValidPlugin)
           return projectImage;
 
         // invalid project
@@ -317,14 +321,15 @@ public class PluginTabItem
   /**
    * The class <b>PluginInfoColumnLabelProvider</b> allows to.<br>
    */
-  static class PluginInfoColumnLabelProvider extends ColumnLabelProvider
+  class PluginInfoColumnLabelProvider extends ColumnLabelProvider
   {
     @Override
     public final Color getForeground(Object element)
     {
       PluginInfo pluginInfo = (PluginInfo) element;
       IProject project = Util.getProject(pluginInfo);
-      if (Util.isValidPlugin(project))
+      Boolean isValidPlugin = cache.isValidProjectWithCache(project);
+      if (isValidPlugin)
         return super.getForeground(element);
       return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
     }

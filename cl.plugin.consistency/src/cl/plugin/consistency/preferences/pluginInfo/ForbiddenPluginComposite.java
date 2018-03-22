@@ -49,6 +49,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.CheckedTreeSelectionDialog;
 import org.osgi.framework.Bundle;
 
+import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
@@ -64,11 +65,11 @@ class ForbiddenPluginComposite
   final ProjectDetail projectDetail;
   final TableViewer forbiddenPluginTableViewer;
   final Bundle[] bundles;
-  final IProject[] validProjects;
   final IAction addPluginAction;
 
   PluginInfo pluginInfo;
   CompletableFuture<Set<String>> requireBundleSetCompletableFuture;
+  final Cache cache;
 
   /**
    * Constructor
@@ -81,7 +82,7 @@ class ForbiddenPluginComposite
     this.projectDetail = projectDetail;
 
     bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
-    validProjects = Util.getValidProjects();
+    cache = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
@@ -99,7 +100,7 @@ class ForbiddenPluginComposite
     //
     forbiddenPluginTableViewer = new TableViewer(sectionPane, SWT.BORDER);
     forbiddenPluginTableViewer.getTable().setLinesVisible(true);
-    forbiddenPluginTableViewer.setLabelProvider(new BundlesLabelProvider(projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage));
+    forbiddenPluginTableViewer.setLabelProvider(new BundlesLabelProvider(cache));
     forbiddenPluginTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     forbiddenPluginTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
   }
@@ -124,7 +125,7 @@ class ForbiddenPluginComposite
           bundleList.add(bundle);
         else
         {
-          Optional<IProject> optional = Stream.of(validProjects).filter(project -> projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(project).equals(forbiddenPluginInfo.id)).findFirst();
+          Optional<IProject> optional = Stream.of(cache.getValidProjects()).filter(project -> cache.getIdInCache(project).equals(forbiddenPluginInfo.id)).findFirst();
           optional.ifPresent(bundleList::add);
         }
       }
@@ -143,7 +144,7 @@ class ForbiddenPluginComposite
     if (addPluginAction.isEnabled())
     {
       Supplier<Set<String>> supplier = () -> {
-        Optional<IProject> optional = Stream.of(validProjects).filter(project -> projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(project).equals(pluginInfo.id)).findFirst();
+        Optional<IProject> optional = Stream.of(cache.getValidProjects()).filter(project -> cache.getIdInCache(project).equals(pluginInfo.id)).findFirst();
 
         IProject project = optional.get();
         Set<String> requireBundleSet = null;
@@ -196,7 +197,7 @@ class ForbiddenPluginComposite
       Set<String> requireBundleSet = tmpSet;
 
       //
-      BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage, requireBundleSet);
+      BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(cache, requireBundleSet);
       CheckedTreeSelectionDialog dialog = new CheckedTreeSelectionDialog(forbiddenPluginTableViewer.getControl().getShell(), bundlesLabelProvider, new BundleTreeContentProvider())
       {
         Text searchPluginText;
@@ -224,7 +225,7 @@ class ForbiddenPluginComposite
               @Override
               public boolean select(Viewer viewer, Object parentElement, Object element)
               {
-                return requireBundleSet.contains(projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(element));
+                return requireBundleSet.contains(cache.getIdInCache(element));
               }
             };
 
@@ -357,15 +358,15 @@ class ForbiddenPluginComposite
 
       //
       Comparator<Object> bundleProjectComparator = (o1, o2) -> {
-        String id1 = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(o1);
-        String id2 = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(o2);
+        String id1 = cache.getIdInCache(o1);
+        String id2 = cache.getIdInCache(o2);
         return String.CASE_INSENSITIVE_ORDER.compare(id1, id2);
       };
       TreeSet<Object> set = new TreeSet<>(bundleProjectComparator);
-      set.addAll(Arrays.asList(validProjects));
+      set.addAll(Arrays.asList(cache.getValidProjects()));
 
       // remove current plugin/project
-      set.removeIf(o -> projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(o).equals(pluginInfo.id));
+      set.removeIf(o -> cache.getIdInCache(o).equals(pluginInfo.id));
 
       set.addAll(Arrays.asList(bundles));
 
@@ -380,7 +381,7 @@ class ForbiddenPluginComposite
         for(Object o : dialog.getResult())
         {
           ForbiddenPlugin forbiddenPluginInfo = new ForbiddenPlugin();
-          forbiddenPluginInfo.id = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getIdInCache(o);
+          forbiddenPluginInfo.id = cache.getIdInCache(o);
           pluginInfo.forbiddenPluginList.add(forbiddenPluginInfo);
         }
         forbiddenPluginTableViewer.setInput(dialog.getResult());

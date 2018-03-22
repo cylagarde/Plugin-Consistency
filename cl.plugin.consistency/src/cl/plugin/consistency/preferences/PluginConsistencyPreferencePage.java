@@ -1,8 +1,6 @@
 package cl.plugin.consistency.preferences;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.WorkspaceJob;
@@ -25,8 +23,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.osgi.framework.Bundle;
 
+import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginConsistency;
@@ -44,6 +42,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   Button activateButton;
   Text pluginConsistencyFileText;
   PluginTabFolder pluginTabFolder;
+  Cache cache = new Cache();
 
   /**
    * Constructor
@@ -165,26 +164,12 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     });
   }
 
-  Map<Object, String> elementToIdCacheMap = new HashMap<>();
-
   /**
-   * Get plugin id from cache
-   * @param o IProject or Bundle
+   * @return the cache
    */
-  public String getIdInCache(Object o)
+  public Cache getCache()
   {
-    String id = elementToIdCacheMap.get(o);
-    if (id == null)
-    {
-      if (o instanceof IProject)
-        id = Util.getPluginId((IProject) o);
-      else
-        id = ((Bundle) o).getSymbolicName();
-
-      elementToIdCacheMap.put(o, id);
-    }
-
-    return id;
+    return cache;
   }
 
   /*
@@ -237,7 +222,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         @Override
         public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
         {
-          IProject[] validProjects = Util.getValidProjects();
+          IProject[] validProjects = cache.getValidProjects();
           monitor.beginTask("Removing project consistency ...", validProjects.length);
           for(IProject project : validProjects)
           {

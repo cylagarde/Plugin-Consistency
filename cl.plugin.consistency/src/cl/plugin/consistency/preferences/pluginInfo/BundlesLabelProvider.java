@@ -14,31 +14,31 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.framework.Bundle;
 
-import cl.plugin.consistency.preferences.PluginConsistencyPreferencePage;
+import cl.plugin.consistency.Cache;
 
 /**
  * The class <b>BundlesLabelProvider</b> allows to.<br>
  */
 class BundlesLabelProvider extends LabelProvider implements IColorProvider
 {
-  final PluginConsistencyPreferencePage pluginConsistencyPreferencePage;
+  final Cache cache;
   final Set<String> requireBundleSet;
 
-  BundlesLabelProvider(PluginConsistencyPreferencePage pluginConsistencyPreferencePage, Set<String> requireBundleSet)
+  BundlesLabelProvider(Cache cache, Set<String> requireBundleSet)
   {
-    this.pluginConsistencyPreferencePage = pluginConsistencyPreferencePage;
+    this.cache = cache;
     this.requireBundleSet = requireBundleSet;
   }
 
-  BundlesLabelProvider(PluginConsistencyPreferencePage pluginConsistencyPreferencePage)
+  BundlesLabelProvider(Cache cache)
   {
-    this(pluginConsistencyPreferencePage, null);
+    this(cache, null);
   }
 
   @Override
   public String getText(Object element)
   {
-    String id = pluginConsistencyPreferencePage.getIdInCache(element);
+    String id = cache.getIdInCache(element);
     if (element instanceof IProject)
     {
       IProject project = (IProject) element;

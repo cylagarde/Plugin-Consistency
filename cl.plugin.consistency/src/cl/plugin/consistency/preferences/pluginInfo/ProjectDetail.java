@@ -196,7 +196,7 @@ class ProjectDetail
     if (pluginInfo != null)
     {
       IProject project = Util.getProject(pluginInfo);
-      validPlugin = Util.isValidPlugin(project);
+      validPlugin = pluginTabItem.cache.isValidProjectWithCache(project);
     }
     Util.setEnabled(content, validPlugin);
   }

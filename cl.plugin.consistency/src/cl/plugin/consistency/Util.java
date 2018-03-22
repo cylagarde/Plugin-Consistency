@@ -56,6 +56,9 @@ public class Util
    */
   public static boolean isValidPlugin(IProject project)
   {
+    //    System.out.println("isValidPlugin " + project + " " + project.hashCode());
+    if (project.toString().contains("PocS3_ServiceProviders"))
+      Thread.dumpStack();
     try
     {
       if (project.isOpen() && project.hasNature(PDE.PLUGIN_NATURE) && getPluginId(project) != null)

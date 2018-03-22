@@ -91,6 +91,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
   {
     Optional<PluginInfo> removedPluginInfoOptional;
     IProject addedProject;
+    Cache cache = new Cache();
 
     @Override
     public boolean visit(IResourceDelta delta)
@@ -103,7 +104,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
       if (res.getType() == IResource.PROJECT)
       {
         IProject project = res.getProject();
-        if (Util.isValidPlugin(project))
+        if (cache.isValidProjectWithCache(project))
         {
           checkAndUpdateForRenamingProject(delta);
 
@@ -148,7 +149,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
           if (removedPluginInfoOptional != null && removedPluginInfoOptional.isPresent())
           {
             PluginInfo pluginInfo = removedPluginInfoOptional.get();
-            if (pluginInfo.id.equals(Util.getPluginId(addedProject)))
+            if (pluginInfo.id.equals(cache.getIdInCache(addedProject)))
             {
               pluginInfo.name = addedProject.getName();
               File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
@@ -171,7 +172,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
         if (removedPluginInfoOptional != null && removedPluginInfoOptional.isPresent())
         {
           PluginInfo pluginInfo = removedPluginInfoOptional.get();
-          if (pluginInfo.id.equals(Util.getPluginId(project)))
+          if (pluginInfo.id.equals(cache.getIdInCache(project)))
           {
             pluginInfo.name = project.getName();
             File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
