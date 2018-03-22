@@ -31,8 +31,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.pde.core.project.IBundleProjectDescription;
 import org.eclipse.pde.core.project.IBundleProjectService;
 import org.eclipse.pde.core.project.IRequiredBundleDescription;
-import org.eclipse.pde.internal.core.bundle.WorkspaceBundlePluginModel;
-import org.eclipse.pde.internal.core.natures.PDE;
 import org.eclipse.pde.internal.core.project.PDEProject;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -49,53 +47,6 @@ import cl.plugin.consistency.model.util.PluginConsistencyLoader;
  */
 public class Util
 {
-  /**
-   * Return true if project is open and has PluginNature
-   *
-   * @param project
-   */
-  public static boolean isValidPlugin(IProject project)
-  {
-    //    System.out.println("isValidPlugin " + project + " " + project.hashCode());
-    if (project.toString().contains("PocS3_ServiceProviders"))
-      Thread.dumpStack();
-    try
-    {
-      if (project.isOpen() && project.hasNature(PDE.PLUGIN_NATURE) && getPluginId(project) != null)
-        return true;
-    }
-    catch(Exception e)
-    {
-      PluginConsistencyActivator.logError("Error: " + e, e);
-    }
-    return false;
-  }
-
-  /**
-   * Return the plugin id
-   *
-   * @param project
-   */
-  public static String getPluginId(IProject project)
-  {
-    WorkspaceBundlePluginModel pluginModel = getWorkspaceBundlePluginModel(project);
-    String pluginId = pluginModel.getPlugin().getId();
-    return pluginId;
-  }
-
-  /**
-   * Return the WorkspaceBundlePluginModel
-   *
-   * @param project
-   */
-  public static WorkspaceBundlePluginModel getWorkspaceBundlePluginModel(IProject project)
-  {
-    IFile pluginXml = null;// PDEProject.getPluginXml(project);
-    IFile manifest = PDEProject.getManifest(project);
-    WorkspaceBundlePluginModel pluginModel = new WorkspaceBundlePluginModel(manifest, pluginXml);
-    return pluginModel;
-  }
-
   /**
    * Set enable/disable all controls
    * @param control
@@ -135,16 +86,6 @@ public class Util
   }
 
   /**
-   * Return valid project (project is open and has PluginNature)
-   */
-  public static IProject[] getValidProjects()
-  {
-    IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-    IProject[] validPluginProjects = Stream.of(projects).filter(Util::isValidPlugin).toArray(IProject[]::new);
-    return validPluginProjects;
-  }
-
-  /**
    * Load And Update Plugin Consistency File
    */
   public static PluginConsistency loadAndUpdateConsistencyFile(File consistencyFile)
@@ -174,11 +115,13 @@ public class Util
       }).forEach(pluginConsistency.typeList::add);
     }
 
+    Cache cache = new Cache();
+
     // add new project to pluginConsistency
-    IProject[] validPluginProjects = getValidProjects();
+    IProject[] validPluginProjects = cache.getValidProjects();
     for(IProject pluginProject : validPluginProjects)
     {
-      String id = getPluginId(pluginProject);
+      String id = cache.getId(pluginProject);
       if (id == null)
       {
         PluginConsistencyActivator.logError("id null for '" + pluginProject + "'");
@@ -204,7 +147,7 @@ public class Util
       if (pluginInfoWithNameOptional.isPresent())
       {
         PluginInfo pluginInfo = pluginInfoWithNameOptional.get();
-        pluginInfo.id = getPluginId(pluginProject);
+        pluginInfo.id = cache.getId(pluginProject);
 
         //
         updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
@@ -356,7 +299,8 @@ public class Util
    */
   public static WorkspaceJob checkProjectConsistency(PluginConsistency pluginConsistency, IProject project, Consumer<List<IMarker>> markerConsumer) throws Exception
   {
-    if (!isValidPlugin(project))
+    Cache cache = new Cache();
+    if (!cache.isValidProject(project))
       return null;
     long time = System.currentTimeMillis();
 
@@ -365,7 +309,7 @@ public class Util
     List<IMarker> newMarkerList = new ArrayList<>();
     List<Runnable> runnableList = new ArrayList<>();
 
-    Optional<PluginInfo> optionalPluginInfo = pluginConsistency.pluginInfoList.stream().filter(pInfo -> pInfo.name.equals(project.getName()) || pInfo.id.equals(getPluginId(project))).findAny();
+    Optional<PluginInfo> optionalPluginInfo = pluginConsistency.pluginInfoList.stream().filter(pInfo -> pInfo.name.equals(project.getName()) || pInfo.id.equals(cache.getId(project))).findAny();
     if (optionalPluginInfo.isPresent())
     {
       PluginInfo pluginInfo = optionalPluginInfo.get();
@@ -396,7 +340,7 @@ public class Util
                 String requireBundle = requirePluginInfo.id;
 
                 // if not same
-                String pluginId = getPluginId(project);
+                String pluginId = cache.getId(project);
                 if (!pluginInfo.id.equals(pluginId))
                 {
                   pluginInfo.id = pluginId;
@@ -435,7 +379,7 @@ public class Util
             String requireBundle = forbiddenPluginInfo.id;
 
             // if not same
-            String pluginId = getPluginId(project);
+            String pluginId = cache.getId(project);
             if (!pluginInfo.id.equals(pluginId))
             {
               pluginInfo.id = pluginId;
@@ -722,7 +666,7 @@ public class Util
         List<IMarker> markerList = new CopyOnWriteArrayList<>();
         Consumer<List<IMarker>> addMarkerConsumer = markerList::addAll;
 
-        IProject[] validProjects = getValidProjects();
+        IProject[] validProjects = new Cache().getValidProjects();
         monitor.beginTask("Checking projects consistency ...", validProjects.length);
 
         List<WorkspaceJob> workspaceJobList = new ArrayList<>();

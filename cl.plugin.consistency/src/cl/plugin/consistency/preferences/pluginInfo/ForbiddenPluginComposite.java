@@ -125,7 +125,7 @@ class ForbiddenPluginComposite
           bundleList.add(bundle);
         else
         {
-          Optional<IProject> optional = Stream.of(cache.getValidProjects()).filter(project -> cache.getIdInCache(project).equals(forbiddenPluginInfo.id)).findFirst();
+          Optional<IProject> optional = Stream.of(cache.getValidProjects()).filter(project -> cache.getId(project).equals(forbiddenPluginInfo.id)).findFirst();
           optional.ifPresent(bundleList::add);
         }
       }
@@ -144,7 +144,7 @@ class ForbiddenPluginComposite
     if (addPluginAction.isEnabled())
     {
       Supplier<Set<String>> supplier = () -> {
-        Optional<IProject> optional = Stream.of(cache.getValidProjects()).filter(project -> cache.getIdInCache(project).equals(pluginInfo.id)).findFirst();
+        Optional<IProject> optional = Stream.of(cache.getValidProjects()).filter(project -> cache.getId(project).equals(pluginInfo.id)).findFirst();
 
         IProject project = optional.get();
         Set<String> requireBundleSet = null;
@@ -225,7 +225,7 @@ class ForbiddenPluginComposite
               @Override
               public boolean select(Viewer viewer, Object parentElement, Object element)
               {
-                return requireBundleSet.contains(cache.getIdInCache(element));
+                return requireBundleSet.contains(cache.getId(element));
               }
             };
 
@@ -358,15 +358,15 @@ class ForbiddenPluginComposite
 
       //
       Comparator<Object> bundleProjectComparator = (o1, o2) -> {
-        String id1 = cache.getIdInCache(o1);
-        String id2 = cache.getIdInCache(o2);
+        String id1 = cache.getId(o1);
+        String id2 = cache.getId(o2);
         return String.CASE_INSENSITIVE_ORDER.compare(id1, id2);
       };
       TreeSet<Object> set = new TreeSet<>(bundleProjectComparator);
       set.addAll(Arrays.asList(cache.getValidProjects()));
 
       // remove current plugin/project
-      set.removeIf(o -> cache.getIdInCache(o).equals(pluginInfo.id));
+      set.removeIf(o -> cache.getId(o).equals(pluginInfo.id));
 
       set.addAll(Arrays.asList(bundles));
 
@@ -381,7 +381,7 @@ class ForbiddenPluginComposite
         for(Object o : dialog.getResult())
         {
           ForbiddenPlugin forbiddenPluginInfo = new ForbiddenPlugin();
-          forbiddenPluginInfo.id = cache.getIdInCache(o);
+          forbiddenPluginInfo.id = cache.getId(o);
           pluginInfo.forbiddenPluginList.add(forbiddenPluginInfo);
         }
         forbiddenPluginTableViewer.setInput(dialog.getResult());

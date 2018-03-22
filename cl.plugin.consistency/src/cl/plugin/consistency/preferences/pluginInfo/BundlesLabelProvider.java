@@ -38,7 +38,7 @@ class BundlesLabelProvider extends LabelProvider implements IColorProvider
   @Override
   public String getText(Object element)
   {
-    String id = cache.getIdInCache(element);
+    String id = cache.getId(element);
     if (element instanceof IProject)
     {
       IProject project = (IProject) element;

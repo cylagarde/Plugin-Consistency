@@ -175,7 +175,7 @@ public class PluginTabItem
         Image projectImage = PlatformUI.getWorkbench().getSharedImages().getImage(SharedImages.IMG_OBJ_PROJECT);
 
         //
-        Boolean isValidPlugin = cache.isValidProjectWithCache(project);
+        Boolean isValidPlugin = cache.isValidProject(project);
         if (isValidPlugin)
           return projectImage;
 
@@ -328,7 +328,7 @@ public class PluginTabItem
     {
       PluginInfo pluginInfo = (PluginInfo) element;
       IProject project = Util.getProject(pluginInfo);
-      Boolean isValidPlugin = cache.isValidProjectWithCache(project);
+      Boolean isValidPlugin = cache.isValidProject(project);
       if (isValidPlugin)
         return super.getForeground(element);
       return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
