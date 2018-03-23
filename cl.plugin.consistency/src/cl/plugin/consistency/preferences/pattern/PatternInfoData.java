@@ -1,7 +1,6 @@
 package cl.plugin.consistency.preferences.pattern;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import cl.plugin.consistency.model.PatternInfo;
@@ -16,13 +15,11 @@ class PatternInfoData implements IData<TypeElement>
 {
   final PatternInfo patternInfo;
   final List<Type> typeList;
-  Set<String> oldTypeSet;
 
   PatternInfoData(PatternInfo patternInfo, List<Type> typeList)
   {
     this.patternInfo = patternInfo;
     this.typeList = typeList;
-    oldTypeSet = typeList.stream().map(type -> type.name).collect(Collectors.toSet());
   }
 
   /*
@@ -87,6 +84,7 @@ class PatternInfoData implements IData<TypeElement>
   @Override
   public String toString()
   {
-    return "PatternInfoData[types=" + oldTypeSet + "]";
+    String types = typeList.stream().map(type -> type.name).collect(Collectors.joining(", "));
+    return "PatternInfoData[types=" + types + "]";
   }
 }
