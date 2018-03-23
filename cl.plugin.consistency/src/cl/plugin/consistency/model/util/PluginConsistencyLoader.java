@@ -22,7 +22,7 @@ public class PluginConsistencyLoader
   static final String SCHEMA_XSD = "pluginConsistency.xsd";
 
   /**
-   * Return the validation schema for DatasetGroupCollection
+   * Return the validation schema for PluginConsistency
    *
    * @return The schema
    * @throws SAXException The SAXException

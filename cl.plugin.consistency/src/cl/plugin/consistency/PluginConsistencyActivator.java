@@ -1,6 +1,9 @@
 package cl.plugin.consistency;
 
 import java.io.File;
+import java.util.concurrent.CompletableFuture;
+
+import javax.xml.bind.JAXBContext;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -62,6 +65,9 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
   {
     super.start(context);
     plugin = this;
+
+    //
+    CompletableFuture.runAsync(() -> {try{JAXBContext.newInstance(PluginConsistency.class);} catch(Exception e) {e.printStackTrace();}});
 
     //
     ServiceReference<IBundleProjectService> ref = context.getServiceReference(IBundleProjectService.class);
