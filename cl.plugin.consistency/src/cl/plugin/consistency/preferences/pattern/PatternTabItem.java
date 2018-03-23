@@ -1,8 +1,10 @@
 package cl.plugin.consistency.preferences.pattern;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -170,6 +172,7 @@ public class PatternTabItem
   }
 
   /**
+   * Update all pluginInfos with patternInfo (add new types and/or remove old types)
    * @param patternInfoData
    */
   void updateAllPluginInfosWithPatternInfo(PatternInfoData patternInfoData)
@@ -180,26 +183,28 @@ public class PatternTabItem
     {
       if (pluginInfo.name.contains(pattern))
       {
+        List<Type> typeList;
+
         // types
         if (patternInfoData.typeList == patternInfoData.patternInfo.typeList)
-        {
-          Set<String> alreadySet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-          patternInfoData.typeList.stream().filter(type -> !alreadySet.contains(type.name)).forEach(type -> {
-            Type newType = new Type();
-            newType.name = type.name;
-            pluginInfo.typeList.add(newType);
-          });
-        }
+          typeList = pluginInfo.typeList;
         // forbiddenTypes
         else
-        {
-          Set<String> alreadySet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
-          patternInfoData.typeList.stream().filter(type -> !alreadySet.contains(type.name)).forEach(type -> {
-            Type newType = new Type();
-            newType.name = type.name;
-            pluginInfo.forbiddenTypeList.add(newType);
-          });
-        }
+          typeList = pluginInfo.forbiddenTypeList;
+
+        // remove all types
+        List<Type> removedTypeList = new ArrayList<>(typeList);
+        removedTypeList.removeAll(patternInfoData.typeList);
+        typeList.removeIf(removedTypeList::contains);
+
+        // add new types
+        List<Type> newTypeList = new ArrayList<>(patternInfoData.typeList);
+        newTypeList.removeAll(typeList);
+        newTypeList.forEach(type -> {
+          Type newType = new Type();
+          newType.name = type.name;
+          typeList.add(newType);
+        });
       }
     }
 
