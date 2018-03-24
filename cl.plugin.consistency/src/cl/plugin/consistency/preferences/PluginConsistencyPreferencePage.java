@@ -109,7 +109,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   {
     Composite pluginConsistencyFileComposite = new Composite(content, SWT.NONE);
 
-    GridLayout pluginConsistencyFileGridLayout = new GridLayout(4, false);
+    GridLayout pluginConsistencyFileGridLayout = new GridLayout(5, false);
     pluginConsistencyFileGridLayout.marginWidth = pluginConsistencyFileGridLayout.marginHeight = 0;
     pluginConsistencyFileComposite.setLayout(pluginConsistencyFileGridLayout);
 
@@ -162,6 +162,18 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         }
       }
     });
+
+    //
+    Button saveModelButton = new Button(pluginConsistencyFileComposite, SWT.NONE);
+    saveModelButton.setText("Save");
+    saveModelButton.addSelectionListener(new SelectionAdapter()
+    {
+      @Override
+      public void widgetSelected(SelectionEvent se)
+      {
+        checkAndSavePluginConsistency();
+      }
+    });
   }
 
   /**
@@ -172,17 +184,16 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     return cache;
   }
 
-  /*
-   * @see org.eclipse.jface.preference.PreferencePage#performApply()
+  /**
+   * Check and save pluginConsistency into file
    */
-  @Override
-  public boolean performOk()
+  private PluginConsistency checkAndSavePluginConsistency()
   {
     String consistency_file_path = pluginConsistencyFileText.getText();
     if (consistency_file_path == null || consistency_file_path.isEmpty())
     {
       MessageDialog.openError(getShell(), "Error", "Define a path for plugin consistency informations");
-      return false;
+      return null;
     }
 
     // remove useless pluginInfo
@@ -198,11 +209,26 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       String message = "Exception when saving plugin consistency informations : " + e.getLocalizedMessage();
       PluginConsistencyActivator.logError(message, e);
       MessageDialog.openError(getShell(), "Error", message);
-      return false;
+      return null;
     }
+
+    return compactPluginConsistency;
+  }
+
+  /*
+   * @see org.eclipse.jface.preference.PreferencePage#performApply()
+   */
+  @Override
+  public boolean performOk()
+  {
+    // try to save
+    PluginConsistency compactPluginConsistency = checkAndSavePluginConsistency();
+    if (compactPluginConsistency == null)
+      return false;
 
     //
     getPreferenceStore().setValue(PluginConsistencyActivator.CONSISTENCY_ACTIVATION, activateButton.getSelection());
+    String consistency_file_path = pluginConsistencyFileText.getText();
     getPreferenceStore().setValue(PluginConsistencyActivator.CONSISTENCY_FILE_PATH, consistency_file_path);
 
     //
