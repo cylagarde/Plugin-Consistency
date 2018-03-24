@@ -58,7 +58,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     noDefaultAndApplyButton();
     //    setDescription("Plugin consistency");
 
-    //
     String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
     File consistencyFile = new File(consistency_file_path);
     pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
@@ -174,6 +173,10 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       public void widgetSelected(SelectionEvent se)
       {
         String filePath = pluginConsistencyFileText.getText();
+        boolean valid = checkConsistencyFilePath(filePath, true);
+        if (!valid)
+          return;
+
         pluginConsistency = Util.loadAndUpdateConsistencyFile(new File(filePath));
 
         pluginTabFolder.refresh();
@@ -234,11 +237,9 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   private PluginConsistency checkAndSavePluginConsistency()
   {
     String consistency_file_path = pluginConsistencyFileText.getText();
-    if (consistency_file_path == null || consistency_file_path.isEmpty())
-    {
-      MessageDialog.openError(getShell(), "Error", "Define a path for plugin consistency informations");
+    boolean valid = checkConsistencyFilePath(consistency_file_path, false);
+    if (!valid)
       return null;
-    }
 
     // remove useless pluginInfo
     PluginConsistency compactPluginConsistency = pluginConsistency.compact();
@@ -259,8 +260,28 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     return compactPluginConsistency;
   }
 
+  /**
+   * Check consistency file path
+   * @param consistency_file_path
+   */
+  private boolean checkConsistencyFilePath(String consistency_file_path, boolean mustExists)
+  {
+    if (consistency_file_path == null || consistency_file_path.isEmpty())
+    {
+      MessageDialog.openError(getShell(), "Error", "Define a path for plugin consistency informations");
+      return false;
+    }
+    if (mustExists && !new File(consistency_file_path).exists())
+    {
+      MessageDialog.openError(getShell(), "Error", "The path does not exists");
+      return false;
+    }
+
+    return true;
+  }
+
   /*
-   * @see org.eclipse.jface.preference.PreferencePage#performApply()
+   * @see org.eclipse.jface.preference.PreferencePage#performOk()
    */
   @Override
   public boolean performOk()
