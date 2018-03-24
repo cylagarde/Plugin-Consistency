@@ -12,6 +12,7 @@ public enum Images {
   FORBIDDEN_TYPE("icons/forbidden_type.png"),
   PATTERN("icons/pattern.png"),
   CLEAR(PlatformUI.PLUGIN_ID, "$nl$/icons/full/etool16/clear_co.png"),
+  LAUNCH_CHECK_CONSISTENCY("icons/launch_check_consistency.png"),
   ;
 
   public final String pluginId;

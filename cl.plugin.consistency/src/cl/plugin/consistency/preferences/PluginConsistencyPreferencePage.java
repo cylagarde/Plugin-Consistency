@@ -20,13 +20,18 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.PlatformUI;
 
 import cl.plugin.consistency.Cache;
+import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.handlers.LaunchCheckConsistencyHandler;
 import cl.plugin.consistency.model.PluginConsistency;
 import cl.plugin.consistency.model.util.PluginConsistencyLoader;
 
@@ -86,11 +91,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     layoutData.heightHint = 500; // commenter
     content.setLayoutData(layoutData);
 
-    //
-    activateButton = new Button(content, SWT.CHECK);
-    activateButton.setText("Activate plugin consistency");
-    boolean activation = PluginConsistencyActivator.getDefault().isPluginConsistencyActivated();
-    activateButton.setSelection(activation);
+    configureActivate(content);
 
     //
     configureImportConsistencyFile(content);
@@ -99,6 +100,46 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     pluginTabFolder = new PluginTabFolder(this, content, SWT.FLAT);
 
     return null;
+  }
+
+  /**
+   * Configure Activate checkbox
+   * @param content
+   */
+  private void configureActivate(Composite content)
+  {
+    //
+    Composite activateComposite = new Composite(content, SWT.NONE);
+    GridLayout activateGridLayout = new GridLayout(3, false);
+    activateGridLayout.marginWidth = activateGridLayout.marginHeight = 0;
+    activateGridLayout.verticalSpacing = 0;
+    activateComposite.setLayout(activateGridLayout);
+    activateComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+    //
+    activateButton = new Button(activateComposite, SWT.CHECK);
+    activateButton.setText("Activate plugin consistency");
+    boolean activation = PluginConsistencyActivator.getDefault().isPluginConsistencyActivated();
+    activateButton.setSelection(activation);
+
+    //
+    Label spaceLabel = new Label(activateComposite, SWT.NONE);
+    spaceLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+    //
+    Button launchCheckConsistencyButton = new Button(activateComposite, SWT.NONE);
+    launchCheckConsistencyButton.setImage(Images.LAUNCH_CHECK_CONSISTENCY.getImage());
+    //    launchCheckConsistencyButton.setImage(Images.FORBIDDEN_TYPE.getImage());
+    launchCheckConsistencyButton.setToolTipText("Launch check consistency");
+    launchCheckConsistencyButton.addSelectionListener(new SelectionAdapter()
+    {
+      @Override
+      public void widgetSelected(SelectionEvent se)
+      {
+        Shell shell = activateComposite.getShell();
+        LaunchCheckConsistencyHandler.launchConsistencyCheck(shell, pluginConsistency);
+      }
+    });
   }
 
   /**
@@ -126,6 +167,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     //
     Button reloadPluginConsistencyFileButton = new Button(pluginConsistencyFileComposite, SWT.NONE);
     reloadPluginConsistencyFileButton.setText("Reload");
+    reloadPluginConsistencyFileButton.setToolTipText("Reload model from XML file");
     reloadPluginConsistencyFileButton.addSelectionListener(new SelectionAdapter()
     {
       @Override
@@ -166,6 +208,8 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     //
     Button saveModelButton = new Button(pluginConsistencyFileComposite, SWT.NONE);
     saveModelButton.setText("Save");
+    saveModelButton.setToolTipText("Save model to XML file");
+    saveModelButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_SAVE_EDIT));
     saveModelButton.addSelectionListener(new SelectionAdapter()
     {
       @Override

@@ -24,9 +24,19 @@ public class LaunchCheckConsistencyHandler extends AbstractHandler
   @Override
   public Object execute(ExecutionEvent event) throws ExecutionException
   {
-    PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
-
     Shell shell = HandlerUtil.getActiveShell(event);
+    PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
+    launchConsistencyCheck(shell, pluginConsistency);
+    return null;
+  }
+
+  /**
+   * Launch consistency check
+   * @param shell
+   * @param pluginConsistency
+   */
+  public static void launchConsistencyCheck(Shell shell, PluginConsistency pluginConsistency)
+  {
     Consumer<List<IMarker>> markerConsumer = markers -> {
       Display.getDefault().asyncExec(() -> {
         if (markers.isEmpty())
@@ -36,7 +46,5 @@ public class LaunchCheckConsistencyHandler extends AbstractHandler
       });
     };
     Util.launchConsistencyCheck(pluginConsistency, markerConsumer);
-
-    return null;
   }
 }
