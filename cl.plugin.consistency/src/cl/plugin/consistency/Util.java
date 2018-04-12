@@ -626,6 +626,31 @@ public class Util
   }
 
   /**
+   * Remove all consistency markers for all projects
+   */
+  public static void removeAllCheckProjectConsistency(IProgressMonitor monitor)
+  {
+    IProject[] validProjects = new Cache().getValidProjects();
+    monitor.beginTask("Removing consistencies check ...", validProjects.length);
+    for(IProject project : validProjects)
+    {
+      if (monitor.isCanceled())
+        break;
+
+      try
+      {
+        monitor.subTask("Removing consistency check for project " + project.getName());
+        Util.removeCheckProjectConsistency(project);
+        monitor.worked(1);
+      }
+      catch(Exception e)
+      {
+        PluginConsistencyActivator.logError("Error when removing consistency check on project " + project.getName(), e);
+      }
+    }
+  }
+
+  /**
    * Save PluginConsistency
    * @param pluginConsistency
    */

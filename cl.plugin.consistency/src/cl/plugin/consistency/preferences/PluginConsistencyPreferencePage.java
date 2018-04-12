@@ -2,7 +2,6 @@ package cl.plugin.consistency.preferences;
 
 import java.io.File;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -47,7 +46,8 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   Button activateButton;
   Text pluginConsistencyFileText;
   PluginTabFolder pluginTabFolder;
-  Cache cache = new Cache();
+  final Cache cache = new Cache();
+  boolean removeChecks = true;
 
   /**
    * Constructor
@@ -137,6 +137,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       {
         Shell shell = activateComposite.getShell();
         LaunchCheckConsistencyHandler.launchConsistencyCheck(shell, pluginConsistency);
+        removeChecks = false;
       }
     });
   }
@@ -308,34 +309,20 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       PluginConsistencyActivator.getDefault().desactivate();
 
       // launch project uncheck
-      WorkspaceJob job = new WorkspaceJob("Remove Project Consistency")
+      if (removeChecks)
       {
-        @Override
-        public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
+        WorkspaceJob job = new WorkspaceJob("Remove consistencies check")
         {
-          IProject[] validProjects = cache.getValidProjects();
-          monitor.beginTask("Removing project consistency ...", validProjects.length);
-          for(IProject project : validProjects)
+          @Override
+          public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
           {
-            if (monitor.isCanceled())
-              break;
+            Util.removeAllCheckProjectConsistency(monitor);
 
-            try
-            {
-              monitor.subTask("Removing for project " + project.getName());
-              Util.removeCheckProjectConsistency(project);
-              monitor.worked(1);
-            }
-            catch(Exception e)
-            {
-              PluginConsistencyActivator.logError("Error when removing consistency check on project " + project.getName(), e);
-            }
+            return Status.OK_STATUS;
           }
-
-          return Status.OK_STATUS;
-        }
-      };
-      job.schedule();
+        };
+        job.schedule();
+      }
     }
 
     return super.performOk();
