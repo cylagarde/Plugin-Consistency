@@ -133,6 +133,8 @@ public class TypeTabItem
     typeTableViewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
     typeTableViewer.setComparator(new DefaultLabelViewerComparator());
 
+    typeTableViewer.addDoubleClickListener(event -> new RenameTypeAction().run());
+
     // 'Name' TableViewerColumn
     TableViewerColumn nameTableViewerColumn = new TableViewerColumn(typeTableViewer, SWT.NONE);
     nameTableViewerColumn.getColumn().setText("Name");
@@ -202,11 +204,8 @@ public class TypeTabItem
       manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 
       //
-      if (!typeTableViewer.getSelection().isEmpty())
-      {
-        createRenameTypeMenuItem(manager);
-        createRemoveTypesMenuItem(manager);
-      }
+      createRenameTypeMenuItem(manager);
+      createRemoveTypesMenuItem(manager);
     }
 
     /**
@@ -216,96 +215,129 @@ public class TypeTabItem
       IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
       if (selection.toList().size() != 1)
         return;
-      Type selectedType = (Type) selection.getFirstElement();
-      String selectedTypeName = selectedType.name;
 
-      manager.add(new Action("Rename type")
-      {
-        @Override
-        public void run()
-        {
-          Set<String> alreadyExistTypeSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-
-          Shell shell = typeTableViewer.getControl().getShell();
-
-          IInputValidator validator = newText -> {
-            if (newText.isEmpty())
-              return "Value is empty";
-            if (alreadyExistTypeSet.contains(newText))
-              return "The type already exists";
-            return null;
-          };
-          InputDialog inputDialog = new InputDialog(shell, "Rename type", "Enter a new name", selectedTypeName, validator);
-          if (inputDialog.open() == InputDialog.OK)
-          {
-            String newTypeName = inputDialog.getValue();
-
-            // rename type
-            selectedType.name = newTypeName;
-
-            // rename types in plugin infos
-            Consumer<PluginInfo> renameTypeInPluginInfoConsumer = pluginInfo -> {
-              pluginInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
-              pluginInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
-            };
-            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(renameTypeInPluginInfoConsumer);
-
-            // rename types in pattern infos
-            Consumer<PatternInfo> renameTypeInPatternInfoConsumer = patternInfo -> {
-              patternInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
-              patternInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
-            };
-            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(renameTypeInPatternInfoConsumer);
-
-            // refresh all TabFolder
-            pluginTabFolder.refresh();
-          }
-        }
-      });
+      manager.add(new RenameTypeAction());
     }
 
     /**
      */
     private void createRemoveTypesMenuItem(IMenuManager manager)
     {
-      manager.add(new Action("Remove selected types")
-      {
-        @Override
-        public void run()
-        {
-          IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
-          Stream<Type> selectedTypeStream = selection.toList().stream().filter(Type.class::isInstance).map(Type.class::cast);
-          Set<Type> selectedTypeSet = selectedTypeStream.collect(Collectors.toSet());
-          Set<String> selectedTypeNameSet = selectedTypeSet.stream().map(type -> type.name).collect(Collectors.toSet());
-          String selectedTypeNames = selectedTypeNameSet.stream().collect(Collectors.joining(", "));
+      if (typeTableViewer.getSelection().isEmpty())
+        return;
 
-          Shell shell = typeTableViewer.getControl().getShell();
-          String message = "Do you want to remove the selected types\n" + selectedTypeNames + " ?";
-          boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
-          if (result)
-          {
-            // remove types
-            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.removeIf(selectedTypeSet::contains);
-
-            // remove types in plugin infos
-            Consumer<PluginInfo> removeTypeInPluginInfoConsumer = pluginInfo -> {
-              pluginInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
-              pluginInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
-            };
-            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeInPluginInfoConsumer);
-
-            // remove types in pattern infos
-            Consumer<PatternInfo> removeTypeInPatternInfoConsumer = patternInfo -> {
-              patternInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
-              patternInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
-            };
-            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(removeTypeInPatternInfoConsumer);
-
-            // refresh all TabFolder
-            pluginTabFolder.refresh();
-          }
-        }
-      });
+      manager.add(new RemoveSelectedTypesAction("Remove selected types"));
     }
   }
+
+  /**
+   * The class <b>RenameTypeAction</b> allows to.<br>
+   */
+  private final class RenameTypeAction extends Action
+  {
+    /**Constructor
+     * @param text
+     */
+    private RenameTypeAction()
+    {
+      super("Rename type");
+    }
+
+    @Override
+    public void run()
+    {
+      IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
+      Type selectedType = (Type) selection.getFirstElement();
+      String selectedTypeName = selectedType.name;
+
+      Set<String> alreadyExistTypeSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
+      alreadyExistTypeSet.remove(selectedTypeName);
+
+      Shell shell = typeTableViewer.getControl().getShell();
+
+      IInputValidator validator = newText -> {
+        if (newText.isEmpty())
+          return "Value is empty";
+        if (alreadyExistTypeSet.contains(newText))
+          return "The type already exists";
+        return null;
+      };
+      InputDialog inputDialog = new InputDialog(shell, "Rename type", "Enter a new name", selectedTypeName, validator);
+      if (inputDialog.open() == InputDialog.OK)
+      {
+        String newTypeName = inputDialog.getValue();
+
+        // rename type
+        selectedType.name = newTypeName;
+
+        // rename types in plugin infos
+        Consumer<PluginInfo> renameTypeInPluginInfoConsumer = pluginInfo -> {
+          pluginInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          pluginInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+        };
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(renameTypeInPluginInfoConsumer);
+
+        // rename types in pattern infos
+        Consumer<PatternInfo> renameTypeInPatternInfoConsumer = patternInfo -> {
+          patternInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          patternInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+        };
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(renameTypeInPatternInfoConsumer);
+
+        // refresh all TabFolder
+        pluginTabFolder.refresh();
+      }
+    }
+  }
+
+  /**
+   * The class <b>RemoveSelectedTypesAction</b> allows to.<br>
+   */
+  private final class RemoveSelectedTypesAction extends Action
+  {
+    /**Constructor
+     * @param text
+     */
+    private RemoveSelectedTypesAction(String text)
+    {
+      super(text);
+    }
+
+    @Override
+    public void run()
+    {
+      IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
+      Stream<Type> selectedTypeStream = selection.toList().stream().filter(Type.class::isInstance).map(Type.class::cast);
+      Set<Type> selectedTypeSet = selectedTypeStream.collect(Collectors.toSet());
+      Set<String> selectedTypeNameSet = selectedTypeSet.stream().map(type -> type.name).collect(Collectors.toSet());
+      String selectedTypeNames = selectedTypeNameSet.stream().collect(Collectors.joining(", "));
+
+      Shell shell = typeTableViewer.getControl().getShell();
+      String message = "Do you want to remove the selected types\n" + selectedTypeNames + " ?";
+      boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
+      if (result)
+      {
+        // remove types
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.removeIf(selectedTypeSet::contains);
+
+        // remove types in plugin infos
+        Consumer<PluginInfo> removeTypeInPluginInfoConsumer = pluginInfo -> {
+          pluginInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          pluginInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+        };
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeInPluginInfoConsumer);
+
+        // remove types in pattern infos
+        Consumer<PatternInfo> removeTypeInPatternInfoConsumer = patternInfo -> {
+          patternInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          patternInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+        };
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(removeTypeInPatternInfoConsumer);
+
+        // refresh all TabFolder
+        pluginTabFolder.refresh();
+      }
+    }
+  }
+
 }

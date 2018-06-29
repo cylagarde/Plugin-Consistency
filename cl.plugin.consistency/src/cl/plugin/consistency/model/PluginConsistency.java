@@ -42,7 +42,7 @@ public class PluginConsistency
     //
     for(PluginInfo pluginInfo : pluginInfoList)
     {
-      if (pluginInfo.isModified())
+      if (pluginInfo.containsTypes())
         pluginConsistency.pluginInfoList.add(pluginInfo);
     }
     return pluginConsistency;

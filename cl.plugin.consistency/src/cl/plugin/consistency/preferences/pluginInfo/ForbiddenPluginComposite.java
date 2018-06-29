@@ -55,6 +55,7 @@ import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.preferences.BundlesLabelProvider;
 import cl.plugin.consistency.preferences.SectionPane;
 
 /**

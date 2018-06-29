@@ -145,7 +145,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
         PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
         if (addedProject != null)
         {
-          removedPluginInfoOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> pluginInfo.name.equals(project.getName())).filter(pluginInfo -> pluginInfo.isModified()).findAny();
+          removedPluginInfoOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> pluginInfo.name.equals(project.getName())).filter(pluginInfo -> pluginInfo.containsTypes()).findAny();
           if (removedPluginInfoOptional != null && removedPluginInfoOptional.isPresent())
           {
             PluginInfo pluginInfo = removedPluginInfoOptional.get();
@@ -163,7 +163,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
           addedProject = null;
         }
         else
-          removedPluginInfoOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> pluginInfo.name.equals(project.getName())).filter(pluginInfo -> pluginInfo.isModified()).findAny();
+          removedPluginInfoOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> pluginInfo.name.equals(project.getName())).filter(pluginInfo -> pluginInfo.containsTypes()).findAny();
       }
       else if (delta.getKind() == IResourceDelta.ADDED)
       {

@@ -42,7 +42,7 @@ public class PluginInfo
 
   /**
    */
-  public boolean isModified()
+  public boolean containsTypes()
   {
     if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
       return true;

@@ -47,6 +47,22 @@ import cl.plugin.consistency.model.util.PluginConsistencyLoader;
  */
 public class Util
 {
+  public static PatternInfo duplicatePatternInfo(PatternInfo patternInfo)
+  {
+    PatternInfo duplicatePatternInfo = new PatternInfo();
+    duplicatePatternInfo.setPattern(patternInfo.getContainsPattern(), patternInfo.getDoNotContainsPattern());
+    patternInfo.typeList.stream().map(Util::duplicateType).forEach(duplicatePatternInfo.typeList::add);
+    patternInfo.forbiddenTypeList.stream().map(Util::duplicateType).forEach(duplicatePatternInfo.forbiddenTypeList::add);
+    return duplicatePatternInfo;
+  }
+
+  public static Type duplicateType(Type type)
+  {
+    Type duplicateType = new Type();
+    duplicateType.name = type.name;
+    return duplicateType;
+  }
+
   /**
    * Set enable/disable all controls
    * @param control
@@ -178,36 +194,51 @@ public class Util
    */
   public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
   {
+    updatePluginInfoWithPattern(pluginConsistency, pluginInfo, true, true);
+  }
+
+  /**
+   * Update pluginInfo with Pattern information
+   * @param pluginConsistency
+   * @param pluginInfo
+   */
+  public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo, boolean updateType, boolean updateForbiddenType)
+  {
     Set<String> availableTypeSet = pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
     Set<String> typeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
     Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
-      String pattern = patternInfo.pattern;
-      if (pluginInfo.name.contains(pattern))
+      if (patternInfo.acceptPlugin(pluginInfo.id))
       {
         // add type
-        for(Type type : patternInfo.typeList)
+        if (updateType)
         {
-          String typeName = type.name;
-          if (availableTypeSet.contains(typeName) && !typeSet.contains(typeName))
+          for(Type type : patternInfo.typeList)
           {
-            Type newType = new Type();
-            newType.name = typeName;
-            pluginInfo.typeList.add(newType);
+            String typeName = type.name;
+            if (availableTypeSet.contains(typeName) && !typeSet.contains(typeName))
+            {
+              Type newType = new Type();
+              newType.name = typeName;
+              pluginInfo.typeList.add(newType);
+            }
           }
         }
 
         // add forbidden type
-        for(Type type : patternInfo.forbiddenTypeList)
+        if (updateForbiddenType)
         {
-          String forbiddenTypeName = type.name;
-          if (availableTypeSet.contains(forbiddenTypeName) && !forbiddenTypeSet.contains(forbiddenTypeName))
+          for(Type type : patternInfo.forbiddenTypeList)
           {
-            Type forbiddenType = new Type();
-            forbiddenType.name = forbiddenTypeName;
-            pluginInfo.forbiddenTypeList.add(forbiddenType);
+            String forbiddenTypeName = type.name;
+            if (availableTypeSet.contains(forbiddenTypeName) && !forbiddenTypeSet.contains(forbiddenTypeName))
+            {
+              Type forbiddenType = new Type();
+              forbiddenType.name = forbiddenTypeName;
+              pluginInfo.forbiddenTypeList.add(forbiddenType);
+            }
           }
         }
       }
@@ -236,8 +267,7 @@ public class Util
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
-      String pattern = patternInfo.pattern;
-      if (pluginInfo.name.contains(pattern))
+      if (patternInfo.acceptPlugin(pluginInfo.id))
       {
         // remove type
         for(Type type : patternInfo.typeList)

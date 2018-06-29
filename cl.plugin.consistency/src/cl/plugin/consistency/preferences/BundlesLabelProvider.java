@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences.pluginInfo;
+package cl.plugin.consistency.preferences;
 
 import java.util.Set;
 
@@ -19,18 +19,18 @@ import cl.plugin.consistency.Cache;
 /**
  * The class <b>BundlesLabelProvider</b> allows to.<br>
  */
-class BundlesLabelProvider extends LabelProvider implements IColorProvider
+public class BundlesLabelProvider extends LabelProvider implements IColorProvider
 {
   final Cache cache;
   final Set<String> requireBundleSet;
 
-  BundlesLabelProvider(Cache cache, Set<String> requireBundleSet)
+  public BundlesLabelProvider(Cache cache, Set<String> requireBundleSet)
   {
     this.cache = cache;
     this.requireBundleSet = requireBundleSet;
   }
 
-  BundlesLabelProvider(Cache cache)
+  public BundlesLabelProvider(Cache cache)
   {
     this(cache, null);
   }

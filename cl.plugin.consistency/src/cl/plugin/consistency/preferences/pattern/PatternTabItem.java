@@ -1,11 +1,12 @@
 package cl.plugin.consistency.preferences.pattern;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,7 +15,7 @@ import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -42,6 +43,7 @@ import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
@@ -159,11 +161,11 @@ public class PatternTabItem
 
       if (patternInfo != null)
         Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name));
-      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.typeList));
+      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.typeList, false));
 
       if (patternInfo != null)
         Collections.sort(patternInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
-      patternForbiddenTypeComposite.setData(patternInfo == null? null : new PatternInfoData(patternInfo, patternInfo.forbiddenTypeList));
+      patternForbiddenTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.forbiddenTypeList, true));
     });
 
     sashForm.setWeights(new int[]{1, 1});
@@ -175,41 +177,24 @@ public class PatternTabItem
    * Update all pluginInfos with patternInfo (add new types and/or remove old types)
    * @param patternInfoData
    */
-  void updateAllPluginInfosWithPatternInfo(PatternInfoData patternInfoData)
+  void updateAllPluginInfosWithPatternInfo(PatternInfoData patternInfoData, boolean refreshPluginTabFolder)
   {
-    String pattern = patternInfoData.patternInfo.pattern;
-
     for(PluginInfo pluginInfo : pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList)
     {
-      if (pluginInfo.name.contains(pattern))
+      if (patternInfoData.patternInfo.acceptPlugin(pluginInfo.id))
       {
-        List<Type> typeList;
-
-        // types
-        if (patternInfoData.typeList == patternInfoData.patternInfo.typeList)
-          typeList = pluginInfo.typeList;
-        // forbiddenTypes
+        if (!patternInfoData.isForbiddenTypeList)
+          pluginInfo.typeList.removeAll(patternInfoData.patternInfo.typeList);
         else
-          typeList = pluginInfo.forbiddenTypeList;
+          pluginInfo.forbiddenTypeList.removeAll(patternInfoData.patternInfo.forbiddenTypeList);
 
-        // remove all types
-        List<Type> removedTypeList = new ArrayList<>(typeList);
-        removedTypeList.removeAll(patternInfoData.typeList);
-        typeList.removeIf(removedTypeList::contains);
-
-        // add new types
-        List<Type> newTypeList = new ArrayList<>(patternInfoData.typeList);
-        newTypeList.removeAll(typeList);
-        newTypeList.forEach(type -> {
-          Type newType = new Type();
-          newType.name = type.name;
-          typeList.add(newType);
-        });
+        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, !patternInfoData.isForbiddenTypeList, patternInfoData.isForbiddenTypeList);
       }
     }
 
     // refresh all TabFolder
-    pluginTabFolder.refresh();
+    if (refreshPluginTabFolder)
+      pluginTabFolder.refresh();
   }
 
   /**
@@ -223,7 +208,7 @@ public class PatternTabItem
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
-        updateAllPluginInfosWithPatternInfo(patternInfoData);
+        updateAllPluginInfosWithPatternInfo(patternInfoData, true);
       }
 
       @Override
@@ -265,7 +250,7 @@ public class PatternTabItem
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
-        updateAllPluginInfosWithPatternInfo(patternInfoData);
+        updateAllPluginInfosWithPatternInfo(patternInfoData, true);
       }
 
       @Override
@@ -316,21 +301,24 @@ public class PatternTabItem
       @Override
       public void widgetSelected(SelectionEvent e)
       {
-        Set<String> alreadyExistpatternSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().map(patterInfo -> patterInfo.pattern).collect(Collectors.toSet());
-
-        IInputValidator validator = newText -> {
-          if (newText.isEmpty())
-            return "Value is empty";
-          if (alreadyExistpatternSet.contains(newText))
+        BiFunction<String, String, String> patternValidator = (containsPattern, doNotContainsPattern) -> {
+          if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
+            return "No entry";
+          Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
+          Predicate<PatternInfo> doNotContainsPredicate = patternInfo -> patternInfo.getDoNotContainsPattern().equals(doNotContainsPattern);
+          Predicate<PatternInfo> predicate = containsPredicate.and(doNotContainsPredicate);
+          if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().anyMatch(predicate))
             return "The pattern already exists";
           return null;
         };
-        InputDialog inputDialog = new InputDialog(parent.getShell(), "Add new pattern", "Enter a value for new pattern", "", validator);
-        if (inputDialog.open() == InputDialog.OK)
+
+        Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
+
+        InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "Enter a value for contains pattern ('?' and '*' are supported)", "", "Enter a value for do not contains pattern ('?' and '*' are supported)", "", cache, patternValidator);
+        if (inputPatternDialog.open() == InputDialog.OK)
         {
-          String newPattern = inputDialog.getValue();
           PatternInfo patternInfo = new PatternInfo();
-          patternInfo.pattern = newPattern;
+          patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
           pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.add(patternInfo);
 
           // refresh all TabFolder
@@ -356,9 +344,11 @@ public class PatternTabItem
     patternTableViewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
     patternTableViewer.setComparator(new DefaultLabelViewerComparator());
 
-    // 'Pattern' TableViewerColumn
+    patternTableViewer.addDoubleClickListener(event -> new RenamePatternAction().run());
+
+    // 'Contains pattern' TableViewerColumn
     TableViewerColumn patternTableViewerColumn = new TableViewerColumn(patternTableViewer, SWT.NONE);
-    patternTableViewerColumn.getColumn().setText("Pattern");
+    patternTableViewerColumn.getColumn().setText("Contains pattern");
     patternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     patternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
 
@@ -368,10 +358,27 @@ public class PatternTabItem
       public String getText(Object element)
       {
         PatternInfo patternInfo = (PatternInfo) element;
-        return patternInfo.pattern;
+        return patternInfo.getContainsPattern();
       }
     });
     DefaultLabelViewerComparator.configureForSortingColumn(patternTableViewerColumn);
+
+    // 'Do not contains pattern' TableViewerColumn
+    TableViewerColumn searchTypeTableViewerColumn = new TableViewerColumn(patternTableViewer, SWT.NONE);
+    searchTypeTableViewerColumn.getColumn().setText("Do not contains pattern");
+    searchTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    searchTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+
+    searchTypeTableViewerColumn.setLabelProvider(new ColumnLabelProvider()
+    {
+      @Override
+      public String getText(Object element)
+      {
+        PatternInfo patternInfo = (PatternInfo) element;
+        return patternInfo.getDoNotContainsPattern();
+      }
+    });
+    DefaultLabelViewerComparator.configureForSortingColumn(searchTypeTableViewerColumn);
 
     // 'Type' TableViewerColumn
     TableViewerColumn typeTableViewerColumn = new TableViewerColumn(patternTableViewer, SWT.NONE);
@@ -441,6 +448,8 @@ public class PatternTabItem
       // pack columns
       for(TableColumn tableColumn : patternTableViewer.getTable().getColumns())
         PluginTabItem.pack(tableColumn, PluginTabItem.COLUMN_PREFERRED_WIDTH);
+
+      patternTableViewer.setSelection(patternTableViewer.getSelection());
     }
     finally
     {
@@ -453,16 +462,101 @@ public class PatternTabItem
    */
   class PatternMenuListener implements IMenuListener
   {
+    List<Type> copiedTypeList = Collections.emptyList();
+    List<Type> copiedForbiddenTypeList = Collections.emptyList();
+
     @Override
     public void menuAboutToShow(IMenuManager manager)
     {
       manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 
       //
-      if (!patternTableViewer.getSelection().isEmpty())
+      createCopyPasteTypesMenuItems(manager);
+      createRenamePatternMenuItem(manager);
+      createDuplicatePatternMenuItem(manager);
+      createRemovePatternsMenuItem(manager);
+    }
+
+    /**
+    *
+    * @param manager
+    */
+    private void createCopyPasteTypesMenuItems(IMenuManager manager)
+    {
+      boolean separatorAdded = false;
+
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      Stream<PatternInfo> pluginInfoStream = selection.toList().stream().filter(PatternInfo.class::isInstance).map(PatternInfo.class::cast);
+      Set<PatternInfo> selectedPluginInfoSet = pluginInfoStream.collect(Collectors.toSet());
+      if (selectedPluginInfoSet.size() == 1)
       {
-        createRenamePatternMenuItem(manager);
-        createRemovePatternsMenuItem(manager);
+        PatternInfo patternInfo = selectedPluginInfoSet.iterator().next();
+        if (patternInfo.containsTypes())
+        {
+          List<Type> currentTypeList = patternInfo.typeList.stream().collect(Collectors.toList());
+          List<Type> currentForbiddenTypeList = patternInfo.forbiddenTypeList.stream().collect(Collectors.toList());
+          if (!currentTypeList.equals(copiedTypeList) || !currentForbiddenTypeList.equals(copiedForbiddenTypeList))
+          {
+            if (manager.getItems().length > 1)
+              manager.add(new Separator());
+            separatorAdded = true;
+
+            manager.add(new Action("Copy types in memory")
+            {
+              @Override
+              public void run()
+              {
+                copiedTypeList = currentTypeList;
+                copiedForbiddenTypeList = currentForbiddenTypeList;
+              }
+            });
+          }
+        }
+      }
+
+      if (!copiedTypeList.isEmpty() || !copiedForbiddenTypeList.isEmpty())
+      {
+        if (!selectedPluginInfoSet.isEmpty())
+        {
+          if (!separatorAdded && manager.getItems().length > 1)
+            manager.add(new Separator());
+
+          manager.add(new Action("Paste and replace types from memory")
+          {
+            @Override
+            public void run()
+            {
+              Set<Type> availableTypeSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().collect(Collectors.toSet());
+
+              for(PatternInfo patternInfo : selectedPluginInfoSet)
+              {
+                PatternInfo oldPatternInfo = Util.duplicatePatternInfo(patternInfo);
+
+                // clear
+                patternInfo.typeList.clear();
+                patternInfo.forbiddenTypeList.clear();
+
+                // copy type
+                copiedTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.typeList::add);
+                copiedForbiddenTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.forbiddenTypeList::add);
+
+                if (!copiedTypeList.isEmpty())
+                {
+                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedTypeList, false);
+                  updateAllPluginInfosWithPatternInfo(patternInfoData, false);
+                }
+                if (!copiedForbiddenTypeList.isEmpty())
+                {
+                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedForbiddenTypeList, true);
+                  updateAllPluginInfosWithPatternInfo(patternInfoData, false);
+                }
+              }
+
+              //
+              pluginTabFolder.refresh();
+            }
+          });
+        }
       }
     }
 
@@ -473,76 +567,177 @@ public class PatternTabItem
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       if (selection.toList().size() != 1)
         return;
-      PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
-      String selectedPattern = selectedPatternInfo.pattern;
 
-      manager.add(new Action("Rename pattern")
-      {
-        @Override
-        public void run()
-        {
-          Set<String> alreadyExistPatternSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().map(patternInfo -> patternInfo.pattern).collect(Collectors.toSet());
+      if (manager.getItems().length > 1)
+        manager.add(new Separator());
 
-          Shell shell = patternTableViewer.getControl().getShell();
+      manager.add(new RenamePatternAction());
+    }
 
-          IInputValidator validator = newText -> {
-            if (newText.isEmpty())
-              return "Value is empty";
-            if (alreadyExistPatternSet.contains(newText))
-              return "The pattern already exists";
-            return null;
-          };
-          InputDialog inputDialog = new InputDialog(shell, "Rename pattern", "Enter a new name", selectedPattern, validator);
-          if (inputDialog.open() == InputDialog.OK)
-          {
-            String newPattern = inputDialog.getValue();
+    /**
+     */
+    private void createDuplicatePatternMenuItem(IMenuManager manager)
+    {
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      if (selection.toList().size() != 1)
+        return;
 
-            Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
-
-            // rename type
-            selectedPatternInfo.pattern = newPattern;
-
-            Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
-
-            // refresh all TabFolder
-            pluginTabFolder.refresh();
-          }
-        }
-      });
+      manager.add(new DuplicatePatternAction());
     }
 
     /**
      */
     private void createRemovePatternsMenuItem(IMenuManager manager)
     {
-      manager.add(new Action("Remove selected patterns")
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      if (selection.toList().isEmpty())
+        return;
+
+      manager.add(new RemoveSelectedPatterns());
+    }
+  }
+
+  /**
+  * The class <b>RenamePatternAction</b> allows to.<br>
+  */
+  private final class RenamePatternAction extends Action
+  {
+    /**
+    * Constructor
+    * @param text
+    * @param selection
+    */
+    private RenamePatternAction()
+    {
+      super("Rename pattern");
+    }
+
+    @Override
+    public void run()
+    {
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
+      String selectedContainsPattern = selectedPatternInfo.getContainsPattern();
+      String selectedDoNotContainsPattern = selectedPatternInfo.getDoNotContainsPattern();
+
+      BiFunction<String, String, String> patternValidator = (containsPattern, doNotContainsPattern) -> {
+        if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
+          return "No entry";
+        if (containsPattern.equals(selectedContainsPattern) && doNotContainsPattern.equals(selectedDoNotContainsPattern))
+          return "";
+        Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
+        Predicate<PatternInfo> doNotContainsPredicate = patternInfo -> patternInfo.getDoNotContainsPattern().equals(doNotContainsPattern);
+        Predicate<PatternInfo> predicate = containsPredicate.and(doNotContainsPredicate);
+        if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().anyMatch(predicate))
+          return "The pattern already exists";
+        return null;
+      };
+
+      Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
+
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternTableViewer.getControl().getShell(), "Rename pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern, "Enter a new value for do not contains pattern ('?' and '*' are supported)", selectedDoNotContainsPattern, cache, patternValidator);
+      if (inputPatternDialog.open() == InputDialog.OK)
       {
-        @Override
-        public void run()
-        {
-          IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
-          Stream<PatternInfo> selectedPatternInfoStream = selection.toList().stream().filter(PatternInfo.class::isInstance).map(PatternInfo.class::cast);
-          Set<PatternInfo> selectedPatternInfoSet = selectedPatternInfoStream.collect(Collectors.toSet());
-          Set<String> selectedPatternSet = selectedPatternInfoSet.stream().map(patternInfo -> patternInfo.pattern).collect(Collectors.toSet());
-          String selectedPatterns = selectedPatternSet.stream().collect(Collectors.joining(", "));
+        Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
 
-          Shell shell = patternTableViewer.getControl().getShell();
-          String message = "Do you want to remove the selected pattern\n" + selectedPatterns + " ?";
-          boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
-          if (result)
-          {
-            Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+        selectedPatternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
 
-            // remove patterns
-            pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.removeIf(selectedPatternInfoSet::contains);
+        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
 
-            Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+        // refresh all TabFolder
+        pluginTabFolder.refresh();
+      }
+    }
+  }
 
-            // refresh all TabFolder
-            pluginTabFolder.refresh();
-          }
-        }
-      });
+  /**
+   * The class <b>DuplicatePatternAction</b> allows to.<br>
+   */
+  private final class DuplicatePatternAction extends Action
+  {
+    /**
+     * Constructor
+     */
+    private DuplicatePatternAction()
+    {
+      super("Duplicate pattern");
+    }
+
+    @Override
+    public void run()
+    {
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
+      String selectedContainsPattern = selectedPatternInfo.getContainsPattern();
+      String selectedDoNotContainsPattern = selectedPatternInfo.getDoNotContainsPattern();
+
+      BiFunction<String, String, String> patternValidator = (containsPattern, doNotContainsPattern) -> {
+        if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
+          return "No entry";
+        if (containsPattern.equals(selectedContainsPattern) && doNotContainsPattern.equals(selectedDoNotContainsPattern))
+          return "";
+        Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
+        Predicate<PatternInfo> doNotContainsPredicate = patternInfo -> patternInfo.getDoNotContainsPattern().equals(doNotContainsPattern);
+        Predicate<PatternInfo> predicate = containsPredicate.and(doNotContainsPredicate);
+        if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().anyMatch(predicate))
+          return "The pattern already exists";
+        return null;
+      };
+
+      Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
+
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternTableViewer.getControl().getShell(), "Duplicate pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern, "Enter a new value for do not contains pattern ('?' and '*' are supported)", selectedDoNotContainsPattern, cache, patternValidator);
+      if (inputPatternDialog.open() == InputDialog.OK)
+      {
+        PatternInfo patternInfo = Util.duplicatePatternInfo(selectedPatternInfo);
+        patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.add(patternInfo);
+
+        // refresh all TabFolder
+        pluginTabFolder.refresh();
+
+        patternTableViewer.setSelection(new StructuredSelection(patternInfo));
+      }
+    }
+  }
+
+  /**
+   * The class <b>RemoveSelectedPatterns</b> allows to.<br>
+   */
+  private final class RemoveSelectedPatterns extends Action
+  {
+    /**
+     * Constructor
+     */
+    private RemoveSelectedPatterns()
+    {
+      super("Remove selected patterns");
+    }
+
+    @Override
+    public void run()
+    {
+      IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
+      Stream<PatternInfo> selectedPatternInfoStream = selection.toList().stream().filter(PatternInfo.class::isInstance).map(PatternInfo.class::cast);
+      Set<PatternInfo> selectedPatternInfoSet = selectedPatternInfoStream.collect(Collectors.toSet());
+      Set<String> selectedContainsPatternSet = selectedPatternInfoSet.stream().map(patternInfo -> patternInfo.getContainsPattern()).collect(Collectors.toSet());
+      String selectedPatterns = selectedContainsPatternSet.stream().collect(Collectors.joining(", "));
+
+      Shell shell = patternTableViewer.getControl().getShell();
+      String message = "Do you want to remove the selected pattern\n" + selectedPatterns + " ?";
+      boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
+      if (result)
+      {
+        Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+        // remove patterns
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.removeIf(selectedPatternInfoSet::contains);
+
+        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
+
+        // refresh all TabFolder
+        pluginTabFolder.refresh();
+      }
     }
   }
 
