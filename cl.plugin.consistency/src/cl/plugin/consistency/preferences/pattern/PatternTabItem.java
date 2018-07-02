@@ -314,7 +314,7 @@ public class PatternTabItem
 
         Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-        InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "Enter a value for contains pattern ('?' and '*' are supported)", "", "Enter a value for do not contains pattern ('?' and '*' are supported)", "", cache, patternValidator);
+        InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "Enter a value for contains pattern ('?' and '*' are supported)", "", "Enter a value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", "", cache, patternValidator);
         if (inputPatternDialog.open() == InputDialog.OK)
         {
           PatternInfo patternInfo = new PatternInfo();
@@ -478,9 +478,9 @@ public class PatternTabItem
     }
 
     /**
-    *
-    * @param manager
-    */
+     *
+     * @param manager
+     */
     private void createCopyPasteTypesMenuItems(IMenuManager manager)
     {
       boolean separatorAdded = false;
@@ -598,15 +598,15 @@ public class PatternTabItem
   }
 
   /**
-  * The class <b>RenamePatternAction</b> allows to.<br>
-  */
+   * The class <b>RenamePatternAction</b> allows to.<br>
+   */
   private final class RenamePatternAction extends Action
   {
     /**
-    * Constructor
-    * @param text
-    * @param selection
-    */
+     * Constructor
+     * @param text
+     * @param selection
+     */
     private RenamePatternAction()
     {
       super("Rename pattern");
@@ -635,7 +635,7 @@ public class PatternTabItem
 
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternTableViewer.getControl().getShell(), "Rename pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern, "Enter a new value for do not contains pattern ('?' and '*' are supported)", selectedDoNotContainsPattern, cache, patternValidator);
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternTableViewer.getControl().getShell(), "Rename pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern, "Enter a new value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", selectedDoNotContainsPattern, cache, patternValidator);
       if (inputPatternDialog.open() == InputDialog.OK)
       {
         Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
@@ -720,11 +720,11 @@ public class PatternTabItem
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       Stream<PatternInfo> selectedPatternInfoStream = selection.toList().stream().filter(PatternInfo.class::isInstance).map(PatternInfo.class::cast);
       Set<PatternInfo> selectedPatternInfoSet = selectedPatternInfoStream.collect(Collectors.toSet());
-      Set<String> selectedContainsPatternSet = selectedPatternInfoSet.stream().map(patternInfo -> patternInfo.getContainsPattern()).collect(Collectors.toSet());
-      String selectedPatterns = selectedContainsPatternSet.stream().collect(Collectors.joining(", "));
+      Set<String> selectedContainsPatternSet = selectedPatternInfoSet.stream().map(patternInfo -> patternInfo.getContainsAndNotContainsPattern()).collect(Collectors.toSet());
+      String selectedPatterns = selectedContainsPatternSet.stream().collect(Collectors.joining("\n"));
 
       Shell shell = patternTableViewer.getControl().getShell();
-      String message = "Do you want to remove the selected pattern\n" + selectedPatterns + " ?";
+      String message = "Do you want to remove the selected pattern:\n" + selectedPatterns + " ?";
       boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
       if (result)
       {

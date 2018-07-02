@@ -17,8 +17,11 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -198,31 +201,59 @@ public class PluginTabItem
     // 'Type' TableViewerColumn
     typeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
     typeTableViewerColumn.getColumn().setText("Type");
-    typeTableViewerColumn.setLabelProvider(new PluginInfoColumnLabelProvider()
+    typeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override
-      public String getText(Object element)
+      public StyledString getStyledText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String types = pluginInfo.typeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "));
-        return types;
+
+        StyledString styledString = new StyledString();
+
+        Set<String> typeFormPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.typeList.stream()).map(type -> type.name).collect(Collectors.toSet());
+
+        int[] size = {pluginInfo.typeList.size()};
+        pluginInfo.typeList.stream().map(type -> type.name).sorted().forEach(typename -> {
+          if (typeFormPatternInfoSet.contains(typename))
+            styledString.append(typename, StyledString.COUNTER_STYLER);
+          else
+            styledString.append(typename);
+          if (size[0]-- != 1)
+            styledString.append(", ");
+        });
+
+        return styledString;
       }
-    });
+    }));
     DefaultLabelViewerComparator.configureForSortingColumn(typeTableViewerColumn);
 
     // 'Forbidden types' TableViewerColumn
     forbiddenTypesTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
     forbiddenTypesTableViewerColumn.getColumn().setText("Forbidden types");
-    forbiddenTypesTableViewerColumn.setLabelProvider(new PluginInfoColumnLabelProvider()
+    forbiddenTypesTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override
-      public String getText(Object element)
+      public StyledString getStyledText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String forbiddenTypes = pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).sorted().collect(Collectors.joining(", "));
-        return forbiddenTypes;
+
+        StyledString styledString = new StyledString();
+
+        Set<String> forbiddenTypeFormPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).map(type -> type.name).collect(Collectors.toSet());
+
+        int[] size = {pluginInfo.forbiddenTypeList.size()};
+        pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).sorted().forEach(forbiddenTypename -> {
+          if (forbiddenTypeFormPatternInfoSet.contains(forbiddenTypename))
+            styledString.append(forbiddenTypename, StyledString.COUNTER_STYLER);
+          else
+            styledString.append(forbiddenTypename);
+          if (size[0]-- != 1)
+            styledString.append(", ");
+        });
+
+        return styledString;
       }
-    });
+    }));
     DefaultLabelViewerComparator.configureForSortingColumn(forbiddenTypesTableViewerColumn);
 
     // 'Forbidden bundles' TableViewerColumn
@@ -323,7 +354,7 @@ public class PluginTabItem
   /**
    * The class <b>PluginInfoColumnLabelProvider</b> allows to.<br>
    */
-  class PluginInfoColumnLabelProvider extends ColumnLabelProvider
+  class PluginInfoColumnLabelProvider extends ColumnLabelProvider implements IStyledLabelProvider
   {
     @Override
     public final Color getForeground(Object element)
@@ -334,6 +365,12 @@ public class PluginTabItem
       if (isValidPlugin)
         return super.getForeground(element);
       return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
+    }
+
+    @Override
+    public StyledString getStyledText(Object element)
+    {
+      return new StyledString();
     }
   }
 

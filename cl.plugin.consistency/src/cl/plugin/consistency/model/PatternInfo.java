@@ -2,6 +2,7 @@ package cl.plugin.consistency.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -34,6 +35,13 @@ public class PatternInfo
     String containsPattern = getContainsPattern();
     String doNotContainsPattern = getDoNotContainsPattern();
     return "PatternInfo[contains=" + containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? ", not contains=" + doNotContainsPattern : "") + "]";
+  }
+
+  public String getContainsAndNotContainsPattern()
+  {
+    String containsPattern = getContainsPattern();
+    String doNotContainsPattern = getDoNotContainsPattern();
+    return containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? " ; " + doNotContainsPattern : "");
   }
 
   public String getContainsPattern()
@@ -69,13 +77,18 @@ public class PatternInfo
 
     if (containsPatternSearchPattern.matches(pluginId))
     {
-      String doNotContainsPattern = getDoNotContainsPattern();
-      if (doNotContainsPattern == null || doNotContainsPattern.isEmpty())
+      String doNotContainsPatterns = getDoNotContainsPattern();
+      if (doNotContainsPatterns == null || doNotContainsPatterns.isEmpty())
         return true;
       SearchPattern doNotContainsPatternSearchPattern = new SearchPattern();
-      doNotContainsPatternSearchPattern.setPattern('*' + doNotContainsPattern);
-      if (!doNotContainsPatternSearchPattern.matches(pluginId))
-        return true;
+      StringTokenizer stringTokenizer = new StringTokenizer(doNotContainsPatterns, ";");
+      while (stringTokenizer.hasMoreTokens()) {
+        String doNotContainsPattern = stringTokenizer.nextToken();
+        doNotContainsPatternSearchPattern.setPattern('*' + doNotContainsPattern);
+        if (doNotContainsPatternSearchPattern.matches(pluginId))
+          return false;
+      }
+      return true;
     }
 
     return false;

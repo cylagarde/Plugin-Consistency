@@ -158,7 +158,6 @@ class InputPatternDialog extends Dialog
     {
       Label label = new Label(composite, SWT.WRAP);
       label.setText(containsPatternMessage);
-      label.setFont(parent.getFont());
     }
 
     //
@@ -173,7 +172,6 @@ class InputPatternDialog extends Dialog
     {
       Label label = new Label(composite, SWT.WRAP);
       label.setText(doNotContainsPatternMessage);
-      label.setFont(parent.getFont());
     }
 
     //

@@ -50,7 +50,7 @@ public class Util
   public static PatternInfo duplicatePatternInfo(PatternInfo patternInfo)
   {
     PatternInfo duplicatePatternInfo = new PatternInfo();
-    duplicatePatternInfo.setPattern(patternInfo.getContainsPattern(), patternInfo.getDoNotContainsPattern());
+    duplicatePatternInfo.pattern = patternInfo.pattern;
     patternInfo.typeList.stream().map(Util::duplicateType).forEach(duplicatePatternInfo.typeList::add);
     patternInfo.forbiddenTypeList.stream().map(Util::duplicateType).forEach(duplicatePatternInfo.forbiddenTypeList::add);
     return duplicatePatternInfo;
