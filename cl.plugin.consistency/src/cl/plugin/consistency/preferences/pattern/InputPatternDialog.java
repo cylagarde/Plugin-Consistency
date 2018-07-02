@@ -282,7 +282,7 @@ class InputPatternDialog extends Dialog
       patternInfo.setPattern(containsPatternValue, doNotContainsPatternValue);
 
       Predicate<IProject> predicate = project -> patternInfo.acceptPlugin(cache.getId(project));
-      Comparator<IProject> projectComparator = Comparator.comparing(IProject::getName);
+      Comparator<IProject> projectComparator = Comparator.comparing(cache::getId);
       IProject[] projects = cache.getValidProjects();
       Map<Boolean, List<IProject>> map = Stream.of(projects).sorted(projectComparator).collect(Collectors.partitioningBy(predicate));
       pluginAcceptedTableViewer.setInput(map.get(Boolean.TRUE));
