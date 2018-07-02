@@ -17,6 +17,10 @@
       Github licence
    </license>
 
+   <url>
+      <update label="Plugin Consistency Githup" url="https://raw.githubusercontent.com/cylagarde/Plugin-Consistency/master/cl.plugin.consistency.update_site"/>
+   </url>
+
    <requires>
       <import plugin="org.eclipse.ui"/>
       <import plugin="org.eclipse.core.runtime"/>

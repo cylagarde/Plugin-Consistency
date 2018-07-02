@@ -157,6 +157,7 @@ class InputPatternDialog extends Dialog
     if (containsPatternMessage != null)
     {
       Label label = new Label(composite, SWT.WRAP);
+      label.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
       label.setText(containsPatternMessage);
     }
 
@@ -171,6 +172,7 @@ class InputPatternDialog extends Dialog
     if (doNotContainsPatternMessage != null)
     {
       Label label = new Label(composite, SWT.WRAP);
+      label.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
       label.setText(doNotContainsPatternMessage);
     }
 
