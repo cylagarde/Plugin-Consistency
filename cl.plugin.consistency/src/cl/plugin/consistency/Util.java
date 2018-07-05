@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
@@ -100,6 +101,38 @@ public class Util
     comboViewer.getControl().setData("ComboViewer", comboViewer);
 
     return comboViewer;
+  }
+
+  /**
+   * @param consistency_file_path
+   */
+  public static File getConsistencyFile(String consistency_file_path)
+  {
+    File pluginConsistencyFile = new File(consistency_file_path);
+    if (!pluginConsistencyFile.exists())
+    {
+      pluginConsistencyFile = null;
+      IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(consistency_file_path);
+      if (resource != null)
+        pluginConsistencyFile = resource.getRawLocation().toFile();
+    }
+    return pluginConsistencyFile;
+  }
+
+  /**
+   * Return true if file is a consistency file
+   */
+  public static boolean canLoadConsistencyFile(File consistencyFile)
+  {
+    try
+    {
+      PluginConsistencyLoader.loadPluginConsistencyFile(consistencyFile);
+      return true;
+    }
+    catch(Exception e)
+    {
+      return false;
+    }
   }
 
   /**
@@ -377,7 +410,7 @@ public class Util
                   pluginInfo.id = pluginId;
 
                   // save
-                  File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+                  File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
                   savePluginConsistency(pluginConsistency, consistencyFile);
                 }
 
@@ -416,7 +449,7 @@ public class Util
               pluginInfo.id = pluginId;
 
               // save
-              File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+              File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
               savePluginConsistency(pluginConsistency, consistencyFile);
             }
 

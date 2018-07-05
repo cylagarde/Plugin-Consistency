@@ -2,6 +2,9 @@ package cl.plugin.consistency.preferences;
 
 import java.io.File;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -9,6 +12,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -25,6 +29,10 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
+import org.eclipse.ui.dialogs.ISelectionStatusValidator;
+import org.eclipse.ui.model.BaseWorkbenchContentProvider;
+import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
@@ -59,7 +67,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     //    setDescription("Plugin consistency");
 
     String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
-    File consistencyFile = new File(consistency_file_path);
+    File consistencyFile = Util.getConsistencyFile(consistency_file_path);
     pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
   }
 
@@ -117,7 +125,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
     //
     activateButton = new Button(activateComposite, SWT.CHECK);
-    activateButton.setText("Activate plugin consistency");
+    activateButton.setText("Automatic plugin consistency check when manifest is modified");
     boolean activation = PluginConsistencyActivator.getDefault().isPluginConsistencyActivated();
     activateButton.setSelection(activation);
 
@@ -150,7 +158,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   {
     Composite pluginConsistencyFileComposite = new Composite(content, SWT.NONE);
 
-    GridLayout pluginConsistencyFileGridLayout = new GridLayout(5, false);
+    GridLayout pluginConsistencyFileGridLayout = new GridLayout(6, false);
     pluginConsistencyFileGridLayout.marginWidth = pluginConsistencyFileGridLayout.marginHeight = 0;
     pluginConsistencyFileComposite.setLayout(pluginConsistencyFileGridLayout);
 
@@ -178,16 +186,18 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         if (!valid)
           return;
 
-        pluginConsistency = Util.loadAndUpdateConsistencyFile(new File(filePath));
+        pluginConsistency = Util.loadAndUpdateConsistencyFile(Util.getConsistencyFile(filePath));
 
         pluginTabFolder.refresh();
       }
     });
 
     //
-    Button findPluginConsistencyFileButton = new Button(pluginConsistencyFileComposite, SWT.NONE);
-    findPluginConsistencyFileButton.setText("Browse...");
-    findPluginConsistencyFileButton.addSelectionListener(new SelectionAdapter()
+    Button findPluginConsistencyFromFileSystemButton = new Button(pluginConsistencyFileComposite, SWT.NONE);
+    findPluginConsistencyFromFileSystemButton.setText("File system");
+    findPluginConsistencyFromFileSystemButton.setToolTipText("Load consistency file from file system");
+    findPluginConsistencyFromFileSystemButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FILE));
+    findPluginConsistencyFromFileSystemButton.addSelectionListener(new SelectionAdapter()
     {
       @Override
       public void widgetSelected(SelectionEvent se)
@@ -196,14 +206,60 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         dialog.setText("Find plugin consistency file");
         dialog.setFilterExtensions(new String[]{"*.xml", "*.*"});
         dialog.setFilterNames(new String[]{"XML", "Any"});
+
+        String consistency_file_path = pluginConsistencyFileText.getText();
+        File file = new File(consistency_file_path);
+        dialog.setFilterPath(file.getParent());
+        dialog.setFileName(file.getName());
+
         String filePath = dialog.open();
         if (filePath != null)
         {
           pluginConsistencyFileText.setText(filePath);
-
-          //
           pluginConsistency = Util.loadAndUpdateConsistencyFile(new File(filePath));
+          pluginTabFolder.refresh();
+        }
+      }
+    });
 
+    //
+    Button findPluginConsistencyFromWorkspaceButton = new Button(pluginConsistencyFileComposite, SWT.NONE);
+    findPluginConsistencyFromWorkspaceButton.setText("Workspace");
+    findPluginConsistencyFromWorkspaceButton.setToolTipText("Load consistency file from workspace");
+    findPluginConsistencyFromWorkspaceButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
+    findPluginConsistencyFromWorkspaceButton.addSelectionListener(new SelectionAdapter()
+    {
+      @Override
+      public void widgetSelected(SelectionEvent se)
+      {
+        ElementTreeSelectionDialog dialog = new ElementTreeSelectionDialog(content.getShell(), new WorkbenchLabelProvider(), new BaseWorkbenchContentProvider());
+        dialog.setTitle("Find plugin consistency file");
+        dialog.setMessage("Select plugin consistency file (*.xml) :");
+        dialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
+        dialog.setAllowMultiple(false);
+
+        String consistency_file_path = pluginConsistencyFileText.getText();
+        IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(consistency_file_path);
+        dialog.setInitialSelection(resource);
+
+        ISelectionStatusValidator validator = selection -> {
+          if (selection.length == 1 && selection[0] instanceof IFile)
+          {
+            IFile file = (IFile) selection[0];
+            if (file.getName().endsWith(".xml"))
+            {
+              if (Util.canLoadConsistencyFile(file.getRawLocation().toFile()))
+                return Status.OK_STATUS;
+            }
+          }
+          return new Status(Status.ERROR, PluginConsistencyActivator.PLUGIN_ID, "Not a consistency file");
+        };
+        dialog.setValidator(validator);
+        if (dialog.open() == Window.OK)
+        {
+          IFile consistencyFile = (IFile) dialog.getFirstResult();
+          pluginConsistencyFileText.setText(consistencyFile.getFullPath().toString());
+          pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile.getRawLocation().toFile());
           pluginTabFolder.refresh();
         }
       }
@@ -248,7 +304,10 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     try
     {
       // save
-      PluginConsistencyLoader.savePluginConsistency(compactPluginConsistency, new File(consistency_file_path));
+      File pluginConsistencyFile = Util.getConsistencyFile(consistency_file_path);
+      if (pluginConsistencyFile == null || !pluginConsistencyFile.exists())
+        throw new Exception("The path does not exists");
+      PluginConsistencyLoader.savePluginConsistency(compactPluginConsistency, pluginConsistencyFile);
     }
     catch(Exception e)
     {
@@ -272,10 +331,14 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       MessageDialog.openError(getShell(), "Error", "Define a path for plugin consistency informations");
       return false;
     }
-    if (mustExists && !new File(consistency_file_path).exists())
+    if (mustExists)
     {
-      MessageDialog.openError(getShell(), "Error", "The path does not exists");
-      return false;
+      File pluginConsistencyFile = Util.getConsistencyFile(consistency_file_path);
+      if (pluginConsistencyFile == null || !pluginConsistencyFile.exists())
+      {
+        MessageDialog.openError(getShell(), "Error", "The path does not exists");
+        return false;
+      }
     }
 
     return true;
