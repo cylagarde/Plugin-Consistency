@@ -374,103 +374,117 @@ public class Util
     List<Runnable> runnableList = new ArrayList<>();
 
     Optional<PluginInfo> optionalPluginInfo = pluginConsistency.pluginInfoList.stream().filter(pInfo -> pInfo.name.equals(project.getName()) || pInfo.id.equals(cache.getId(project))).findAny();
-    if (optionalPluginInfo.isPresent())
-    {
-      PluginInfo pluginInfo = optionalPluginInfo.get();
 
-      // get IBundleProjectDescription
-      IBundleProjectService bundleProjectService = PluginConsistencyActivator.getBundleProjectService();
-      IBundleProjectDescription bundleProjectDescription = bundleProjectService.getDescription(project);
-      IRequiredBundleDescription[] requiredBundles = bundleProjectDescription.getRequiredBundles();
+    // create new PluginInfo
+    if (!optionalPluginInfo.isPresent())
+    {
+      PluginInfo pluginInfo = new PluginInfo();
+      pluginInfo.id = cache.getId(project);
+      pluginInfo.name = project.getName();
 
       //
-      if (requiredBundles != null)
+      updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
+
+      //
+      pluginConsistency.pluginInfoList.add(pluginInfo);
+
+      optionalPluginInfo = Optional.of(pluginInfo);
+    }
+
+    PluginInfo pluginInfo = optionalPluginInfo.get();
+
+    // get IBundleProjectDescription
+    IBundleProjectService bundleProjectService = PluginConsistencyActivator.getBundleProjectService();
+    IBundleProjectDescription bundleProjectDescription = bundleProjectService.getDescription(project);
+    IRequiredBundleDescription[] requiredBundles = bundleProjectDescription.getRequiredBundles();
+
+    //
+    if (requiredBundles != null)
+    {
+      Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toSet());
+
+      for(IRequiredBundleDescription requiredBundle : requiredBundles)
       {
-        Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toSet());
-
-        for(IRequiredBundleDescription requiredBundle : requiredBundles)
+        // find PluginInfo for requiredBundle
+        Optional<PluginInfo> optional = pluginConsistency.pluginInfoList.stream().filter(pInfo -> pInfo.id.equals(requiredBundle.getName())).findAny();
+        if (optional.isPresent())
         {
-          // find PluginInfo for requiredBundle
-          Optional<PluginInfo> optional = pluginConsistency.pluginInfoList.stream().filter(pInfo -> pInfo.id.equals(requiredBundle.getName())).findAny();
-          if (optional.isPresent())
+          PluginInfo requirePluginInfo = optional.get();
+          for(Type type : requirePluginInfo.typeList)
           {
-            PluginInfo requirePluginInfo = optional.get();
-            for(Type type : requirePluginInfo.typeList)
+            String typeName = type.name;
+            // check forbidden type
+            if (forbiddenTypeSet.contains(typeName))
             {
-              String typeName = type.name;
-              // check forbidden type
-              if (forbiddenTypeSet.contains(typeName))
-              {
-                String requireBundle = requirePluginInfo.id;
+              String requireBundle = requirePluginInfo.id;
 
-                // if not same
-                String pluginId = cache.getId(project);
-                if (!pluginInfo.id.equals(pluginId))
+              // if not same
+              String pluginId = cache.getId(project);
+              if (!pluginInfo.id.equals(pluginId))
+              {
+                pluginInfo.id = pluginId;
+
+                // save
+                File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+                savePluginConsistency(pluginConsistency, consistencyFile);
+              }
+
+              //
+              String pluginName = pluginInfo.name;
+              if (!pluginName.equals(pluginInfo.id))
+                pluginName += " (id=" + pluginInfo.id + ")";
+              String message = "The plugin '" + pluginName + "' uses bundle '" + requirePluginInfo.id + "' which has a forbidden type '" + typeName + "'";
+              Runnable runnable = () -> {
+                try
                 {
-                  pluginInfo.id = pluginId;
-
-                  // save
-                  File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
-                  savePluginConsistency(pluginConsistency, consistencyFile);
+                  IMarker marker = createManifestProblemMarker(manifest, requireBundle, message);
+                  newMarkerList.add(marker);
                 }
-
-                //
-                String pluginName = pluginInfo.name;
-                if (!pluginName.equals(pluginInfo.id))
-                  pluginName += " (id=" + pluginInfo.id + ")";
-                String message = "The plugin '" + pluginName + "' uses bundle '" + requirePluginInfo.id + "' which has a forbidden type '" + typeName + "'";
-                Runnable runnable = () -> {
-                  try
-                  {
-                    IMarker marker = createManifestProblemMarker(manifest, requireBundle, message);
-                    newMarkerList.add(marker);
-                  }
-                  catch(Exception e)
-                  {
-                    PluginConsistencyActivator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
-                  }
-                };
-                runnableList.add(runnable);
-              }
+                catch(Exception e)
+                {
+                  PluginConsistencyActivator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
+                }
+              };
+              runnableList.add(runnable);
             }
           }
+        }
 
-          // check forbidden plugin
-          Optional<ForbiddenPlugin> optional2 = pluginInfo.forbiddenPluginList.stream().filter(forbiddenPluginInfo -> forbiddenPluginInfo.id.equals(requiredBundle.getName())).findAny();
-          if (optional2.isPresent())
+        // check forbidden plugin
+        Optional<ForbiddenPlugin> optional2 = pluginInfo.forbiddenPluginList.stream().filter(forbiddenPluginInfo -> forbiddenPluginInfo.id.equals(requiredBundle.getName())).findAny();
+        if (optional2.isPresent())
+        {
+          ForbiddenPlugin forbiddenPluginInfo = optional2.get();
+          String requireBundle = forbiddenPluginInfo.id;
+
+          // if not same
+          String pluginId = cache.getId(project);
+          if (!pluginInfo.id.equals(pluginId))
           {
-            ForbiddenPlugin forbiddenPluginInfo = optional2.get();
-            String requireBundle = forbiddenPluginInfo.id;
+            pluginInfo.id = pluginId;
 
-            // if not same
-            String pluginId = cache.getId(project);
-            if (!pluginInfo.id.equals(pluginId))
-            {
-              pluginInfo.id = pluginId;
-
-              // save
-              File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
-              savePluginConsistency(pluginConsistency, consistencyFile);
-            }
-
-            //
-            String pluginName = pluginInfo.name;
-            if (!pluginName.equals(pluginInfo.id))
-              pluginName += " (id=" + pluginInfo.id + ")";
-            String message = "The plugin '" + pluginName + "' uses forbidden bundle '" + requireBundle + "'";
-            Runnable runnable = () -> {
-              try
-              {
-                IMarker marker = createManifestProblemMarker(manifest, requireBundle, message);
-                newMarkerList.add(marker);
-              }
-              catch(Exception e)
-              {
-                PluginConsistencyActivator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
-              }
-            };
-            runnableList.add(runnable);
+            // save
+            File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+            savePluginConsistency(pluginConsistency, consistencyFile);
           }
+
+          //
+          String pluginName = pluginInfo.name;
+          if (!pluginName.equals(pluginInfo.id))
+            pluginName += " (id=" + pluginInfo.id + ")";
+          String message = "The plugin '" + pluginName + "' uses forbidden bundle '" + requireBundle + "'";
+          Runnable runnable = () -> {
+            try
+            {
+              IMarker marker = createManifestProblemMarker(manifest, requireBundle, message);
+              newMarkerList.add(marker);
+            }
+            catch(Exception e)
+            {
+              PluginConsistencyActivator.logError("Cannot create problem marker for '" + project.getName() + "'", e);
+            }
+          };
+          runnableList.add(runnable);
         }
       }
     }

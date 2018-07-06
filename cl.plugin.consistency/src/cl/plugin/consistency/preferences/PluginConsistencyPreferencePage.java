@@ -208,7 +208,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         dialog.setFilterNames(new String[]{"XML", "Any"});
 
         String consistency_file_path = pluginConsistencyFileText.getText();
-        File file = new File(consistency_file_path);
+        File file = Util.getConsistencyFile(consistency_file_path);
         dialog.setFilterPath(file.getParent());
         dialog.setFileName(file.getName());
 

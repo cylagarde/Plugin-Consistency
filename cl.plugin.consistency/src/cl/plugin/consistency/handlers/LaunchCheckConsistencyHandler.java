@@ -42,7 +42,7 @@ public class LaunchCheckConsistencyHandler extends AbstractHandler
         if (markers.isEmpty())
           MessageDialog.openInformation(shell, "Project consistency", "No problem found");
         else
-          MessageDialog.openWarning(shell, "Project consistency", markers.size() + " problems were found.\nSee 'Problems' view for details.");
+          MessageDialog.openWarning(shell, "Project consistency", markers.size() + (markers.size() == 1? " problem was" : " problems were") + " found.\nSee 'Problems' view for details.");
       });
     };
     Util.launchConsistencyCheck(pluginConsistency, markerConsumer);

@@ -140,7 +140,7 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
     if (pluginConsistency == null)
     {
       String consistency_file_path = getConsistencyFilePath();
-      File consistencyFile = consistency_file_path == null? null : new File(consistency_file_path);
+      File consistencyFile = consistency_file_path == null? null : Util.getConsistencyFile(consistency_file_path);
       pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
     }
     return pluginConsistency;

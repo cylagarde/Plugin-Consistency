@@ -152,7 +152,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
             if (pluginInfo.id.equals(cache.getId(addedProject)))
             {
               pluginInfo.name = addedProject.getName();
-              File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+              File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
               Util.savePluginConsistency(pluginConsistency, consistencyFile);
 
               // check
@@ -175,7 +175,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
           if (pluginInfo.id.equals(cache.getId(project)))
           {
             pluginInfo.name = project.getName();
-            File consistencyFile = new File(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+            File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
             Util.savePluginConsistency(pluginConsistency, consistencyFile);
 
             // check
