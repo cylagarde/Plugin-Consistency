@@ -15,11 +15,12 @@ import cl.plugin.consistency.model.PluginConsistency;
 import cl.plugin.consistency.model.PluginInfo;
 
 /**
- * The class <b>PluginConsistencyLoader</b> allows to load or save a plugin consistency.<br>
+ * The class <b>PluginConsistencyLoader</b> allows to load or save a plugin consistency file.<br>
  */
 public class PluginConsistencyLoader
 {
-  static final String SCHEMA_XSD = "pluginConsistency.xsd";
+  static final String SCHEMA_XSD = PluginConsistency.class.getPackage().getName().replace('.', '/') + "/pluginConsistency.xsd";
+  static Schema pluginConsistencySchema;
 
   /**
    * Return the validation schema for PluginConsistency
@@ -29,10 +30,13 @@ public class PluginConsistencyLoader
    */
   private static Schema getValidationSchema() throws SAXException
   {
-    final SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-    final URL schemaURL = PluginConsistency.class.getClassLoader().getResource(SCHEMA_XSD);
-    final Schema schema = schemaFactory.newSchema(schemaURL);
-    return schema;
+    if (pluginConsistencySchema == null)
+    {
+      final SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+      final URL schemaURL = PluginConsistency.class.getClassLoader().getResource(SCHEMA_XSD);
+      pluginConsistencySchema = schemaFactory.newSchema(schemaURL);
+    }
+    return pluginConsistencySchema;
   }
 
   /**
