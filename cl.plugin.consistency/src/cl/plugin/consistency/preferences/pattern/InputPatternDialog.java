@@ -13,6 +13,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.StringConverter;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -210,13 +211,13 @@ class InputPatternDialog extends Dialog
     pluginAcceptedTableViewer.getTable().setLayoutData(fillBothGridData);
     pluginAcceptedTableViewer.getTable().setLinesVisible(true);
     pluginAcceptedTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-    pluginAcceptedTableViewer.setLabelProvider(new BundlesLabelProvider(cache));
+    pluginAcceptedTableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache)));
 
     pluginNotAcceptedTableViewer = new TableViewer(listComposite, SWT.BORDER);
     pluginNotAcceptedTableViewer.getTable().setLayoutData(fillBothGridData);
     pluginNotAcceptedTableViewer.getTable().setLinesVisible(true);
     pluginNotAcceptedTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-    pluginNotAcceptedTableViewer.setLabelProvider(new BundlesLabelProvider(cache));
+    pluginNotAcceptedTableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache)));
 
     applyDialogFont(composite);
     return composite;

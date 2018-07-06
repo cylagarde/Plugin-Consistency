@@ -13,7 +13,10 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.JFacePreferences;
+import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -33,7 +36,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabItem;
@@ -50,6 +52,7 @@ import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
+import cl.plugin.consistency.preferences.BundlesLabelProvider;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
 
@@ -152,22 +155,29 @@ public class PluginTabItem
     projectTableViewer.getTable().setLinesVisible(true);
     projectTableViewer.setComparator(new DefaultLabelViewerComparator());
 
-    // 'Project' TableViewerColumn
-    TableViewerColumn projectTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    projectTableViewerColumn.getColumn().setText("Project id");
-    projectTableViewerColumn.getColumn().setWidth(COLUMN_PREFERRED_WIDTH);
-    projectTableViewerColumn.getColumn().setData(COLUMN_SPACE_KEY, COLUMN_SPACE);
-
-    projectTableViewerColumn.setLabelProvider(new PluginInfoColumnLabelProvider()
+    // 'Plugin id' TableViewerColumn
+    TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    pluginIdTableViewerColumn.getColumn().setText("Plugin id");
+    pluginIdTableViewerColumn.getColumn().setWidth(COLUMN_PREFERRED_WIDTH);
+    pluginIdTableViewerColumn.getColumn().setData(COLUMN_SPACE_KEY, COLUMN_SPACE);
+    pluginIdTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache)
     {
       @Override
-      public String getText(Object element)
+      public StyledString getStyledText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String text = pluginInfo.id;
-        if (!text.equals(pluginInfo.name))
-          text += " (" + pluginInfo.name + ")";
-        return text;
+        IProject project = Util.getProject(pluginInfo);
+        boolean isValidPlugin = cache.isValidProject(project);
+        if (isValidPlugin)
+          return super.getStyledText(project);
+
+        // invalid project
+        StyledString styledString = new StyledString();
+        styledString.append(pluginInfo.id, StyledString.QUALIFIER_STYLER);
+        if (!pluginInfo.id.equals(pluginInfo.name))
+          styledString.append(" (" + pluginInfo.name + ")", StyledString.QUALIFIER_STYLER);
+
+        return styledString;
       }
 
       @Override
@@ -175,10 +185,10 @@ public class PluginTabItem
       {
         PluginInfo pluginInfo = (PluginInfo) element;
         IProject project = Util.getProject(pluginInfo);
-        Image projectImage = PlatformUI.getWorkbench().getSharedImages().getImage(SharedImages.IMG_OBJ_PROJECT);
+        Image projectImage = super.getImage(project);
 
         //
-        Boolean isValidPlugin = cache.isValidProject(project);
+        boolean isValidPlugin = cache.isValidProject(project);
         if (isValidPlugin)
           return projectImage;
 
@@ -195,8 +205,8 @@ public class PluginTabItem
 
         return img;
       }
-    });
-    DefaultLabelViewerComparator.configureForSortingColumn(projectTableViewerColumn);
+    }));
+    DefaultLabelViewerComparator.configureForSortingColumn(pluginIdTableViewerColumn);
 
     // 'Type' TableViewerColumn
     typeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
@@ -364,13 +374,20 @@ public class PluginTabItem
       Boolean isValidPlugin = cache.isValidProject(project);
       if (isValidPlugin)
         return super.getForeground(element);
-      return Display.getDefault().getSystemColor(SWT.COLOR_GRAY);
+      ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
+      return colorRegistry.get(JFacePreferences.QUALIFIER_COLOR);
+    }
+
+    @Override
+    public String getText(Object element)
+    {
+      return getStyledText(element).getString();
     }
 
     @Override
     public StyledString getStyledText(Object element)
     {
-      return new StyledString();
+      return new StyledString(super.getText(element));
     }
   }
 
@@ -598,8 +615,7 @@ public class PluginTabItem
         Set<PluginInfo> modifiedPluginInfoSet = selectedPluginInfoStream.collect(Collectors.toSet());
 
         boolean found = false;
-        loop:
-        for(PatternInfo patternInfo : modifiedPatternInfoSet)
+        loop: for(PatternInfo patternInfo : modifiedPatternInfoSet)
         {
           for(PluginInfo pluginInfo : modifiedPluginInfoSet)
           {

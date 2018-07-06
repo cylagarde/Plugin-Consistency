@@ -2,7 +2,10 @@ package cl.plugin.consistency.preferences;
 
 import java.util.Comparator;
 
+import org.eclipse.jface.viewers.CellLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewer;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -65,10 +68,8 @@ public class DefaultLabelViewerComparator extends ViewerComparator
   @Override
   public int compare(Viewer viewer, Object e1, Object e2)
   {
-    ILabelProvider columnLabelProvider = (ILabelProvider) ((ColumnViewer) viewer).getLabelProvider(columnIndex);
-
-    String t1 = columnLabelProvider.getText(e1);
-    String t2 = columnLabelProvider.getText(e2);
+    String t1 = getTextForComparaison(viewer, e1, columnIndex);
+    String t2 = getTextForComparaison(viewer, e2, columnIndex);
     Comparator<String> comparator = Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER);
     int rc = comparator.compare(t1, t2);
 
@@ -76,6 +77,34 @@ public class DefaultLabelViewerComparator extends ViewerComparator
     rc *= direction;
 
     return rc;
+  }
+
+  protected String getTextForComparaison(Viewer viewer, Object elt, int columnIndex)
+  {
+    String text;
+
+    CellLabelProvider labelProvider = ((ColumnViewer) viewer).getLabelProvider(columnIndex);
+    if (labelProvider instanceof ILabelProvider)
+    {
+      ILabelProvider columnLabelProvider = (ILabelProvider) labelProvider;
+      text = columnLabelProvider.getText(elt);
+    }
+    else if (labelProvider instanceof IStyledLabelProvider)
+    {
+      IStyledLabelProvider columnLabelProvider = (IStyledLabelProvider) labelProvider;
+      text = columnLabelProvider.getStyledText(elt).getString();
+    }
+    else if (labelProvider instanceof DelegatingStyledCellLabelProvider)
+    {
+      DelegatingStyledCellLabelProvider columnLabelProvider = (DelegatingStyledCellLabelProvider) labelProvider;
+      text = columnLabelProvider.getStyledStringProvider().getStyledText(elt).getString();
+    }
+    else
+    {
+      text = String.valueOf(elt);
+    }
+
+    return text;
   }
 
   /**

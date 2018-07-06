@@ -103,11 +103,7 @@ public class PatternTabItem
     //
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL | SWT.SMOOTH);
     formToolkit.adapt(sashForm);
-    //    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-    GridData layoutData = new GridData(GridData.FILL_BOTH);
-    //    layoutData.widthHint = 1000;
-    //    layoutData.heightHint = 1;
-    sashForm.setLayoutData(layoutData);
+    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     //
     configurePatternTableViewer(sashForm);
@@ -140,11 +136,7 @@ public class PatternTabItem
     //
     SashForm sashForm = new SashForm(content, SWT.VERTICAL | SWT.SMOOTH);
     formToolkit.adapt(sashForm);
-    //    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-    GridData layoutData = new GridData(GridData.FILL_BOTH);
-    //    layoutData.widthHint = 1000;
-    //    layoutData.heightHint = 1;
-    sashForm.setLayoutData(layoutData);
+    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     //
     ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = createTypeComposite(sashForm);
@@ -344,7 +336,7 @@ public class PatternTabItem
     patternTableViewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
     patternTableViewer.setComparator(new DefaultLabelViewerComparator());
 
-    patternTableViewer.addDoubleClickListener(event -> new RenamePatternAction().run());
+    patternTableViewer.addDoubleClickListener(event -> new EditPatternAction().run());
 
     // 'Contains pattern' TableViewerColumn
     TableViewerColumn patternTableViewerColumn = new TableViewerColumn(patternTableViewer, SWT.NONE);
@@ -472,7 +464,7 @@ public class PatternTabItem
 
       //
       createCopyPasteTypesMenuItems(manager);
-      createRenamePatternMenuItem(manager);
+      createEditPatternMenuItem(manager);
       createDuplicatePatternMenuItem(manager);
       createRemovePatternsMenuItem(manager);
     }
@@ -562,7 +554,7 @@ public class PatternTabItem
 
     /**
      */
-    private void createRenamePatternMenuItem(IMenuManager manager)
+    private void createEditPatternMenuItem(IMenuManager manager)
     {
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       if (selection.toList().size() != 1)
@@ -571,7 +563,7 @@ public class PatternTabItem
       if (manager.getItems().length > 1)
         manager.add(new Separator());
 
-      manager.add(new RenamePatternAction());
+      manager.add(new EditPatternAction());
     }
 
     /**
@@ -598,18 +590,18 @@ public class PatternTabItem
   }
 
   /**
-   * The class <b>RenamePatternAction</b> allows to.<br>
+   * The class <b>EditPatternAction</b> allows to.<br>
    */
-  private final class RenamePatternAction extends Action
+  private final class EditPatternAction extends Action
   {
     /**
      * Constructor
      * @param text
      * @param selection
      */
-    private RenamePatternAction()
+    private EditPatternAction()
     {
-      super("Rename pattern");
+      super("Edit pattern");
     }
 
     @Override
@@ -635,7 +627,7 @@ public class PatternTabItem
 
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternTableViewer.getControl().getShell(), "Rename pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern, "Enter a new value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", selectedDoNotContainsPattern, cache, patternValidator);
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternTableViewer.getControl().getShell(), "Edit pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern, "Enter a new value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", selectedDoNotContainsPattern, cache, patternValidator);
       if (inputPatternDialog.open() == InputDialog.OK)
       {
         Util.removePatternInAllPluginInfos(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency);
