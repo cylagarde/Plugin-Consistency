@@ -48,6 +48,13 @@
             id="cl.plugin_consistency.remove_all_check_consistency.command"
             name="Remove all check consistency">
       </command>
+      <command
+            categoryId="cl.plugin_consistency.commands"
+            defaultHandler="cl.plugin.consistency.handlers.OpenPreferenceHandler"
+            description="Open preference for plugin consistency"
+            id="cl.plugin_consistency.open_preference.command"
+            name="Open preference">
+      </command>
    </extension>
    <extension
          id="cl.plugin.consistency.menus"
@@ -76,6 +83,12 @@
         		 icon="icons/remove_all_check_consistency.png" 
         		 label="Remove all consistencies check" 
         		 style="push">
+        </command>
+        <command
+              commandId="cl.plugin_consistency.open_preference.command"
+              icon="icons/preference.png"
+              label="Open preference"
+              style="push">
         </command>
      </menuContribution>
   </extension>
