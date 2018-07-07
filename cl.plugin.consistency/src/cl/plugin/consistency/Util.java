@@ -165,6 +165,16 @@ public class Util
       }).forEach(pluginConsistency.typeList::add);
     }
 
+    updatePluginConsistency(pluginConsistency);
+
+    return pluginConsistency;
+  }
+
+  /**
+   * @param pluginConsistency
+   */
+  public static void updatePluginConsistency(PluginConsistency pluginConsistency)
+  {
     Cache cache = new Cache();
 
     // add new project to pluginConsistency
@@ -216,8 +226,6 @@ public class Util
       //
       pluginConsistency.pluginInfoList.add(pluginInfo);
     }
-
-    return pluginConsistency;
   }
 
   /**

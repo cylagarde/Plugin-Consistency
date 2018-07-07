@@ -220,11 +220,11 @@ public class PluginTabItem
 
         StyledString styledString = new StyledString();
 
-        Set<String> typeFormPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.typeList.stream()).map(type -> type.name).collect(Collectors.toSet());
+        Set<String> typeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.typeList.stream()).map(type -> type.name).collect(Collectors.toSet());
 
         int[] size = {pluginInfo.typeList.size()};
         pluginInfo.typeList.stream().map(type -> type.name).sorted().forEach(typename -> {
-          if (typeFormPatternInfoSet.contains(typename))
+          if (typeFromPatternInfoSet.contains(typename))
             styledString.append(typename, StyledString.COUNTER_STYLER);
           else
             styledString.append(typename);
@@ -249,11 +249,11 @@ public class PluginTabItem
 
         StyledString styledString = new StyledString();
 
-        Set<String> forbiddenTypeFormPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).map(type -> type.name).collect(Collectors.toSet());
+        Set<String> forbiddenTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).map(type -> type.name).collect(Collectors.toSet());
 
         int[] size = {pluginInfo.forbiddenTypeList.size()};
         pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).sorted().forEach(forbiddenTypename -> {
-          if (forbiddenTypeFormPatternInfoSet.contains(forbiddenTypename))
+          if (forbiddenTypeFromPatternInfoSet.contains(forbiddenTypename))
             styledString.append(forbiddenTypename, StyledString.COUNTER_STYLER);
           else
             styledString.append(forbiddenTypename);
@@ -429,7 +429,7 @@ public class PluginTabItem
       if (selectedPluginInfoSet.size() == 1)
       {
         PluginInfo pluginInfo = selectedPluginInfoSet.iterator().next();
-        if (pluginInfo.containsTypes())
+        if (pluginInfo.containsInformations())
         {
           Set<String> currentTypeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
           Set<String> currentForbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
@@ -552,7 +552,7 @@ public class PluginTabItem
 
         IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
         Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
-        Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::containsTypes).collect(Collectors.toSet());
+        Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::containsInformations).collect(Collectors.toSet());
         if (!modifiedSelectedPluginInfoSet.isEmpty())
         {
           if (manager.getItems().length > 1)
@@ -574,7 +574,7 @@ public class PluginTabItem
           });
         }
 
-        Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::containsTypes).collect(Collectors.toSet());
+        Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::containsInformations).collect(Collectors.toSet());
         if (!modifiedPluginInfoSet.isEmpty())
         {
           if (!separatorAdded && manager.getItems().length > 1)
@@ -669,7 +669,7 @@ public class PluginTabItem
 
       IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
       Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
-      Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::containsTypes).collect(Collectors.toSet());
+      Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::containsInformations).collect(Collectors.toSet());
       if (!modifiedSelectedPluginInfoSet.isEmpty())
       {
         if (manager.getItems().length > 1)
@@ -691,7 +691,7 @@ public class PluginTabItem
         });
       }
 
-      Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::containsTypes).collect(Collectors.toSet());
+      Set<PluginInfo> modifiedPluginInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.stream().filter(PluginInfo::containsInformations).collect(Collectors.toSet());
       if (!modifiedPluginInfoSet.isEmpty())
       {
         if (!separatorAdded && manager.getItems().length > 1)

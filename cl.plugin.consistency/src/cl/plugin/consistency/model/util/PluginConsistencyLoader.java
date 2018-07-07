@@ -47,6 +47,8 @@ public class PluginConsistencyLoader
   public static PluginConsistency loadPluginConsistencyFile(File pluginConsistencyFile) throws Exception
   {
     PluginConsistency pluginConsistency = JaxbLoaderUtil.load(pluginConsistencyFile, PluginConsistency.class, getValidationSchema());
+
+    // remove duplicate types
     pluginConsistency.typeList = new ArrayList<>(new LinkedHashSet<>(pluginConsistency.typeList));
     for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
     {
@@ -54,6 +56,7 @@ public class PluginConsistencyLoader
       pluginInfo.forbiddenTypeList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.forbiddenTypeList));
       pluginInfo.forbiddenPluginList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.forbiddenPluginList));
     }
+
     return pluginConsistency;
   }
 

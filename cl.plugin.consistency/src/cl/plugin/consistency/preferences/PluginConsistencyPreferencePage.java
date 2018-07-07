@@ -66,9 +66,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     noDefaultAndApplyButton();
     //    setDescription("Plugin consistency");
 
-    String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
-    File consistencyFile = Util.getConsistencyFile(consistency_file_path);
-    pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
+    pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
   }
 
   /*
@@ -363,12 +361,12 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     //
     if (activateButton.getSelection())
     {
-      PluginConsistencyActivator.getDefault().setPluginConsistency(compactPluginConsistency);
+      //      PluginConsistencyActivator.getDefault().setPluginConsistency(compactPluginConsistency);
       PluginConsistencyActivator.getDefault().activate();
     }
     else
     {
-      PluginConsistencyActivator.getDefault().setPluginConsistency(null);
+      //      PluginConsistencyActivator.getDefault().setPluginConsistency(null);
       PluginConsistencyActivator.getDefault().desactivate();
 
       // launch project uncheck

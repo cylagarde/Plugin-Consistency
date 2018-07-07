@@ -43,6 +43,8 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
   private static IBundleProjectService bundleProjectService;
 
   private PluginConsistency pluginConsistency;
+  private String lastPluginConsistencyFilePath = null;
+  private long lastModifiedPluginConsistencyFile = -1;
 
   /**
    *
@@ -123,24 +125,26 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
     }
   }
 
-  /**
-   * Set the plugin consistency
-   * @param pluginConsistency
-   */
-  public void setPluginConsistency(PluginConsistency pluginConsistency)
-  {
-    this.pluginConsistency = pluginConsistency;
-  }
+  //  /**
+  //   * Set the plugin consistency
+  //   * @param pluginConsistency
+  //   */
+  //  public void setPluginConsistency(PluginConsistency pluginConsistency)
+  //  {
+  //    this.pluginConsistency = pluginConsistency;
+  //  }
 
   /**
    * Return the plugin consistency
    */
   public PluginConsistency getPluginConsistency()
   {
-    if (pluginConsistency == null)
+    String consistency_file_path = getConsistencyFilePath();
+    File consistencyFile = consistency_file_path == null? null : Util.getConsistencyFile(consistency_file_path);
+    if (pluginConsistency == null || !consistency_file_path.equals(lastPluginConsistencyFilePath) || consistencyFile.lastModified() != lastModifiedPluginConsistencyFile)
     {
-      String consistency_file_path = getConsistencyFilePath();
-      File consistencyFile = consistency_file_path == null? null : Util.getConsistencyFile(consistency_file_path);
+      lastPluginConsistencyFilePath = consistency_file_path;
+      lastModifiedPluginConsistencyFile = consistencyFile.lastModified();
       pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
     }
     return pluginConsistency;

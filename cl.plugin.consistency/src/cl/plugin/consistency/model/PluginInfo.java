@@ -42,11 +42,26 @@ public class PluginInfo
 
   /**
    */
-  public boolean containsTypes()
+  public boolean containsInformations()
   {
     if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
       return true;
     return false;
   }
 
+  /**
+   * Duplicate
+   */
+  public PluginInfo duplicate()
+  {
+    PluginInfo pluginInfo = new PluginInfo();
+    pluginInfo.id = id;
+    pluginInfo.name = name;
+
+    pluginInfo.typeList.addAll(typeList);
+    pluginInfo.forbiddenTypeList.addAll(forbiddenTypeList);
+    pluginInfo.forbiddenPluginList.addAll(forbiddenPluginList);
+
+    return pluginInfo;
+  }
 }

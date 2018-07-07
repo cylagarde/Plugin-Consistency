@@ -26,6 +26,7 @@ public class LaunchCheckConsistencyHandler extends AbstractHandler
   {
     Shell shell = HandlerUtil.getActiveShell(event);
     PluginConsistency pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
+    Util.updatePluginConsistency(pluginConsistency);
     launchConsistencyCheck(shell, pluginConsistency);
     return null;
   }
