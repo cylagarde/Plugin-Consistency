@@ -46,6 +46,8 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
   T data;
   IAction addElementAction;
   boolean fireEvent = true;
+  private final static String COMBO_VIEWER_TAG = "ComboViewer";
+  private final static String IS_PATTERN_TYPE_TAG = "isPatternType";
 
   /**
    * Constructor
@@ -150,7 +152,8 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
           Collections.sort(notUsedElements);
         }
         ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, element.getName(), elementBiConsumer);
-        elementComboViewer.getControl().setData("isPatternType", isPatternType);
+        elementComboViewer.getControl().setData(IS_PATTERN_TYPE_TAG, isPatternType);
+        elementComboViewer.getControl().setData(COMBO_VIEWER_TAG, elementComboViewer);
         if (isPatternType)
           elementComboViewer.getControl().setForeground(JFaceResources.getColorRegistry().get(JFacePreferences.COUNTER_COLOR));
 
@@ -221,14 +224,14 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
           if (control instanceof Combo)
           {
             Combo child = (Combo) control;
-            boolean isEnabled = (boolean) child.getData("isEnabled");
+            boolean isEnabled = (boolean) child.getData(IS_PATTERN_TYPE_TAG);
             if (isEnabled)
             {
               List<String> notUsedElements = getNotUsedElements();
               String selection = child.getText();
               notUsedElements.add(selection);
               Collections.sort(notUsedElements);
-              ComboViewer comboViewer = (ComboViewer) child.getData("ComboViewer");
+              ComboViewer comboViewer = (ComboViewer) child.getData(COMBO_VIEWER_TAG);
               comboViewer.setInput(notUsedElements);
               comboViewer.setSelection(new StructuredSelection(selection));
             }
@@ -263,7 +266,8 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
       ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, "", elementBiConsumer);
       elementComboViewer.getControl().setFocus();
       elementBiConsumer.elementComboViewer = elementComboViewer;
-      elementComboViewer.getControl().setData("isEnabled", true);
+      elementComboViewer.getControl().setData(IS_PATTERN_TYPE_TAG, true);
+      elementComboViewer.getControl().setData(COMBO_VIEWER_TAG, elementComboViewer);
 
       elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 

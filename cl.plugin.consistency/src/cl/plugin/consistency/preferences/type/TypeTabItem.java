@@ -278,6 +278,8 @@ public class TypeTabItem
           return "Type name is empty";
         if (alreadyExistTypeSet.contains(typeName))
           return "The type name already exists";
+        if (typeName.equals(selectedType.name) && typeDescription.equals(selectedType.description))
+          return "";
         return null;
       };
       InputTypeDialog inputTypeDialog = new InputTypeDialog(shell, "Edit type", "Enter a new name", selectedType.name, "Enter a new description", selectedType.description, typeValidator);

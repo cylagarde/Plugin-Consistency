@@ -102,8 +102,6 @@ public class Util
       });
     }
 
-    comboViewer.getControl().setData("ComboViewer", comboViewer);
-
     return comboViewer;
   }
 
