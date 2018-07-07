@@ -1,23 +1,12 @@
-package cl.plugin.consistency.preferences.pattern;
+package cl.plugin.consistency.preferences.type;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
 import java.util.function.BiFunction;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.StringConverter;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -25,14 +14,10 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import cl.plugin.consistency.Cache;
-import cl.plugin.consistency.model.PatternInfo;
-import cl.plugin.consistency.preferences.BundlesLabelProvider;
-
 /**
- * The class <b>InputPatternDialog</b> allows to.<br>
+ * The class <b>InputTypeDialog</b> allows to.<br>
  */
-class InputPatternDialog extends Dialog
+class InputTypeDialog extends Dialog
 {
   /**
    * The title of the dialog.
@@ -42,29 +27,24 @@ class InputPatternDialog extends Dialog
   /**
    * The message to display, or <code>null</code> if none.
    */
-  private final String containsPatternMessage;
-  private final String doNotContainsPatternMessage;
-
-  private final Cache cache;
+  private final String newNameMessage;
+  private final String newDescriptionMessage;
 
   /**
    * The input value; the empty string by default.
    */
-  private String containsPattern;
-  private String doNotContainsPattern;
+  private String newName;
+  private String newDescription;
 
   /**
    * The input validator, or <code>null</code> if none.
    */
-  private final BiFunction<String, String, String> patternValidator;
+  private final BiFunction<String, String, String> typeValidator;
 
   private Button okButton;
 
-  private Text containsPatternText;
-  private Text doNotContainsPatternText;
-
-  private TableViewer pluginAcceptedTableViewer;
-  private TableViewer pluginNotAcceptedTableViewer;
+  private Text newNameText;
+  private Text newDescriptionText;
 
   private Text errorMessageText;
 
@@ -82,31 +62,30 @@ class InputPatternDialog extends Dialog
      *            shell
      * @param dialogTitle
      *            the dialog title, or <code>null</code> if none
-     * @param containsPatternMessage
+     * @param dialogMessage
      *            the dialog message, or <code>null</code> if none
-     * @param initialContainsPattern
+     * @param initialNewName
      *            the initial input value, or <code>null</code> if none
      *            (equivalent to the empty string)
-     * @param patternValidator
+     * @param typeValidator
      *            an input validator, or <code>null</code> if none
      */
-  InputPatternDialog(Shell parentShell, String dialogTitle, String containsPatternMessage, String initialContainsPattern, String doNotContainsPatternMessage, String initialDoNotContainsPattern, Cache cache, BiFunction<String, String, String> patternValidator)
+  InputTypeDialog(Shell parentShell, String dialogTitle, String newNameMessage, String initialNewName, String newDescriptionMessage, String initialNewDescription, BiFunction<String, String, String> typeValidator)
   {
     super(parentShell);
     this.title = dialogTitle;
-    this.containsPatternMessage = containsPatternMessage;
-    this.doNotContainsPatternMessage = doNotContainsPatternMessage;
-    containsPattern = initialContainsPattern == null? "" : initialContainsPattern;
-    doNotContainsPattern = initialDoNotContainsPattern == null? "" : initialDoNotContainsPattern;
-    this.cache = cache;
-    this.patternValidator = patternValidator;
+    this.newNameMessage = newNameMessage;
+    this.newDescriptionMessage = newDescriptionMessage;
+    newName = initialNewName == null? "" : initialNewName;
+    newDescription = initialNewDescription == null? "" : initialNewDescription;
+    this.typeValidator = typeValidator;
   }
 
   @Override
   protected void buttonPressed(int buttonId)
   {
-    containsPattern = buttonId == IDialogConstants.OK_ID? containsPatternText.getText() : null;
-    doNotContainsPattern = buttonId == IDialogConstants.OK_ID? doNotContainsPatternText.getText() : null;
+    newName = buttonId == IDialogConstants.OK_ID? newNameText.getText() : null;
+    newDescription = buttonId == IDialogConstants.OK_ID? newDescriptionText.getText() : null;
     super.buttonPressed(buttonId);
   }
 
@@ -134,17 +113,17 @@ class InputPatternDialog extends Dialog
     okButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
     createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 
-    containsPatternText.setFocus();
-    if (containsPattern != null)
+    newNameText.setFocus();
+    if (newName != null)
     {
-      containsPatternText.setText(containsPattern);
-      containsPatternText.selectAll();
+      newNameText.setText(newName);
+      newNameText.selectAll();
     }
-    if (doNotContainsPattern != null)
+    if (newDescription != null)
     {
-      doNotContainsPatternText.setText(doNotContainsPattern);
-      if (containsPattern == null)
-        doNotContainsPatternText.selectAll();
+      newDescriptionText.setText(newDescription);
+      if (newName == null)
+        newDescriptionText.selectAll();
     }
   }
 
@@ -155,32 +134,32 @@ class InputPatternDialog extends Dialog
     Composite composite = (Composite) super.createDialogArea(parent);
 
     // create message
-    if (containsPatternMessage != null)
+    if (newNameMessage != null)
     {
       Label label = new Label(composite, SWT.WRAP);
       label.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-      label.setText(containsPatternMessage);
+      label.setText(newNameMessage);
     }
 
     //
-    containsPatternText = new Text(composite, getInputTextStyle());
-    containsPatternText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-    containsPatternText.addModifyListener(e -> validateInput());
+    newNameText = new Text(composite, getInputTextStyle());
+    newNameText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
+    newNameText.addModifyListener(e -> validateInput());
 
     new Label(composite, SWT.NONE);
 
     // create message
-    if (doNotContainsPatternMessage != null)
+    if (newDescriptionMessage != null)
     {
       Label label = new Label(composite, SWT.WRAP);
       label.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-      label.setText(doNotContainsPatternMessage);
+      label.setText(newDescriptionMessage);
     }
 
     //
-    doNotContainsPatternText = new Text(composite, getInputTextStyle());
-    doNotContainsPatternText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-    doNotContainsPatternText.addModifyListener(e -> validateInput());
+    newDescriptionText = new Text(composite, getInputTextStyle());
+    newDescriptionText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
+    newDescriptionText.addModifyListener(e -> validateInput());
 
     errorMessageText = new Text(composite, SWT.READ_ONLY | SWT.WRAP);
     errorMessageText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
@@ -189,35 +168,6 @@ class InputPatternDialog extends Dialog
 
     // Set the error message text
     setErrorMessage(errorMessage);
-
-    //
-    Composite listComposite = new Composite(composite, SWT.NONE);
-    listComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
-    GridLayout layout = new GridLayout(2, true);
-    layout.marginWidth = layout.marginHeight = 0;
-    listComposite.setLayout(layout);
-
-    Label pluginAcceptedPluginLabel = new Label(listComposite, SWT.NONE);
-    pluginAcceptedPluginLabel.setText("Plugin accepted");
-
-    Label pluginNotAcceptedPluginLabel = new Label(listComposite, SWT.NONE);
-    pluginNotAcceptedPluginLabel.setText("Plugin not accepted");
-
-    GridData fillBothGridData = new GridData(GridData.FILL_BOTH);
-    fillBothGridData.widthHint = 300;
-    fillBothGridData.heightHint = 300;
-
-    pluginAcceptedTableViewer = new TableViewer(listComposite, SWT.BORDER);
-    pluginAcceptedTableViewer.getTable().setLayoutData(fillBothGridData);
-    pluginAcceptedTableViewer.getTable().setLinesVisible(true);
-    pluginAcceptedTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-    pluginAcceptedTableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache)));
-
-    pluginNotAcceptedTableViewer = new TableViewer(listComposite, SWT.BORDER);
-    pluginNotAcceptedTableViewer.getTable().setLayoutData(fillBothGridData);
-    pluginNotAcceptedTableViewer.getTable().setLinesVisible(true);
-    pluginNotAcceptedTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-    pluginNotAcceptedTableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache)));
 
     applyDialogFont(composite);
     return composite;
@@ -233,14 +183,14 @@ class InputPatternDialog extends Dialog
     return okButton;
   }
 
-  protected Text getContainsPatternText()
+  protected Text getNewNameText()
   {
-    return containsPatternText;
+    return newNameText;
   }
 
-  protected Text getDoNotContainsPatternText()
+  protected Text getNewDescriptionText()
   {
-    return doNotContainsPatternText;
+    return newDescriptionText;
   }
 
   /**
@@ -250,17 +200,17 @@ class InputPatternDialog extends Dialog
    */
   protected BiFunction<String, String, String> getValidator()
   {
-    return patternValidator;
+    return typeValidator;
   }
 
-  public String getContainsPattern()
+  public String getNewName()
   {
-    return containsPattern;
+    return newName;
   }
 
-  public String getDoNotContainsPattern()
+  public String getNewDescription()
   {
-    return doNotContainsPattern;
+    return newDescription;
   }
 
   /**
@@ -275,21 +225,11 @@ class InputPatternDialog extends Dialog
   protected void validateInput()
   {
     String errorMessage = null;
-    if (patternValidator != null)
+    if (typeValidator != null)
     {
-      String containsPatternValue = containsPatternText.getText();
-      String doNotContainsPatternValue = doNotContainsPatternText.getText();
-      errorMessage = patternValidator.apply(containsPatternValue, doNotContainsPatternValue);
-
-      PatternInfo patternInfo = new PatternInfo();
-      patternInfo.setPattern(containsPatternValue, doNotContainsPatternValue);
-
-      Predicate<IProject> predicate = project -> patternInfo.acceptPlugin(cache.getId(project));
-      Comparator<IProject> projectComparator = Comparator.comparing(cache::getId);
-      IProject[] projects = cache.getValidProjects();
-      Map<Boolean, List<IProject>> map = Stream.of(projects).sorted(projectComparator).collect(Collectors.partitioningBy(predicate));
-      pluginAcceptedTableViewer.setInput(map.get(Boolean.TRUE));
-      pluginNotAcceptedTableViewer.setInput(map.get(Boolean.FALSE));
+      String containsPatternValue = newNameText.getText();
+      String doNotContainsPatternValue = newDescriptionText.getText();
+      errorMessage = typeValidator.apply(containsPatternValue, doNotContainsPatternValue);
     }
 
     setErrorMessage(errorMessage);

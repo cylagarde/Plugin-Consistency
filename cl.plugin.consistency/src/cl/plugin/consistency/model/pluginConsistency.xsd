@@ -6,6 +6,7 @@
   <xs:complexType name="type">
     <xs:sequence/>
     <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="description" type="xs:string"/>
   </xs:complexType>
 
   <xs:complexType name="patternInfo">
@@ -26,6 +27,7 @@
       </xs:element>
     </xs:sequence>
     <xs:attribute name="pattern" type="xs:string" use="required"/>
+    <xs:attribute name="description" type="xs:string"/>
   </xs:complexType>
 
   <xs:complexType name="pluginConsistency">

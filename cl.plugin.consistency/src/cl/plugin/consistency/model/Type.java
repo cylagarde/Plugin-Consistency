@@ -10,6 +10,9 @@ public class Type
   @XmlAttribute(name = "name", required = true)
   public String name;
 
+  @XmlAttribute(name = "description")
+  public String description;
+
   /*
    * @see java.lang.Object#hashCode()
    */

@@ -18,6 +18,9 @@ public class PatternInfo
   @XmlAttribute(name = "pattern", required = true)
   public String pattern;
 
+  @XmlAttribute(name = "description")
+  public String description;
+
   @XmlElementWrapper(name = "Types")
   @XmlElement(name = "Type")
   public List<Type> typeList = new ArrayList<>();

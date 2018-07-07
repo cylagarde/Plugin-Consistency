@@ -1,6 +1,7 @@
 package cl.plugin.consistency.preferences.type;
 
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -152,6 +153,23 @@ public class TypeTabItem
     });
     DefaultLabelViewerComparator.configureForSortingColumn(nameTableViewerColumn);
 
+    // 'Description' TableViewerColumn
+    TableViewerColumn descriptionTableViewerColumn = new TableViewerColumn(typeTableViewer, SWT.NONE);
+    descriptionTableViewerColumn.getColumn().setText("Description");
+    descriptionTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    descriptionTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+
+    descriptionTableViewerColumn.setLabelProvider(new ColumnLabelProvider()
+    {
+      @Override
+      public String getText(Object element)
+      {
+        Type type = (Type) element;
+        return type.description;
+      }
+    });
+    DefaultLabelViewerComparator.configureForSortingColumn(descriptionTableViewerColumn);
+
     //
     configurePopupMenuForTypeTableViewer();
 
@@ -255,20 +273,22 @@ public class TypeTabItem
 
       Shell shell = typeTableViewer.getControl().getShell();
 
-      IInputValidator validator = newText -> {
-        if (newText.isEmpty())
-          return "Value is empty";
-        if (alreadyExistTypeSet.contains(newText))
-          return "The type already exists";
+      BiFunction<String, String, String> typeValidator = (typeName, typeDescription) -> {
+        if (typeName.isEmpty())
+          return "Type name is empty";
+        if (alreadyExistTypeSet.contains(typeName))
+          return "The type name already exists";
         return null;
       };
-      InputDialog inputDialog = new InputDialog(shell, "Edit type", "Enter a new name", selectedTypeName, validator);
-      if (inputDialog.open() == InputDialog.OK)
+      InputTypeDialog inputTypeDialog = new InputTypeDialog(shell, "Edit type", "Enter a new name", selectedType.name, "Enter a new description", selectedType.description, typeValidator);
+      if (inputTypeDialog.open() == InputDialog.OK)
       {
-        String newTypeName = inputDialog.getValue();
+        String newTypeName = inputTypeDialog.getNewName();
+        String newDescription = inputTypeDialog.getNewDescription();
 
         // edit type
         selectedType.name = newTypeName;
+        selectedType.description = newDescription;
 
         // edit types in plugin infos
         Consumer<PluginInfo> editTypeInPluginInfoConsumer = pluginInfo -> {
@@ -284,7 +304,7 @@ public class TypeTabItem
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(editTypeInPatternInfoConsumer);
 
-        // refresh all TabFolder
+        // refresh all TabFolders
         pluginTabFolder.refresh();
       }
     }
