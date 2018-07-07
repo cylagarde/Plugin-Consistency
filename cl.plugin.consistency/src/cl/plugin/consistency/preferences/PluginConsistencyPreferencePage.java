@@ -66,7 +66,10 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     noDefaultAndApplyButton();
     //    setDescription("Plugin consistency");
 
-    pluginConsistency = PluginConsistencyActivator.getDefault().getPluginConsistency();
+    // dont use PluginConsistencyActivator.getDefault().getPluginConsistency();
+    String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
+    File consistencyFile = Util.getConsistencyFile(consistency_file_path);
+    pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
   }
 
   /*

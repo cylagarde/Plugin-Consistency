@@ -91,12 +91,15 @@ public class Util
     IStructuredSelection[] oldStructuredSelection = new IStructuredSelection[]{new StructuredSelection(firstSelection)};
     comboViewer.setSelection(oldStructuredSelection[0]);
 
-    comboViewer.addSelectionChangedListener(event -> {
-      IStructuredSelection selection = (IStructuredSelection) comboViewer.getSelection();
-      selectionConsumer.accept(oldStructuredSelection[0], selection);
-      oldStructuredSelection[0] = selection;
-      parent.layout();
-    });
+    if (selectionConsumer != null)
+    {
+      comboViewer.addSelectionChangedListener(event -> {
+        IStructuredSelection selection = (IStructuredSelection) comboViewer.getSelection();
+        selectionConsumer.accept(oldStructuredSelection[0], selection);
+        oldStructuredSelection[0] = selection;
+        parent.layout();
+      });
+    }
 
     comboViewer.getControl().setData("ComboViewer", comboViewer);
 
