@@ -11,6 +11,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -53,6 +55,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   //
   Button activateButton;
   Text pluginConsistencyFileText;
+  ControlDecoration pluginConsistencyFileControlDecoration;
   PluginTabFolder pluginTabFolder;
   final Cache cache = new Cache();
   boolean removeChecks = true;
@@ -105,7 +108,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     configureImportConsistencyFile(content);
 
     //
-    pluginTabFolder = new PluginTabFolder(this, content, SWT.FLAT);
+    pluginTabFolder = new PluginTabFolder(this, content, SWT.FLAT | SWT.DOUBLE_BUFFERED);
 
     return null;
   }
@@ -137,7 +140,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     //
     Button launchCheckConsistencyButton = new Button(activateComposite, SWT.NONE);
     launchCheckConsistencyButton.setImage(Images.LAUNCH_CHECK_CONSISTENCY.getImage());
-    //    launchCheckConsistencyButton.setImage(Images.FORBIDDEN_TYPE.getImage());
     launchCheckConsistencyButton.setToolTipText("Launch check consistency");
     launchCheckConsistencyButton.addSelectionListener(new SelectionAdapter()
     {
@@ -161,6 +163,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
     GridLayout pluginConsistencyFileGridLayout = new GridLayout(6, false);
     pluginConsistencyFileGridLayout.marginWidth = pluginConsistencyFileGridLayout.marginHeight = 0;
+    pluginConsistencyFileGridLayout.horizontalSpacing = 7;
     pluginConsistencyFileComposite.setLayout(pluginConsistencyFileGridLayout);
 
     //    pluginConsistencyFileComposite.setLayout(new GridLayout(3, false));
@@ -171,6 +174,24 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     pluginConsistencyFileText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
     String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
+
+    pluginConsistencyFileControlDecoration = new ControlDecoration(pluginConsistencyFileText, SWT.TOP | SWT.LEFT);
+    pluginConsistencyFileControlDecoration.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage()); // FieldDecorationRegistry.DEC_INFORMATION
+
+    //
+    pluginConsistencyFileText.addModifyListener(e -> {
+      String valid = checkConsistencyFilePath(pluginConsistencyFileText.getText(), true);
+      if (valid != null)
+      {
+        pluginConsistencyFileControlDecoration.setDescriptionText(valid);
+        pluginConsistencyFileControlDecoration.show();
+      }
+      else
+      {
+        pluginConsistencyFileControlDecoration.hide();
+      }
+    });
+
     pluginConsistencyFileText.setText(consistency_file_path);
 
     //
@@ -183,9 +204,14 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       public void widgetSelected(SelectionEvent se)
       {
         String filePath = pluginConsistencyFileText.getText();
-        boolean valid = checkConsistencyFilePath(filePath, true);
-        if (!valid)
-          return;
+        String valid = checkConsistencyFilePath(filePath, true);
+        if (valid != null)
+        {
+          pluginConsistencyFileControlDecoration.setDescriptionText(valid);
+          pluginConsistencyFileControlDecoration.show();
+        }
+        else
+          pluginConsistencyFileControlDecoration.hide();
 
         pluginConsistency = Util.loadAndUpdateConsistencyFile(Util.getConsistencyFile(filePath));
 
@@ -210,8 +236,11 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
         String consistency_file_path = pluginConsistencyFileText.getText();
         File file = Util.getConsistencyFile(consistency_file_path);
-        dialog.setFilterPath(file.getParent());
-        dialog.setFileName(file.getName());
+        if (file != null)
+        {
+          dialog.setFilterPath(file.getParent());
+          dialog.setFileName(file.getName());
+        }
 
         String filePath = dialog.open();
         if (filePath != null)
@@ -244,21 +273,24 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         dialog.setInitialSelection(resource);
 
         ISelectionStatusValidator validator = selection -> {
+          String message = "Not a consistency file";
           if (selection.length == 1 && selection[0] instanceof IFile)
           {
             IFile file = (IFile) selection[0];
             if (file.getName().endsWith(".xml"))
             {
-              if (Util.canLoadConsistencyFile(file.getRawLocation().toFile()))
+              message = checkConsistencyFilePath(file.getRawLocation().toOSString(), true);
+              if (message == null)
                 return Status.OK_STATUS;
             }
           }
-          return new Status(Status.ERROR, PluginConsistencyActivator.PLUGIN_ID, "Not a consistency file");
+          return new Status(Status.ERROR, PluginConsistencyActivator.PLUGIN_ID, message);
         };
         dialog.setValidator(validator);
         if (dialog.open() == Window.OK)
         {
           IFile consistencyFile = (IFile) dialog.getFirstResult();
+
           pluginConsistencyFileText.setText(consistencyFile.getFullPath().toString());
           pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile.getRawLocation().toFile());
           pluginTabFolder.refresh();
@@ -295,9 +327,20 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   private PluginConsistency checkAndSavePluginConsistency()
   {
     String consistency_file_path = pluginConsistencyFileText.getText();
-    boolean valid = checkConsistencyFilePath(consistency_file_path, false);
-    if (!valid)
+    String message = checkConsistencyFilePath(consistency_file_path, false);
+    if (message != null)
+    {
+      pluginConsistencyFileControlDecoration.setDescriptionText(message);
+      pluginConsistencyFileControlDecoration.show();
+      MessageDialog.openError(getShell(), "Cannot save plugin consistency into file", message);
       return null;
+    }
+    else
+      pluginConsistencyFileControlDecoration.hide();
+
+    //    boolean valid = checkConsistencyFilePath(consistency_file_path, false);
+    //    if (!valid)
+    //      return null;
 
     // remove useless pluginInfo
     PluginConsistency compactPluginConsistency = pluginConsistency.compact();
@@ -312,7 +355,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     }
     catch(Exception e)
     {
-      String message = "Exception when saving plugin consistency informations : " + e.getLocalizedMessage();
+      message = "Exception when saving plugin consistency informations : " + e.getLocalizedMessage();
       PluginConsistencyActivator.logError(message, e);
       MessageDialog.openError(getShell(), "Error", message);
       return null;
@@ -325,24 +368,21 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
    * Check consistency file path
    * @param consistency_file_path
    */
-  private boolean checkConsistencyFilePath(String consistency_file_path, boolean mustExists)
+  private String checkConsistencyFilePath(String consistency_file_path, boolean mustExists)
   {
     if (consistency_file_path == null || consistency_file_path.isEmpty())
-    {
-      MessageDialog.openError(getShell(), "Error", "Define a path for plugin consistency informations");
-      return false;
-    }
+      return "Define a path for plugin consistency informations";
     if (mustExists)
     {
       File pluginConsistencyFile = Util.getConsistencyFile(consistency_file_path);
       if (pluginConsistencyFile == null || !pluginConsistencyFile.exists())
-      {
-        MessageDialog.openError(getShell(), "Error", "The path does not exists");
-        return false;
-      }
+        return "The path does not exists";
+
+      if (!Util.canLoadConsistencyFile(pluginConsistencyFile))
+        return "Cannot load plugin consistency file : " + consistency_file_path;
     }
 
-    return true;
+    return null;
   }
 
   /*
