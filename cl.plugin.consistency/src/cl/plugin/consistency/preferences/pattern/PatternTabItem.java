@@ -149,7 +149,8 @@ public class PatternTabItem
 
       IStructuredSelection selection = (IStructuredSelection) patternTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
-      Util.setEnabled(content, patternInfo != null);
+      patternTypeComposite.setEnabled(patternInfo != null);
+      patternForbiddenTypeComposite.setEnabled(patternInfo != null);
 
       if (patternInfo != null)
         Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name));
@@ -161,8 +162,6 @@ public class PatternTabItem
     });
 
     sashForm.setWeights(new int[]{1, 1});
-
-    Util.setEnabled(content, false);
   }
 
   /**
@@ -206,7 +205,7 @@ public class PatternTabItem
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
+        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
       }
 
       @Override
@@ -248,7 +247,7 @@ public class PatternTabItem
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
+        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
       }
 
       @Override

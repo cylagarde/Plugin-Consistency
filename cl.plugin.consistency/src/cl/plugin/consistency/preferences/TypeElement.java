@@ -6,12 +6,12 @@ import cl.plugin.consistency.preferences.impl.IElement;
 public class TypeElement implements IElement
 {
   public final Type type;
-  public final boolean isEnabled;
+  public final boolean isPatternType;
 
-  public TypeElement(Type type, boolean isEnabled)
+  public TypeElement(Type type, boolean isPatternType)
   {
     this.type = type;
-    this.isEnabled = isEnabled;
+    this.isPatternType = isPatternType;
   }
 
   /*
@@ -33,12 +33,12 @@ public class TypeElement implements IElement
   }
 
   /*
-   * @see cl.plugin.consistency.preferences.impl.IElement#isEnabled()
+   * @see cl.plugin.consistency.preferences.impl.IElement#isPatternType()
    */
   @Override
-  public boolean isEnabled()
+  public boolean isPatternType()
   {
-    return isEnabled;
+    return isPatternType;
   }
 
   /*

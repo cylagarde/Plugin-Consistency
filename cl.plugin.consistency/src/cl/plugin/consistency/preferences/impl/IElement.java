@@ -9,5 +9,5 @@ public interface IElement
 
   void setName(String name);
 
-  boolean isEnabled();
+  boolean isPatternType();
 }

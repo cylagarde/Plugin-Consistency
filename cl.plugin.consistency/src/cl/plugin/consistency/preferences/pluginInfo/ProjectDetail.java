@@ -73,8 +73,6 @@ class ProjectDetail
     createForbiddenPluginComposite(sashForm);
 
     sashForm.setWeights(new int[]{2, 2, 3});
-
-    Util.setEnabled(content, false);
   }
 
   /**
@@ -93,7 +91,7 @@ class ProjectDetail
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
+        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
       }
 
       @Override
@@ -134,7 +132,7 @@ class ProjectDetail
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
+        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
       }
 
       @Override
@@ -203,7 +201,10 @@ class ProjectDetail
       IProject project = Util.getProject(pluginInfo);
       validPlugin = pluginTabItem.cache.isValidProject(project);
     }
-    Util.setEnabled(content, validPlugin);
+
+    typeComposite.setEnabled(validPlugin);
+    forbiddenTypeComposite.setEnabled(validPlugin);
+    forbiddenPluginComposite.setEnabled(validPlugin);
   }
 
   /**

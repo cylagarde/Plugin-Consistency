@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.CheckedTreeSelectionDialog;
 import org.osgi.framework.Bundle;
@@ -65,6 +66,7 @@ class ForbiddenPluginComposite
 {
   final ProjectDetail projectDetail;
   final TableViewer forbiddenPluginTableViewer;
+  final ToolBar toolBar;
   final Bundle[] bundles;
   final IAction addPluginAction;
 
@@ -92,7 +94,7 @@ class ForbiddenPluginComposite
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
-    sectionPane.createToolBar(toolBarManager);
+    toolBar = sectionPane.createToolBar(toolBarManager);
 
     addPluginAction = new AddPluginAction();
     toolBarManager.add(addPluginAction);
@@ -170,6 +172,12 @@ class ForbiddenPluginComposite
 
       requireBundleSetCompletableFuture = CompletableFuture.supplyAsync(supplier);
     }
+  }
+
+  public void setEnabled(boolean enabled)
+  {
+    toolBar.setEnabled(enabled);
+    forbiddenPluginTableViewer.getControl().setEnabled(enabled);
   }
 
   /**

@@ -52,7 +52,7 @@ class PluginInfoData implements IData<TypeElement>
   public TypeElement getElementAt(int index)
   {
     Type type = typeList.get(index);
-    return new TypeElement(type, !typeFromPatternSet.contains(type));
+    return new TypeElement(type, typeFromPatternSet.contains(type));
   }
 
   /*
@@ -70,7 +70,7 @@ class PluginInfoData implements IData<TypeElement>
   @Override
   public List<TypeElement> getElements()
   {
-    return typeList.stream().map(type -> new TypeElement(type, !typeFromPatternSet.contains(type))).collect(Collectors.toList());
+    return typeList.stream().map(type -> new TypeElement(type, typeFromPatternSet.contains(type))).collect(Collectors.toList());
   }
 
   /*
@@ -81,6 +81,6 @@ class PluginInfoData implements IData<TypeElement>
   {
     Type type = new Type();
     type.name = name;
-    return new TypeElement(type, !typeFromPatternSet.contains(type));
+    return new TypeElement(type, typeFromPatternSet.contains(type));
   }
 }

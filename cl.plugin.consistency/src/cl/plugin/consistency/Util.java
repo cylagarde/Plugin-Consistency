@@ -65,20 +65,21 @@ public class Util
   }
 
   /**
-   * Set enable/disable all controls
+   * Recursive all controls
    * @param control
-   * @param enabled
+   * @param consumer
    */
-  public static void setEnabled(Control control, boolean enabled)
+  public static void recursive(Control control, Consumer<Control> consumer)
   {
-    control.setEnabled(enabled);
+    consumer.accept(control);
     if (control instanceof Composite)
     {
       Composite composite = (Composite) control;
       for(Control child : composite.getChildren())
-        setEnabled(child, enabled);
+        recursive(child, consumer);
     }
   }
+
 
   /**
    * Create combo

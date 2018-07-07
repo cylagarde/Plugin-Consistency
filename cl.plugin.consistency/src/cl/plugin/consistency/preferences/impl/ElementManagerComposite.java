@@ -12,6 +12,8 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.layout.GridDataFactory;
+import org.eclipse.jface.preference.JFacePreferences;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -25,6 +27,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
@@ -37,6 +40,7 @@ import cl.plugin.consistency.preferences.SectionPane;
 public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 {
   final IElementManagerDataModel<E, T> elementManagerDataModel;
+  final ToolBar toolBar;
   final Composite elementListComposite;
   final ScrolledComposite scrolledComposite;
   T data;
@@ -60,7 +64,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 
     // Add toolbar to section
     final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
-    sectionPane.createToolBar(toolBarManager);
+    toolBar = sectionPane.createToolBar(toolBarManager);
 
     addElementAction = new AddElementAction();
     toolBarManager.add(addElementAction);
@@ -90,6 +94,12 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
         scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(rect.width, SWT.DEFAULT));
       }
     });
+  }
+
+  public void setEnabled(boolean enabled)
+  {
+    toolBar.setEnabled(enabled);
+    Util.recursive(elementListComposite, control -> control.setEnabled(enabled));
   }
 
   /**
@@ -129,10 +139,10 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
     {
       for(E element : data.getElements())
       {
-        boolean enabled = element.isEnabled();
+        boolean isPatternType = element.isPatternType();
         ElementBiConsumer elementBiConsumer = null;
         List<String> notUsedElements = Collections.singletonList(element.getName());
-        if (enabled)
+        if (!isPatternType)
         {
           elementBiConsumer = new ElementBiConsumer();
           notUsedElements = getNotUsedElements();
@@ -140,8 +150,10 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
           Collections.sort(notUsedElements);
         }
         ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, element.getName(), elementBiConsumer);
-        elementComboViewer.getControl().setData("isEnabled", enabled);
-        elementComboViewer.getControl().setEnabled(enabled);
+        elementComboViewer.getControl().setData("isPatternType", isPatternType);
+        if (isPatternType)
+          elementComboViewer.getControl().setForeground(JFaceResources.getColorRegistry().get(JFacePreferences.COUNTER_COLOR));
+
         if (elementBiConsumer != null)
           elementBiConsumer.elementComboViewer = elementComboViewer;
 
