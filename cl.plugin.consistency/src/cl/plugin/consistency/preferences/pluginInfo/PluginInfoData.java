@@ -1,6 +1,7 @@
 package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import cl.plugin.consistency.model.PluginInfo;
@@ -15,11 +16,15 @@ class PluginInfoData implements IData<TypeElement>
 {
   final PluginInfo pluginInfo;
   final List<Type> typeList;
+  final Set<Type> typeFromPatternSet;
+  final boolean isForbiddenTypeList;
 
-  PluginInfoData(PluginInfo pluginInfo, List<Type> typeList)
+  PluginInfoData(PluginInfo pluginInfo, List<Type> typeList, Set<Type> typeFromPatternSet, boolean isForbiddenTypeList)
   {
     this.pluginInfo = pluginInfo;
     this.typeList = typeList;
+    this.typeFromPatternSet = typeFromPatternSet;
+    this.isForbiddenTypeList = isForbiddenTypeList;
   }
 
   /*
@@ -46,7 +51,8 @@ class PluginInfoData implements IData<TypeElement>
   @Override
   public TypeElement getElementAt(int index)
   {
-    return new TypeElement(typeList.get(index));
+    Type type = typeList.get(index);
+    return new TypeElement(type, !typeFromPatternSet.contains(type));
   }
 
   /*
@@ -64,7 +70,7 @@ class PluginInfoData implements IData<TypeElement>
   @Override
   public List<TypeElement> getElements()
   {
-    return typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+    return typeList.stream().map(type -> new TypeElement(type, !typeFromPatternSet.contains(type))).collect(Collectors.toList());
   }
 
   /*
@@ -75,6 +81,6 @@ class PluginInfoData implements IData<TypeElement>
   {
     Type type = new Type();
     type.name = name;
-    return new TypeElement(type);
+    return new TypeElement(type, !typeFromPatternSet.contains(type));
   }
 }

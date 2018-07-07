@@ -6,10 +6,12 @@ import cl.plugin.consistency.preferences.impl.IElement;
 public class TypeElement implements IElement
 {
   public final Type type;
+  public final boolean isEnabled;
 
-  public TypeElement(Type type)
+  public TypeElement(Type type, boolean isEnabled)
   {
     this.type = type;
+    this.isEnabled = isEnabled;
   }
 
   /*
@@ -28,6 +30,15 @@ public class TypeElement implements IElement
   public void setName(String name)
   {
     type.name = name;
+  }
+
+  /*
+   * @see cl.plugin.consistency.preferences.impl.IElement#isEnabled()
+   */
+  @Override
+  public boolean isEnabled()
+  {
+    return isEnabled;
   }
 
   /*

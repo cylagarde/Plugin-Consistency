@@ -129,12 +129,21 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
     {
       for(E element : data.getElements())
       {
-        ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
-        List<String> notUsedElements = getNotUsedElements();
-        notUsedElements.add(element.getName());
-        Collections.sort(notUsedElements);
+        boolean enabled = element.isEnabled();
+        ElementBiConsumer elementBiConsumer = null;
+        List<String> notUsedElements = Collections.singletonList(element.getName());
+        if (enabled)
+        {
+          elementBiConsumer = new ElementBiConsumer();
+          notUsedElements = getNotUsedElements();
+          notUsedElements.add(element.getName());
+          Collections.sort(notUsedElements);
+        }
         ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, element.getName(), elementBiConsumer);
-        elementBiConsumer.elementComboViewer = elementComboViewer;
+        elementComboViewer.getControl().setData("isEnabled", enabled);
+        elementComboViewer.getControl().setEnabled(enabled);
+        if (elementBiConsumer != null)
+          elementBiConsumer.elementComboViewer = elementComboViewer;
 
         elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
       }
@@ -200,13 +209,17 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
           if (control instanceof Combo)
           {
             Combo child = (Combo) control;
-            List<String> notUsedElements = getNotUsedElements();
-            String selection = child.getText();
-            notUsedElements.add(selection);
-            Collections.sort(notUsedElements);
-            ComboViewer comboViewer = (ComboViewer) child.getData("ComboViewer");
-            comboViewer.setInput(notUsedElements);
-            comboViewer.setSelection(new StructuredSelection(selection));
+            boolean isEnabled = (boolean) child.getData("isEnabled");
+            if (isEnabled)
+            {
+              List<String> notUsedElements = getNotUsedElements();
+              String selection = child.getText();
+              notUsedElements.add(selection);
+              Collections.sort(notUsedElements);
+              ComboViewer comboViewer = (ComboViewer) child.getData("ComboViewer");
+              comboViewer.setInput(notUsedElements);
+              comboViewer.setSelection(new StructuredSelection(selection));
+            }
           }
         }
       }
@@ -238,6 +251,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
       ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, "", elementBiConsumer);
       elementComboViewer.getControl().setFocus();
       elementBiConsumer.elementComboViewer = elementComboViewer;
+      elementComboViewer.getControl().setData("isEnabled", true);
 
       elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 

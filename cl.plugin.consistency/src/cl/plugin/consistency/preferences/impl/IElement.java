@@ -8,4 +8,6 @@ public interface IElement
   String getName();
 
   void setName(String name);
+
+  boolean isEnabled();
 }

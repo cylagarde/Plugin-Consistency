@@ -157,7 +157,7 @@ public class PluginTabItem
 
     // 'Plugin id' TableViewerColumn
     TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    pluginIdTableViewerColumn.getColumn().setText("Plugin id");
+    pluginIdTableViewerColumn.getColumn().setText("Workspace plugin id");
     pluginIdTableViewerColumn.getColumn().setWidth(COLUMN_PREFERRED_WIDTH);
     pluginIdTableViewerColumn.getColumn().setData(COLUMN_SPACE_KEY, COLUMN_SPACE);
     pluginIdTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache)

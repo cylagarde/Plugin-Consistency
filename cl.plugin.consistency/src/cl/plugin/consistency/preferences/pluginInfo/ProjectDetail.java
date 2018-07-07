@@ -3,6 +3,7 @@ package cl.plugin.consistency.preferences.pluginInfo;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IProject;
@@ -17,6 +18,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.TypeElement;
 import cl.plugin.consistency.preferences.impl.ElementManagerComposite;
 import cl.plugin.consistency.preferences.impl.IElementManagerDataModel;
@@ -91,7 +93,7 @@ class ProjectDetail
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
       }
 
       @Override
@@ -132,7 +134,7 @@ class ProjectDetail
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
       }
 
       @Override
@@ -180,8 +182,11 @@ class ProjectDetail
       Collections.sort(pluginInfo.typeList, Comparator.comparing(type -> type.name));
       Collections.sort(pluginInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
 
-      typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.typeList));
-      forbiddenTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList));
+      Set<Type> typeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.typeList.stream()).collect(Collectors.toSet());
+      typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.typeList, typeFromPatternInfoSet, false));
+
+      Set<Type> forbiddenTypeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).collect(Collectors.toSet());
+      forbiddenTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList, forbiddenTypeFromPatternInfoSet, true));
     }
     else
     {

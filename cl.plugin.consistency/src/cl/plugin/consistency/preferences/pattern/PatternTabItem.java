@@ -206,7 +206,7 @@ public class PatternTabItem
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
       }
 
       @Override
@@ -248,7 +248,7 @@ public class PatternTabItem
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
+        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
       }
 
       @Override
