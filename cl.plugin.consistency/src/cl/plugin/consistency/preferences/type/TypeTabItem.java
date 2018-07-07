@@ -133,7 +133,7 @@ public class TypeTabItem
     typeTableViewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
     typeTableViewer.setComparator(new DefaultLabelViewerComparator());
 
-    typeTableViewer.addDoubleClickListener(event -> new RenameTypeAction().run());
+    typeTableViewer.addDoubleClickListener(event -> new EditTypeAction().run());
 
     // 'Name' TableViewerColumn
     TableViewerColumn nameTableViewerColumn = new TableViewerColumn(typeTableViewer, SWT.NONE);
@@ -204,19 +204,19 @@ public class TypeTabItem
       manager.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 
       //
-      createRenameTypeMenuItem(manager);
+      createEditTypeMenuItem(manager);
       createRemoveTypesMenuItem(manager);
     }
 
     /**
      */
-    private void createRenameTypeMenuItem(IMenuManager manager)
+    private void createEditTypeMenuItem(IMenuManager manager)
     {
       IStructuredSelection selection = (IStructuredSelection) typeTableViewer.getSelection();
       if (selection.toList().size() != 1)
         return;
 
-      manager.add(new RenameTypeAction());
+      manager.add(new EditTypeAction());
     }
 
     /**
@@ -231,16 +231,16 @@ public class TypeTabItem
   }
 
   /**
-   * The class <b>RenameTypeAction</b> allows to.<br>
+   * The class <b>EditTypeAction</b> allows to.<br>
    */
-  private final class RenameTypeAction extends Action
+  private final class EditTypeAction extends Action
   {
     /**Constructor
      * @param text
      */
-    private RenameTypeAction()
+    private EditTypeAction()
     {
-      super("Rename type");
+      super("Edit type");
     }
 
     @Override
@@ -262,27 +262,27 @@ public class TypeTabItem
           return "The type already exists";
         return null;
       };
-      InputDialog inputDialog = new InputDialog(shell, "Rename type", "Enter a new name", selectedTypeName, validator);
+      InputDialog inputDialog = new InputDialog(shell, "Edit type", "Enter a new name", selectedTypeName, validator);
       if (inputDialog.open() == InputDialog.OK)
       {
         String newTypeName = inputDialog.getValue();
 
-        // rename type
+        // edit type
         selectedType.name = newTypeName;
 
-        // rename types in plugin infos
-        Consumer<PluginInfo> renameTypeInPluginInfoConsumer = pluginInfo -> {
+        // edit types in plugin infos
+        Consumer<PluginInfo> editTypeInPluginInfoConsumer = pluginInfo -> {
           pluginInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
           pluginInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
         };
-        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(renameTypeInPluginInfoConsumer);
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(editTypeInPluginInfoConsumer);
 
-        // rename types in pattern infos
-        Consumer<PatternInfo> renameTypeInPatternInfoConsumer = patternInfo -> {
+        // edit types in pattern infos
+        Consumer<PatternInfo> editTypeInPatternInfoConsumer = patternInfo -> {
           patternInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
           patternInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
         };
-        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(renameTypeInPatternInfoConsumer);
+        pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(editTypeInPatternInfoConsumer);
 
         // refresh all TabFolder
         pluginTabFolder.refresh();
