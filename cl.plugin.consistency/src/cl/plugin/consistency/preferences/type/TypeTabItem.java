@@ -11,7 +11,6 @@ import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -98,19 +97,22 @@ public class TypeTabItem
       {
         Set<String> alreadyExistTypeSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
-        IInputValidator validator = newText -> {
-          if (newText.isEmpty())
-            return "Value is empty";
-          if (alreadyExistTypeSet.contains(newText))
-            return "The type already exists";
+        BiFunction<String, String, String> typeValidator = (typeName, typeDescription) -> {
+          if (typeName.isEmpty())
+            return "Type name is empty";
+          if (alreadyExistTypeSet.contains(typeName))
+            return "The type name already exists";
           return null;
         };
-        InputDialog inputDialog = new InputDialog(parent.getShell(), "Add new type", "Enter a value for new type", "", validator);
-        if (inputDialog.open() == InputDialog.OK)
+        InputTypeDialog inputTypeDialog = new InputTypeDialog(parent.getShell(), "Add new type", "Enter a new name", "", "Enter a new description", "", typeValidator);
+        if (inputTypeDialog.open() == InputDialog.OK)
         {
-          String newTypeName = inputDialog.getValue();
+          String newTypeName = inputTypeDialog.getNewName();
+          String newDescription = inputTypeDialog.getNewDescription();
+
           Type type = new Type();
           type.name = newTypeName;
+          type.description = newDescription;
           pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.add(type);
 
           // refresh all TabFolder

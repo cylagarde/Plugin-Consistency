@@ -49,7 +49,7 @@ class PatternInfoData implements IData<TypeElement>
   public TypeElement getElementAt(int index)
   {
     Type type = typeList.get(index);
-    return new TypeElement(type, true);
+    return new TypeElement(type);
   }
 
   /*
@@ -67,7 +67,7 @@ class PatternInfoData implements IData<TypeElement>
   @Override
   public List<TypeElement> getElements()
   {
-    return typeList.stream().map(type -> new TypeElement(type, true)).collect(Collectors.toList());
+    return typeList.stream().map(TypeElement::new).collect(Collectors.toList());
   }
 
   /*
@@ -78,7 +78,7 @@ class PatternInfoData implements IData<TypeElement>
   {
     Type type = new Type();
     type.name = name;
-    return new TypeElement(type, true);
+    return new TypeElement(type);
   }
 
   /*

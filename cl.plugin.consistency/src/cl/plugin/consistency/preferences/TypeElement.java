@@ -14,6 +14,11 @@ public class TypeElement implements IElement
     this.isPatternType = isPatternType;
   }
 
+  public TypeElement(Type type)
+  {
+    this(type, false);
+  }
+
   /*
    * @see cl.plugin.consistency.preferences.impl.IElement#getName()
    */
