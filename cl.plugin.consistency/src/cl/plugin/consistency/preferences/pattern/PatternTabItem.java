@@ -211,7 +211,7 @@ public class PatternTabItem
       @Override
       public String getSectionTitle()
       {
-        return "Types";
+        return "Plugin types";
       }
 
       @Override
@@ -253,7 +253,7 @@ public class PatternTabItem
       @Override
       public String getSectionTitle()
       {
-        return "Forbidden types";
+        return "Forbidden plugin types";
       }
 
       @Override
@@ -373,7 +373,7 @@ public class PatternTabItem
 
     // 'Type' TableViewerColumn
     TableViewerColumn typeTableViewerColumn = new TableViewerColumn(patternTableViewer, SWT.NONE);
-    typeTableViewerColumn.getColumn().setText("Type");
+    typeTableViewerColumn.getColumn().setText("Plugin type");
     typeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     typeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
 
@@ -391,7 +391,7 @@ public class PatternTabItem
 
     // 'Forbidden type' TableViewerColumn
     TableViewerColumn forbiddenTypeTableViewerColumn = new TableViewerColumn(patternTableViewer, SWT.NONE);
-    forbiddenTypeTableViewerColumn.getColumn().setText("Forbidden type");
+    forbiddenTypeTableViewerColumn.getColumn().setText("Forbidden plugin type");
     forbiddenTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     forbiddenTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
 

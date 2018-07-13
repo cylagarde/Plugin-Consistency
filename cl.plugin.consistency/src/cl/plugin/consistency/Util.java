@@ -24,6 +24,7 @@ import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
@@ -113,12 +114,34 @@ public class Util
     File pluginConsistencyFile = new File(consistency_file_path);
     if (!pluginConsistencyFile.exists())
     {
-      pluginConsistencyFile = null;
       IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(consistency_file_path);
       if (resource != null)
         pluginConsistencyFile = resource.getRawLocation().toFile();
+      else
+      {
+        // check if project exists
+        Path path = new Path(consistency_file_path);
+        IProject project = getWorkspaceProject(consistency_file_path);
+        if (project == null)
+          pluginConsistencyFile = null;
+        else
+          pluginConsistencyFile = new File(project.getLocation().toFile(), path.removeFirstSegments(1).toString());
+      }
     }
     return pluginConsistencyFile;
+  }
+
+  /**
+   * @param fullPath
+   */
+  public static IProject getWorkspaceProject(String fullPath)
+  {
+    // check if project exists
+    String projectName = new Path(fullPath).segment(0);
+    IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
+    if (project == null || ! project.exists())
+      project = null;
+    return project;
   }
 
   /**

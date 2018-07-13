@@ -210,7 +210,7 @@ public class PluginTabItem
 
     // 'Type' TableViewerColumn
     typeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    typeTableViewerColumn.getColumn().setText("Type");
+    typeTableViewerColumn.getColumn().setText("Plugin type");
     typeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override
@@ -239,7 +239,7 @@ public class PluginTabItem
 
     // 'Forbidden types' TableViewerColumn
     forbiddenTypesTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    forbiddenTypesTableViewerColumn.getColumn().setText("Forbidden types");
+    forbiddenTypesTableViewerColumn.getColumn().setText("Forbidden plugin type");
     forbiddenTypesTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override
@@ -268,7 +268,7 @@ public class PluginTabItem
 
     // 'Forbidden bundles' TableViewerColumn
     forbiddenBundlesTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    forbiddenBundlesTableViewerColumn.getColumn().setText("Forbidden bundles");
+    forbiddenBundlesTableViewerColumn.getColumn().setText("Forbidden bundle");
     forbiddenBundlesTableViewerColumn.setLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override
