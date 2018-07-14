@@ -766,9 +766,12 @@ public class Util
    */
   public static void savePluginConsistency(PluginConsistency pluginConsistency, File consistencyFile)
   {
+    // remove useless pluginInfo
+    PluginConsistency compactPluginConsistency = pluginConsistency.compact();
+
     try
     {
-      PluginConsistencyLoader.savePluginConsistency(pluginConsistency, consistencyFile);
+      PluginConsistencyLoader.savePluginConsistency(compactPluginConsistency, consistencyFile);
     }
     catch(Exception e)
     {

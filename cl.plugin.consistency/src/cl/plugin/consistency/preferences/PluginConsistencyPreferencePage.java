@@ -6,10 +6,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.resources.WorkspaceJob;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -41,7 +37,6 @@ import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.handlers.LaunchCheckConsistencyHandler;
 import cl.plugin.consistency.model.PluginConsistency;
-import cl.plugin.consistency.model.util.PluginConsistencyLoader;
 
 /**
  * This class represents a preference page that is contributed to the Preferences dialog.
@@ -56,7 +51,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   Text pluginConsistencyFileText;
   PluginTabFolder pluginTabFolder;
   final Cache cache = new Cache();
-  boolean removeChecks = true;
 
   /**
    * Constructor
@@ -145,7 +139,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       public void widgetSelected(SelectionEvent se)
       {
         LaunchCheckConsistencyHandler.launchConsistencyCheck(getShell(), pluginConsistency);
-        removeChecks = false;
       }
     });
   }
@@ -323,11 +316,12 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
     try
     {
-      // save
       File pluginConsistencyFile = Util.getConsistencyFile(consistency_file_path);
       if (pluginConsistencyFile == null)
         throw new Exception("The path does not exists");
-      PluginConsistencyLoader.savePluginConsistency(compactPluginConsistency, pluginConsistencyFile);
+
+      // save
+      Util.savePluginConsistency(pluginConsistency, pluginConsistencyFile);
 
       IProject project = Util.getWorkspaceProject(consistency_file_path);
       if (project != null)
@@ -378,34 +372,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     getPreferenceStore().setValue(PluginConsistencyActivator.CONSISTENCY_ACTIVATION, activateButton.getSelection());
     String consistency_file_path = pluginConsistencyFileText.getText();
     getPreferenceStore().setValue(PluginConsistencyActivator.CONSISTENCY_FILE_PATH, consistency_file_path);
-
-    //
-    if (activateButton.getSelection())
-    {
-      //      PluginConsistencyActivator.getDefault().setPluginConsistency(compactPluginConsistency);
-      PluginConsistencyActivator.getDefault().activate();
-    }
-    else
-    {
-      //      PluginConsistencyActivator.getDefault().setPluginConsistency(null);
-      PluginConsistencyActivator.getDefault().desactivate();
-
-      // launch project uncheck
-      if (removeChecks)
-      {
-        WorkspaceJob job = new WorkspaceJob("Remove consistencies check")
-        {
-          @Override
-          public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
-          {
-            Util.removeAllCheckProjectConsistency(monitor);
-
-            return Status.OK_STATUS;
-          }
-        };
-        job.schedule();
-      }
-    }
 
     return super.performOk();
   }

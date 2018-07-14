@@ -75,7 +75,7 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
     ServiceReference<IBundleProjectService> ref = context.getServiceReference(IBundleProjectService.class);
     bundleProjectService = context.getService(ref);
 
-    if (isPluginConsistencyActivated())
+    //    if (isPluginConsistencyActivated())
       activate();
   }
 
@@ -99,7 +99,7 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
   /**
    * Activate ResourceChangeListener
    */
-  public void activate()
+  void activate()
   {
     //
     if (checkPluginConsistencyResourceChangeListener == null)
@@ -109,13 +109,13 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
       workspace.addResourceChangeListener(checkPluginConsistencyResourceChangeListener, IResourceChangeEvent.POST_CHANGE);
     }
 
-    Util.launchConsistencyCheck(getPluginConsistency(), null);
+    //    Util.launchConsistencyCheck(getPluginConsistency(), null);
   }
 
   /**
    * Desactivate ResourceChangeListener
    */
-  public void desactivate()
+  void desactivate()
   {
     if (checkPluginConsistencyResourceChangeListener != null)
     {
@@ -125,28 +125,27 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
     }
   }
 
-  //  /**
-  //   * Set the plugin consistency
-  //   * @param pluginConsistency
-  //   */
-  //  public void setPluginConsistency(PluginConsistency pluginConsistency)
-  //  {
-  //    this.pluginConsistency = pluginConsistency;
-  //  }
-
   /**
    * Return the plugin consistency
    */
   public PluginConsistency getPluginConsistency()
   {
+    return getPluginConsistency(true, true);
+  }
+
+  private PluginConsistency getPluginConsistency(boolean loadIfNull, boolean reloadIfModified)
+  {
     String consistency_file_path = getConsistencyFilePath();
     File consistencyFile = consistency_file_path == null? null : Util.getConsistencyFile(consistency_file_path);
-    if (pluginConsistency == null || !consistency_file_path.equals(lastPluginConsistencyFilePath) || consistencyFile.lastModified() != lastModifiedPluginConsistencyFile)
+    if (consistencyFile == null)
+      pluginConsistency = null;
+    else if ((loadIfNull && pluginConsistency == null) || (reloadIfModified && !consistency_file_path.equals(lastPluginConsistencyFilePath) || consistencyFile.lastModified() != lastModifiedPluginConsistencyFile))
     {
       lastPluginConsistencyFilePath = consistency_file_path;
       lastModifiedPluginConsistencyFile = consistencyFile.lastModified();
       pluginConsistency = Util.loadAndUpdateConsistencyFile(consistencyFile);
     }
+
     return pluginConsistency;
   }
 
@@ -157,6 +156,17 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
   {
     String consistency_file_path = getPreferenceStore().getString(CONSISTENCY_FILE_PATH);
     return consistency_file_path;
+  }
+
+  /**
+   * Set the consistency file path
+   */
+  public void setConsistencyFilePath(String consistency_file_path)
+  {
+    getPreferenceStore().putValue(CONSISTENCY_FILE_PATH, consistency_file_path);
+    pluginConsistency = null;
+    lastPluginConsistencyFilePath = null;
+    lastModifiedPluginConsistencyFile = -1;
   }
 
   /**
