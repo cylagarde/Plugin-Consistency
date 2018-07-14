@@ -327,6 +327,7 @@ public class TypeTabItem
       super(text);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run()
     {

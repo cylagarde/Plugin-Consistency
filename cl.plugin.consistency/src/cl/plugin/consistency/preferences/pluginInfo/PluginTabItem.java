@@ -419,6 +419,7 @@ public class PluginTabItem
      *
      * @param manager
      */
+    @SuppressWarnings("unchecked")
     private void createCopyPasteTypesMenuItems(IMenuManager manager)
     {
       boolean separatorAdded = false;
@@ -507,6 +508,7 @@ public class PluginTabItem
      *
      * @param manager
      */
+    @SuppressWarnings("unchecked")
     private void createRemoveInvalidPluginsMenuItem(IMenuManager manager)
     {
       IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
@@ -541,9 +543,9 @@ public class PluginTabItem
     }
 
     /**
-     *
      * @param manager
      */
+    @SuppressWarnings("unchecked")
     private void createRemoveTypesFromPatternsMenuItems(IMenuManager manager)
     {
       if (!pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.isEmpty())
@@ -598,9 +600,9 @@ public class PluginTabItem
     }
 
     /**
-     *
      * @param manager
      */
+    @SuppressWarnings("unchecked")
     private void createAddTypesFromPatternsMenuItems(IMenuManager manager)
     {
       Set<PatternInfo> modifiedPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(PatternInfo::containsTypes).collect(Collectors.toSet());
@@ -660,9 +662,9 @@ public class PluginTabItem
     }
 
     /**
-     *
      * @param manager
      */
+    @SuppressWarnings("unchecked")
     private void createResetTypesMenuItems(IMenuManager manager)
     {
       boolean separatorAdded = false;

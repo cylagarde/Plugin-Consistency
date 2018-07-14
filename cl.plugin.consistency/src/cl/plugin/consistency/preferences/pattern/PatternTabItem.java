@@ -472,6 +472,7 @@ public class PatternTabItem
      *
      * @param manager
      */
+    @SuppressWarnings("unchecked")
     private void createCopyPasteTypesMenuItems(IMenuManager manager)
     {
       boolean separatorAdded = false;
@@ -705,6 +706,7 @@ public class PatternTabItem
       super("Remove selected patterns");
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run()
     {
