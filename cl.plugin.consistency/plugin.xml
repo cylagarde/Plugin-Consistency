@@ -92,5 +92,39 @@
         </command>
      </menuContribution>
   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editorContentTypeBinding
+            contentTypeId="cl.plugin.consistency.content-type"
+            editorId="cl.plugin.consistency.editor">
+      </editorContentTypeBinding>
+      <editor
+            class="org.eclipse.wst.xml.ui.internal.tabletree.XMLMultiPageEditorPart"
+            default="true"
+            extensions="pcf"
+            icon="icons/launch_check_consistency.png"
+            id="cl.plugin.consistency.editor"
+            name="Plugin consistency editor">
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.core.runtime.xml"
+            default-charset="UTF-8"
+            file-extensions="pcf"
+            id="cl.plugin.consistency.content-type"
+            name="Plugin consistency file"
+            priority="low">
+            
+            <describer class="org.eclipse.core.runtime.content.XMLRootElementContentDescriber2">
+	            <parameter name="element" value="PluginConsistency"></parameter>
+	        </describer>
+      </content-type>
+      <file-association
+            content-type="cl.plugin.consistency.content-type"
+            file-extensions="pcf">
+      </file-association>
+   </extension>
   
 </plugin>
