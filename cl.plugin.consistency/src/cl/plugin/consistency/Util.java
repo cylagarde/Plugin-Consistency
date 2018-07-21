@@ -161,7 +161,8 @@ public class Util
   }
 
   /**
-   * Load And Update Plugin Consistency File
+   * Load and update plugin consistency file
+   * @param consistencyFile
    */
   public static PluginConsistency loadAndUpdateConsistencyFile(File consistencyFile)
   {
@@ -196,6 +197,7 @@ public class Util
   }
 
   /**
+   * Update plugin consistency, adding new workspace projects, updating name, id, type, etc...
    * @param pluginConsistency
    */
   public static void updatePluginConsistency(PluginConsistency pluginConsistency)
