@@ -15,6 +15,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.xml.bind.UnmarshalException;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -147,16 +149,20 @@ public class Util
   /**
    * Return true if file is a consistency file
    */
-  public static boolean canLoadConsistencyFile(File consistencyFile)
+  public static String canLoadConsistencyFile(File consistencyFile)
   {
     try
     {
       PluginConsistencyLoader.loadPluginConsistencyFile(consistencyFile);
-      return true;
+      return null;
+    }
+    catch(UnmarshalException e)
+    {
+      return "UnmarshalException:" + e.getCause().getLocalizedMessage();
     }
     catch(Exception e)
     {
-      return false;
+      return e.getLocalizedMessage();
     }
   }
 

@@ -376,8 +376,8 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     if (mustExists && (pluginConsistencyFile == null || !pluginConsistencyFile.exists()))
       return "The path does not exists";
 
-    if (checkLoad && !Util.canLoadConsistencyFile(pluginConsistencyFile))
-      return "Cannot load plugin consistency file";
+    if (checkLoad)
+      return Util.canLoadConsistencyFile(pluginConsistencyFile);
 
     return null;
   }
@@ -443,8 +443,8 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         //          e.printStackTrace();
         //        }
 
-        File file = iFile.getRawLocation().toFile();
-        return Util.canLoadConsistencyFile(file);
+        //        File file = iFile.getRawLocation().toFile();
+        //        return Util.canLoadConsistencyFile(file);
       }
 
       return true;
