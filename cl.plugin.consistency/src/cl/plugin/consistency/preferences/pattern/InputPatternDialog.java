@@ -3,7 +3,6 @@ package cl.plugin.consistency.preferences.pattern;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,16 +49,18 @@ class InputPatternDialog extends Dialog
   /**
    * The input value; the empty string by default.
    */
+  private String description;
   private String containsPattern;
   private String doNotContainsPattern;
 
   /**
-   * The input validator, or <code>null</code> if none.
+   * The pattern validator, or <code>null</code> if none.
    */
-  private final BiFunction<String, String, String> patternValidator;
+  private final IPatternValidator patternValidator;
 
   private Button okButton;
 
+  private Text descriptionText;
   private Text containsPatternText;
   private Text doNotContainsPatternText;
 
@@ -90,10 +91,12 @@ class InputPatternDialog extends Dialog
      * @param patternValidator
      *            an input validator, or <code>null</code> if none
      */
-  InputPatternDialog(Shell parentShell, String dialogTitle, String containsPatternMessage, String initialContainsPattern, String doNotContainsPatternMessage, String initialDoNotContainsPattern, Cache cache, BiFunction<String, String, String> patternValidator)
+  InputPatternDialog(Shell parentShell, String dialogTitle, String initialDescription, String containsPatternMessage, String initialContainsPattern, String doNotContainsPatternMessage, String initialDoNotContainsPattern, Cache cache,
+    IPatternValidator patternValidator)
   {
     super(parentShell);
     this.title = dialogTitle;
+    this.description = initialDescription == null? "" : initialDescription;
     this.containsPatternMessage = containsPatternMessage;
     this.doNotContainsPatternMessage = doNotContainsPatternMessage;
     containsPattern = initialContainsPattern == null? "" : initialContainsPattern;
@@ -105,6 +108,7 @@ class InputPatternDialog extends Dialog
   @Override
   protected void buttonPressed(int buttonId)
   {
+    description = buttonId == IDialogConstants.OK_ID? descriptionText.getText() : null;
     containsPattern = buttonId == IDialogConstants.OK_ID? containsPatternText.getText() : null;
     doNotContainsPattern = buttonId == IDialogConstants.OK_ID? doNotContainsPatternText.getText() : null;
     super.buttonPressed(buttonId);
@@ -134,6 +138,9 @@ class InputPatternDialog extends Dialog
     okButton = createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
     createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 
+    if (description != null)
+      descriptionText.setText(description);
+
     containsPatternText.setFocus();
     if (containsPattern != null)
     {
@@ -153,6 +160,17 @@ class InputPatternDialog extends Dialog
   {
     // create composite
     Composite composite = (Composite) super.createDialogArea(parent);
+
+    // create message
+    Label descriptionLabel = new Label(composite, SWT.WRAP);
+    descriptionLabel.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
+    descriptionLabel.setText("Description");
+
+    descriptionText = new Text(composite, getInputTextStyle());
+    descriptionText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
+    descriptionText.addModifyListener(e -> validateInput());
+
+    new Label(composite, SWT.NONE);
 
     // create message
     if (containsPatternMessage != null)
@@ -245,12 +263,15 @@ class InputPatternDialog extends Dialog
 
   /**
    * Returns the validator.
-   *
-   * @return the validator
    */
-  protected BiFunction<String, String, String> getValidator()
+  protected IPatternValidator getPatternValidator()
   {
     return patternValidator;
+  }
+
+  public String getDescription()
+  {
+    return description;
   }
 
   public String getContainsPattern()
@@ -277,9 +298,10 @@ class InputPatternDialog extends Dialog
     String errorMessage = null;
     if (patternValidator != null)
     {
+      String descriptionValue = descriptionText.getText();
       String containsPatternValue = containsPatternText.getText();
       String doNotContainsPatternValue = doNotContainsPatternText.getText();
-      errorMessage = patternValidator.apply(containsPatternValue, doNotContainsPatternValue);
+      errorMessage = patternValidator.getErrorMessage(descriptionValue, containsPatternValue, doNotContainsPatternValue);
 
       PatternInfo patternInfo = new PatternInfo();
       patternInfo.setPattern(containsPatternValue, doNotContainsPatternValue);
@@ -337,5 +359,11 @@ class InputPatternDialog extends Dialog
   protected int getInputTextStyle()
   {
     return SWT.SINGLE | SWT.BORDER;
+  }
+
+  @FunctionalInterface
+  public static interface IPatternValidator
+  {
+    String getErrorMessage(String description, String containsPattern, String doNotContainsPatternMessage);
   }
 }

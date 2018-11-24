@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -59,6 +58,7 @@ import cl.plugin.consistency.preferences.PluginTabFolder;
 import cl.plugin.consistency.preferences.TypeElement;
 import cl.plugin.consistency.preferences.impl.ElementManagerComposite;
 import cl.plugin.consistency.preferences.impl.IElementManagerDataModel;
+import cl.plugin.consistency.preferences.pattern.InputPatternDialog.IPatternValidator;
 import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
 
 /**
@@ -299,7 +299,7 @@ public class PatternTabItem
       @Override
       public void widgetSelected(SelectionEvent e)
       {
-        BiFunction<String, String, String> patternValidator = (containsPattern, doNotContainsPattern) -> {
+        IPatternValidator patternValidator = (description, containsPattern, doNotContainsPattern) -> {
           if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
             return "No entry";
           Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
@@ -312,12 +312,13 @@ public class PatternTabItem
 
         Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-        InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "Enter a value for contains pattern ('?' and '*' are supported)", "",
+        InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "", "Enter a value for contains pattern ('?' and '*' are supported)", "",
           "Enter a value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", "", cache, patternValidator);
         if (inputPatternDialog.open() == InputDialog.OK)
         {
           PatternInfo patternInfo = new PatternInfo();
           patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
+          patternInfo.description = inputPatternDialog.getDescription();
           pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.add(patternInfo);
 
           // refresh all TabFolder
@@ -656,14 +657,19 @@ public class PatternTabItem
     {
       IStructuredSelection selection = (IStructuredSelection) patternCheckTableViewer.getSelection();
       PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
+      String selectedDescription = selectedPatternInfo.description == null? "" : selectedPatternInfo.description;
       String selectedContainsPattern = selectedPatternInfo.getContainsPattern();
       String selectedDoNotContainsPattern = selectedPatternInfo.getDoNotContainsPattern();
 
-      BiFunction<String, String, String> patternValidator = (containsPattern, doNotContainsPattern) -> {
+      IPatternValidator patternValidator = (description, containsPattern, doNotContainsPattern) -> {
         if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
           return "No entry";
         if (containsPattern.equals(selectedContainsPattern) && doNotContainsPattern.equals(selectedDoNotContainsPattern))
+        {
+          if (!description.equals(selectedDescription))
+            return null;
           return "";
+        }
         Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
         Predicate<PatternInfo> doNotContainsPredicate = patternInfo -> patternInfo.getDoNotContainsPattern().equals(doNotContainsPattern);
         Predicate<PatternInfo> predicate = containsPredicate.and(doNotContainsPredicate);
@@ -674,11 +680,14 @@ public class PatternTabItem
 
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Edit pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern,
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Edit pattern", selectedDescription, "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern,
         "Enter a new value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", selectedDoNotContainsPattern, cache, patternValidator);
       if (inputPatternDialog.open() == InputDialog.OK)
       {
-        updateAfterChange(() -> selectedPatternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern()));
+        updateAfterChange(() -> {
+          selectedPatternInfo.description = inputPatternDialog.getDescription();
+          selectedPatternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
+        });
       }
     }
   }
@@ -701,10 +710,11 @@ public class PatternTabItem
     {
       IStructuredSelection selection = (IStructuredSelection) patternCheckTableViewer.getSelection();
       PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
+      String selectedDescription = selectedPatternInfo.description;
       String selectedContainsPattern = selectedPatternInfo.getContainsPattern();
       String selectedDoNotContainsPattern = selectedPatternInfo.getDoNotContainsPattern();
 
-      BiFunction<String, String, String> patternValidator = (containsPattern, doNotContainsPattern) -> {
+      IPatternValidator patternValidator = (description, containsPattern, doNotContainsPattern) -> {
         if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
           return "No entry";
         if (containsPattern.equals(selectedContainsPattern) && doNotContainsPattern.equals(selectedDoNotContainsPattern))
@@ -719,12 +729,13 @@ public class PatternTabItem
 
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Duplicate pattern", "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern,
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Duplicate pattern", selectedDescription, "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern,
         "Enter a new value for do not contains pattern ('?' and '*' are supported)", selectedDoNotContainsPattern, cache, patternValidator);
       if (inputPatternDialog.open() == InputDialog.OK)
       {
         PatternInfo patternInfo = Util.duplicatePatternInfo(selectedPatternInfo);
         patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
+        patternInfo.description = inputPatternDialog.getDescription();
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.add(patternInfo);
 
         // refresh all TabFolder
