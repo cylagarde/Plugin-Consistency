@@ -2,7 +2,7 @@
 <feature
       id="cl.plugin.consistency.features"
       label="Plugin Consistency Features"
-      version="1.5.0.qualifier"
+      version="1.6.0.qualifier"
       provider-name="CL">
 
    <description url="http://www.example.com/description">
@@ -18,7 +18,7 @@
    </license>
 
    <url>
-      <update label="Plugin Consistency Githup" url="https://raw.githubusercontent.com/cylagarde/Plugin-Consistency/master/cl.plugin.consistency.update_site"/>
+      <update label="Plugin Consistency Github" url="https://raw.githubusercontent.com/cylagarde/Plugin-Consistency/master/cl.plugin.consistency.update_site"/>
    </url>
 
    <requires>

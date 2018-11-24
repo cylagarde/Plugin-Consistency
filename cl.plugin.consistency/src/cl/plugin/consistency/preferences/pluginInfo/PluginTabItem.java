@@ -1,7 +1,12 @@
 package cl.plugin.consistency.preferences.pluginInfo;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,6 +24,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -103,6 +109,7 @@ public class PluginTabItem
 
   /**
    * Configure Project SashForm
+   *
    * @param parent
    */
   private void configureProjectSashForm(Composite parent)
@@ -112,9 +119,9 @@ public class PluginTabItem
     //
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL | SWT.SMOOTH);
     formToolkit.adapt(sashForm);
-    //    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+    // sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
     GridData layoutData = new GridData(GridData.FILL_BOTH);
-    //    layoutData.widthHint = 800;
+    // layoutData.widthHint = 800;
     layoutData.heightHint = 1;
     sashForm.setLayoutData(layoutData);
 
@@ -143,6 +150,7 @@ public class PluginTabItem
 
   /**
    * Configure Project TableViewer
+   *
    * @param parent
    */
   private void configureProjectTableViewer(Composite parent)
@@ -154,6 +162,8 @@ public class PluginTabItem
     projectTableViewer.getTable().setHeaderVisible(true);
     projectTableViewer.getTable().setLinesVisible(true);
     projectTableViewer.setComparator(new DefaultLabelViewerComparator());
+
+    ColumnViewerToolTipSupport.enableFor(projectTableViewer);
 
     // 'Plugin id' TableViewerColumn
     TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
@@ -220,19 +230,56 @@ public class PluginTabItem
 
         StyledString styledString = new StyledString();
 
-        Set<String> typeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.typeList.stream()).map(type -> type.name).collect(Collectors.toSet());
+        Set<String> typeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .flatMap(patternInfo -> patternInfo.typeList.stream())
+          .map(type -> type.name)
+          .collect(Collectors.toSet());
 
         int[] size = {pluginInfo.typeList.size()};
-        pluginInfo.typeList.stream().map(type -> type.name).sorted().forEach(typename -> {
-          if (typeFromPatternInfoSet.contains(typename))
-            styledString.append(typename, StyledString.COUNTER_STYLER);
-          else
-            styledString.append(typename);
-          if (size[0]-- != 1)
-            styledString.append(", ");
-        });
+        pluginInfo.typeList.stream()
+          .map(type -> type.name)
+          .sorted()
+          .forEach(typename -> {
+            if (typeFromPatternInfoSet.contains(typename))
+              styledString.append(typename, StyledString.COUNTER_STYLER);
+            else
+              styledString.append(typename);
+            if (size[0]-- != 1)
+              styledString.append(", ");
+          });
 
         return styledString;
+      }
+
+      @Override
+      public String getToolTipText(Object element)
+      {
+        PluginInfo pluginInfo = (PluginInfo) element;
+
+        List<PatternInfo> patternList = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList;
+        Set<PatternInfo> patternInfos = patternList.stream()
+          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .collect(Collectors.toSet());
+
+        if (!patternInfos.isEmpty())
+        {
+          Map<String, List<PatternInfo>> typeToPatternInfoMap = new TreeMap<>();
+          patternInfos.forEach(patternInfo -> {
+            patternInfo.typeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo));
+          });
+
+          StringBuilder buffer = new StringBuilder(128);
+          typeToPatternInfoMap.forEach((type, list) -> {
+            buffer.append(type).append(":").append('\n');
+            list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
+            list.forEach(patternInfo -> buffer.append("    #").append(patternList.indexOf(patternInfo) + 1).append(" ").append(patternInfo.forToolTip()).append('\n'));
+          });
+
+          return buffer.toString().trim();
+        }
+
+        return null;
       }
     }));
     DefaultLabelViewerComparator.configureForSortingColumn(typeTableViewerColumn);
@@ -249,7 +296,8 @@ public class PluginTabItem
 
         StyledString styledString = new StyledString();
 
-        Set<String> forbiddenTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).map(type -> type.name).collect(Collectors.toSet());
+        Set<String> forbiddenTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).map(type -> type.name).collect(Collectors.toSet());
 
         int[] size = {pluginInfo.forbiddenTypeList.size()};
         pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).sorted().forEach(forbiddenTypename -> {
@@ -327,6 +375,7 @@ public class PluginTabItem
 
   /**
    * Pack table column
+   *
    * @param tableColumn
    * @param maxWidth
    */
@@ -416,7 +465,6 @@ public class PluginTabItem
     }
 
     /**
-     *
      * @param manager
      */
     @SuppressWarnings("unchecked")
@@ -505,7 +553,6 @@ public class PluginTabItem
     }
 
     /**
-     *
      * @param manager
      */
     @SuppressWarnings("unchecked")

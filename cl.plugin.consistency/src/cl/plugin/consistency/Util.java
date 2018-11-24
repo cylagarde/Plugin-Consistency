@@ -296,6 +296,7 @@ public class Util
             {
               Type newType = new Type();
               newType.name = typeName;
+              typeSet.add(typeName);
               pluginInfo.typeList.add(newType);
             }
           }
@@ -311,6 +312,7 @@ public class Util
             {
               Type forbiddenType = new Type();
               forbiddenType.name = forbiddenTypeName;
+              forbiddenTypeSet.add(forbiddenTypeName);
               pluginInfo.forbiddenTypeList.add(forbiddenType);
             }
           }

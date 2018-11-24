@@ -15,6 +15,9 @@ import org.eclipse.ui.dialogs.SearchPattern;
  */
 public class PatternInfo
 {
+  @XmlAttribute(name = "activate")
+  public boolean activate = true;
+
   @XmlAttribute(name = "pattern", required = true)
   public String pattern;
 
@@ -29,6 +32,8 @@ public class PatternInfo
   @XmlElement(name = "Type")
   public List<Type> forbiddenTypeList = new ArrayList<>();
 
+  private static final String SEPARATOR = ";";
+
   /*
    * @see java.lang.Object#toString()
    */
@@ -37,32 +42,37 @@ public class PatternInfo
   {
     String containsPattern = getContainsPattern();
     String doNotContainsPattern = getDoNotContainsPattern();
-    return "PatternInfo[contains=" + containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? ", not contains=" + doNotContainsPattern : "") + "]";
+    return "PatternInfo[activate=" + activate + ", contains=" + containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? ", not contains=" + doNotContainsPattern : "") + "]";
   }
 
   public String getContainsAndNotContainsPattern()
   {
     String containsPattern = getContainsPattern();
     String doNotContainsPattern = getDoNotContainsPattern();
-    return containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? " ; " + doNotContainsPattern : "");
+    return containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? SEPARATOR + doNotContainsPattern : "");
   }
 
   public String getContainsPattern()
   {
-    int index = pattern.indexOf(';');
+    int index = pattern.indexOf(SEPARATOR);
     String containsPattern = index >= 0? pattern.substring(0, index) : pattern;
     return containsPattern;
   }
 
   public String getDoNotContainsPattern()
   {
-    int index = pattern.indexOf(';');
+    int index = pattern.indexOf(SEPARATOR);
     String doNotContainsPattern = index >= 0? pattern.substring(index + 1) : "";
     return doNotContainsPattern;
   }
 
-  /**
-   */
+  public String forToolTip()
+  {
+    String containsPattern = getContainsPattern();
+    String doNotContainsPattern = getDoNotContainsPattern();
+    return "pattern[contains=" + containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? ", not contains=" + doNotContainsPattern : "") + "]";
+  }
+
   public boolean containsTypes()
   {
     if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty())
@@ -70,11 +80,11 @@ public class PatternInfo
     return false;
   }
 
-  /**
-   * @param pluginId
-   */
   public boolean acceptPlugin(String pluginId)
   {
+    if (!activate)
+      return false;
+
     SearchPattern containsPatternSearchPattern = new SearchPattern();
     containsPatternSearchPattern.setPattern('*'+getContainsPattern());
 
@@ -98,11 +108,13 @@ public class PatternInfo
   }
 
   /**
+   * Set pattern
+   *
    * @param containsPattern
    * @param doNotContainsPatternValue
    */
   public void setPattern(String containsPattern, String doNotContainsPattern)
   {
-    pattern = doNotContainsPattern == null || doNotContainsPattern.isEmpty()? containsPattern : containsPattern + ";" + doNotContainsPattern;
+    pattern = doNotContainsPattern == null || doNotContainsPattern.isEmpty()? containsPattern : containsPattern + SEPARATOR + doNotContainsPattern;
   }
 }
