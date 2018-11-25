@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,7 +25,6 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
@@ -61,6 +62,7 @@ import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
+import cl.plugin.consistency.tooltip.FormToolTip;
 
 /**
  * The class <b>PluginTabItem</b> allows to.<br>
@@ -75,7 +77,7 @@ public class PluginTabItem
   final Cache cache;
   TableViewer projectTableViewer;
   TableViewerColumn typeTableViewerColumn;
-  TableViewerColumn forbiddenTypesTableViewerColumn;
+  TableViewerColumn forbiddenTypeTableViewerColumn;
   TableViewerColumn forbiddenBundlesTableViewerColumn;
   ProjectDetail projectDetail;
 
@@ -157,13 +159,56 @@ public class PluginTabItem
   {
     //
     projectTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
-    projectTableViewer.getTable().setLayout(new TableLayout());
     projectTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-    projectTableViewer.getTable().setHeaderVisible(true);
-    projectTableViewer.getTable().setLinesVisible(true);
     projectTableViewer.setComparator(new DefaultLabelViewerComparator());
 
-    ColumnViewerToolTipSupport.enableFor(projectTableViewer);
+    Table table = projectTableViewer.getTable();
+    table.setLayout(new TableLayout());
+    table.setHeaderVisible(true);
+    table.setLinesVisible(true);
+
+    // define specific tooltip
+    BiFunction<Integer, Integer, String> textFunction = (row, column) -> {
+      if (row >= 0 && column >= 0 && (table.getColumn(column) == typeTableViewerColumn.getColumn() || table.getColumn(column) == forbiddenTypeTableViewerColumn.getColumn()))
+      {
+        PluginInfo pluginInfo = (PluginInfo) table.getItem(row).getData();
+
+        List<PatternInfo> patternList = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList;
+        Set<PatternInfo> patternInfos = patternList.stream()
+          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .collect(Collectors.toSet());
+
+        if (!patternInfos.isEmpty())
+        {
+          Map<String, List<PatternInfo>> typeToPatternInfoMap = new TreeMap<>();
+          if (table.getColumn(column) == typeTableViewerColumn.getColumn())
+            patternInfos.forEach(patternInfo -> patternInfo.typeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
+          else
+            patternInfos.forEach(patternInfo -> patternInfo.forbiddenTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
+
+          StringBuilder buffer = new StringBuilder(128);
+          buffer.append("<form>");
+          typeToPatternInfoMap.forEach((type, list) -> {
+            buffer.append("<p><span color=\"type\" font=\"type\">").append(type).append("</span>").append(":").append("</p>");
+
+            // sort
+            list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
+
+            //
+            list.forEach(patternInfo -> buffer.append("<li style=\"text\" indent=\"20\"><b>#").append(patternList.indexOf(patternInfo) + 1).append("</b>  ").append(patternInfo.forToolTip()).append("</li>"));
+          });
+          buffer.append("</form>");
+
+          return buffer.toString();
+        }
+
+      }
+      return null;
+    };
+    FormToolTip formToolTip = new FormToolTip(table, textFunction);
+    ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
+    formToolTip.addTagColor("type", colorRegistry.get(JFacePreferences.COUNTER_COLOR).getRGB());
+    formToolTip.addTagFont("type", JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT));
 
     // 'Plugin id' TableViewerColumn
     TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
@@ -251,43 +296,13 @@ public class PluginTabItem
 
         return styledString;
       }
-
-      @Override
-      public String getToolTipText(Object element)
-      {
-        PluginInfo pluginInfo = (PluginInfo) element;
-
-        List<PatternInfo> patternList = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList;
-        Set<PatternInfo> patternInfos = patternList.stream()
-          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
-          .collect(Collectors.toSet());
-
-        if (!patternInfos.isEmpty())
-        {
-          Map<String, List<PatternInfo>> typeToPatternInfoMap = new TreeMap<>();
-          patternInfos.forEach(patternInfo -> {
-            patternInfo.typeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo));
-          });
-
-          StringBuilder buffer = new StringBuilder(128);
-          typeToPatternInfoMap.forEach((type, list) -> {
-            buffer.append(type).append(":").append('\n');
-            list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
-            list.forEach(patternInfo -> buffer.append("    #").append(patternList.indexOf(patternInfo) + 1).append(" ").append(patternInfo.forToolTip()).append('\n'));
-          });
-
-          return buffer.toString().trim();
-        }
-
-        return null;
-      }
     }));
     DefaultLabelViewerComparator.configureForSortingColumn(typeTableViewerColumn);
 
     // 'Forbidden types' TableViewerColumn
-    forbiddenTypesTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    forbiddenTypesTableViewerColumn.getColumn().setText("Forbidden plugin type");
-    forbiddenTypesTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
+    forbiddenTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    forbiddenTypeTableViewerColumn.getColumn().setText("Forbidden plugin type");
+    forbiddenTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override
       public StyledString getStyledText(Object element)
@@ -312,7 +327,7 @@ public class PluginTabItem
         return styledString;
       }
     }));
-    DefaultLabelViewerComparator.configureForSortingColumn(forbiddenTypesTableViewerColumn);
+    DefaultLabelViewerComparator.configureForSortingColumn(forbiddenTypeTableViewerColumn);
 
     // 'Forbidden bundles' TableViewerColumn
     forbiddenBundlesTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
@@ -402,7 +417,7 @@ public class PluginTabItem
       projectTableViewer.refresh(pluginInfo);
 
       pack(typeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
-      pack(forbiddenTypesTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
+      pack(forbiddenTypeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
     }
     finally
     {
