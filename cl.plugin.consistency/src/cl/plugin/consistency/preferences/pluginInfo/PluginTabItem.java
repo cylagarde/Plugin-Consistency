@@ -39,6 +39,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -195,7 +196,25 @@ public class PluginTabItem
             list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
 
             //
-            list.forEach(patternInfo -> buffer.append("<li style=\"text\" indent=\"20\"><b>#").append(patternList.indexOf(patternInfo) + 1).append("</b>  ").append(patternInfo.forToolTip()).append("</li>"));
+            list.forEach(patternInfo -> {
+
+              buffer.append("<li style=\"text\" indent=\"20\"><b>#").append(patternList.indexOf(patternInfo) + 1).append("</b>  ");
+              buffer.append("pattern[");
+
+              String containsPattern = patternInfo.getContainsPattern();
+              String doNotContainsPattern = patternInfo.getDoNotContainsPattern();
+              if (containsPattern != null && !containsPattern.isEmpty())
+              {
+                buffer.append("contains=<span color=\"pattern\">\"").append(containsPattern).append("\"</span>");
+
+                if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
+                  buffer.append(", not contains=<span color=\"pattern\">\"").append(doNotContainsPattern).append("\"</span>");
+              }
+              else if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
+                buffer.append("not contains=<span color=\"pattern\">\"").append(doNotContainsPattern).append("\"</span>");
+
+              buffer.append("]</li>");
+            });
           });
           buffer.append("</form>");
 
@@ -208,6 +227,7 @@ public class PluginTabItem
     FormToolTip formToolTip = new FormToolTip(table, textFunction);
     ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
     formToolTip.addTagColor("type", colorRegistry.get(JFacePreferences.COUNTER_COLOR).getRGB());
+    formToolTip.addTagColor("pattern", new RGB(0, 128, 0));
     formToolTip.addTagFont("type", JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT));
 
     // 'Plugin id' TableViewerColumn

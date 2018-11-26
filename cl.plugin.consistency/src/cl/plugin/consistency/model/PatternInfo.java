@@ -66,13 +66,6 @@ public class PatternInfo
     return doNotContainsPattern;
   }
 
-  public String forToolTip()
-  {
-    String containsPattern = getContainsPattern();
-    String doNotContainsPattern = getDoNotContainsPattern();
-    return "pattern[contains=" + containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? ", not contains=" + doNotContainsPattern : "") + "]";
-  }
-
   public boolean containsTypes()
   {
     if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty())
