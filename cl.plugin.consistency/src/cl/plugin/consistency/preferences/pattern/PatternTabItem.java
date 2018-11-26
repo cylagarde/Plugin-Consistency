@@ -42,6 +42,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.PlatformUI;
@@ -357,11 +358,12 @@ public class PatternTabItem
   private void configurePatternTableViewer(Composite parent)
   {
     patternCheckTableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
-    patternCheckTableViewer.getTable().setLayout(new TableLayout());
+    Table table = patternCheckTableViewer.getTable();
+    table.setLayout(new TableLayout());
     patternCheckTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-    patternCheckTableViewer.getTable().setHeaderVisible(true);
-    patternCheckTableViewer.getTable().setLinesVisible(true);
-    patternCheckTableViewer.getTable().setLayoutData(new GridData(GridData.FILL_BOTH));
+    table.setHeaderVisible(true);
+    table.setLinesVisible(true);
+    table.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     patternCheckTableViewer.addDoubleClickListener(event -> new EditPatternAction().run());
 

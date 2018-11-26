@@ -39,7 +39,6 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -63,7 +62,8 @@ import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
-import cl.plugin.consistency.tooltip.FormToolTip;
+import cl.plugin.consistency.tooltip.StyledToolTip;
+import cl.plugin.consistency.tooltip.StylerUtilities;
 
 /**
  * The class <b>PluginTabItem</b> allows to.<br>
@@ -169,7 +169,7 @@ public class PluginTabItem
     table.setLinesVisible(true);
 
     // define specific tooltip
-    BiFunction<Integer, Integer, String> textFunction = (row, column) -> {
+    BiFunction<Integer, Integer, StyledString> styledStringFunction = (row, column) -> {
       if (row >= 0 && column >= 0 && (table.getColumn(column) == typeTableViewerColumn.getColumn() || table.getColumn(column) == forbiddenTypeTableViewerColumn.getColumn()))
       {
         PluginInfo pluginInfo = (PluginInfo) table.getItem(row).getData();
@@ -187,48 +187,50 @@ public class PluginTabItem
           else
             patternInfos.forEach(patternInfo -> patternInfo.forbiddenTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
 
-          StringBuilder buffer = new StringBuilder(128);
-          buffer.append("<form>");
+          StyledString buffer = new StyledString();
+
+          boolean[] firstType = new boolean[]{true};
           typeToPatternInfoMap.forEach((type, list) -> {
-            buffer.append("<p><span color=\"type\" font=\"type\">").append(type).append("</span>").append(":").append("</p>");
+            if (!firstType[0])
+              buffer.append("\n\n");
+            else
+              firstType[0] = false;
+            buffer.append(type, StylerUtilities.withBold(StyledString.COUNTER_STYLER)).append(":\n");
 
             // sort
             list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
 
             //
+            boolean[] firstList = new boolean[]{true};
             list.forEach(patternInfo -> {
+              if (!firstList[0])
+                buffer.append("\n");
+              else
+                firstList[0] = false;
 
-              buffer.append("<li style=\"text\" indent=\"20\"><b>#").append(patternList.indexOf(patternInfo) + 1).append("</b>  ");
-              buffer.append("pattern[");
+              buffer.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
+              buffer.append("  pattern[");
 
               String containsPattern = patternInfo.getContainsPattern();
               String doNotContainsPattern = patternInfo.getDoNotContainsPattern();
               if (containsPattern != null && !containsPattern.isEmpty())
               {
-                buffer.append("contains=<span color=\"pattern\">\"").append(containsPattern).append("\"</span>");
+                buffer.append("contains=").append("\"" + containsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
 
                 if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
-                  buffer.append(", not contains=<span color=\"pattern\">\"").append(doNotContainsPattern).append("\"</span>");
+                  buffer.append(", not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
               }
               else if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
-                buffer.append("not contains=<span color=\"pattern\">\"").append(doNotContainsPattern).append("\"</span>");
-
-              buffer.append("]</li>");
+                buffer.append("not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
             });
           });
-          buffer.append("</form>");
 
-          return buffer.toString();
+          return buffer;
         }
-
       }
       return null;
     };
-    FormToolTip formToolTip = new FormToolTip(table, textFunction);
-    ColorRegistry colorRegistry = JFaceResources.getColorRegistry();
-    formToolTip.addTagColor("type", colorRegistry.get(JFacePreferences.COUNTER_COLOR).getRGB());
-    formToolTip.addTagColor("pattern", new RGB(0, 128, 0));
-    formToolTip.addTagFont("type", JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT));
+    StyledToolTip styledToolTip = new StyledToolTip(table, styledStringFunction);
 
     // 'Plugin id' TableViewerColumn
     TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
