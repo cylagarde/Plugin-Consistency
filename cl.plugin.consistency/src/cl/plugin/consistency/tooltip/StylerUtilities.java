@@ -2,8 +2,10 @@ package cl.plugin.consistency.tooltip;
 
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.StyledString.Styler;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.TextStyle;
 
 /**
@@ -71,7 +73,25 @@ public class StylerUtilities
       public void applyStyles(TextStyle textStyle)
       {
         styler.applyStyles(textStyle);
-        textStyle.font = boldFont;
+        if (textStyle.font == null)
+          textStyle.font = boldFont;
+        else
+        {
+          FontData fontData = textStyle.font.getFontData()[0];
+          if (fontData.getStyle() != SWT.BOLD)
+          {
+            String symbolicName = fontData.getName() + " " + fontData.getHeight() + " " + fontData.getStyle() + " BOLD";
+            if (!JFaceResources.getFontRegistry().hasValueFor(symbolicName))
+            {
+              FontData[] fontDatas = textStyle.font.getFontData();
+              for(FontData element : fontDatas)
+                element.setStyle(element.getStyle() | SWT.BOLD);
+              JFaceResources.getFontRegistry().put(symbolicName, fontDatas);
+            }
+            Font font = JFaceResources.getFontRegistry().get(symbolicName);
+            textStyle.font = font;
+          }
+        }
       }
     };
   }
@@ -89,7 +109,25 @@ public class StylerUtilities
       public void applyStyles(TextStyle textStyle)
       {
         styler.applyStyles(textStyle);
-        textStyle.font = italicFont;
+        if (textStyle.font == null)
+          textStyle.font = italicFont;
+        else
+        {
+          FontData fontData = textStyle.font.getFontData()[0];
+          if (fontData.getStyle() != SWT.ITALIC)
+          {
+            String symbolicName = fontData.getName() + " " + fontData.getHeight() + " " + fontData.getStyle() + " ITALIC";
+            if (!JFaceResources.getFontRegistry().hasValueFor(symbolicName))
+            {
+              FontData[] fontDatas = textStyle.font.getFontData();
+              for(FontData element : fontDatas)
+                element.setStyle(element.getStyle() | SWT.ITALIC);
+              JFaceResources.getFontRegistry().put(symbolicName, fontDatas);
+            }
+            Font font = JFaceResources.getFontRegistry().get(symbolicName);
+            textStyle.font = font;
+          }
+        }
       }
     };
   }
@@ -114,7 +152,7 @@ public class StylerUtilities
 
   /**
    * Create Styler with underline color
-   * 
+   *
    * @param styler
    * @param underlineColor
    */

@@ -195,7 +195,7 @@ public class PluginTabItem
               buffer.append("\n\n");
             else
               firstType[0] = false;
-            buffer.append(type, StylerUtilities.withBold(StyledString.COUNTER_STYLER)).append(":\n");
+            buffer.append(type + ":\n", StylerUtilities.withBold(StyledString.COUNTER_STYLER));
 
             // sort
             list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
