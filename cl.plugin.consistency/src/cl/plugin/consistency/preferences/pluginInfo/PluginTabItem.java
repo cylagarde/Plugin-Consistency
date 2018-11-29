@@ -187,45 +187,49 @@ public class PluginTabItem
           else
             patternInfos.forEach(patternInfo -> patternInfo.forbiddenTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
 
-          StyledString buffer = new StyledString();
+          if (!typeToPatternInfoMap.isEmpty())
+          {
+            StyledString buffer = new StyledString();
 
-          boolean[] firstType = new boolean[]{true};
-          typeToPatternInfoMap.forEach((type, list) -> {
-            if (!firstType[0])
-              buffer.append("\n\n");
-            else
-              firstType[0] = false;
-            buffer.append(type + ":\n", StylerUtilities.withBold(StyledString.COUNTER_STYLER));
-
-            // sort
-            list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
-
-            //
-            boolean[] firstList = new boolean[]{true};
-            list.forEach(patternInfo -> {
-              if (!firstList[0])
-                buffer.append("\n");
+            boolean[] firstType = new boolean[]{true};
+            typeToPatternInfoMap.forEach((type, list) -> {
+              if (!firstType[0])
+                buffer.append("\n\n");
               else
-                firstList[0] = false;
+                firstType[0] = false;
+              buffer.append(type + ":\n", StylerUtilities.withBold(StyledString.COUNTER_STYLER));
 
-              buffer.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
-              buffer.append("  pattern[");
+              // sort
+              list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
 
-              String containsPattern = patternInfo.getContainsPattern();
-              String doNotContainsPattern = patternInfo.getDoNotContainsPattern();
-              if (containsPattern != null && !containsPattern.isEmpty())
-              {
-                buffer.append("contains=").append("\"" + containsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
+              //
+              boolean[] firstList = new boolean[]{true};
+              list.forEach(patternInfo -> {
+                if (!firstList[0])
+                  buffer.append("\n");
+                else
+                  firstList[0] = false;
 
-                if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
-                  buffer.append(", not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
-              }
-              else if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
-                buffer.append("not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
+                buffer.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
+                buffer.append("  pattern[");
+
+                String containsPattern = patternInfo.getContainsPattern();
+                String doNotContainsPattern = patternInfo.getDoNotContainsPattern();
+                if (containsPattern != null && !containsPattern.isEmpty())
+                {
+                  buffer.append("contains=").append("\"" + containsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
+
+                  if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
+                    buffer.append(", not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
+                }
+                else if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
+                  buffer.append("not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
+                buffer.append("]");
+              });
             });
-          });
 
-          return buffer;
+            return buffer;
+          }
         }
       }
       return null;
