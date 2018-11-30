@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
+   <feature url="features/cl.plugin.consistency.features_1.6.0.qualifier.jar" id="cl.plugin.consistency.features" version="1.6.0.qualifier">
+      <category name="Plugin Consistency category"/>
+   </feature>
    <bundle id="cl.plugin.consistency" version="1.6.0.qualifier">
       <category name="Plugin_Consistency_features"/>
    </bundle>
-   <category-def name="Plugin_Consistency_features" label="Plugin Consistency Features">
-      <description>
-         Plugin Consistency Features
-      </description>
-   </category-def>
+   <category-def name="Plugin Consistency category" label="Plugin Consistency category"/>
 </site>

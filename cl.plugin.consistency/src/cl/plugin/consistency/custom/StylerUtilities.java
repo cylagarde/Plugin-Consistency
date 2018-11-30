@@ -1,4 +1,4 @@
-package cl.plugin.consistency.tooltip;
+package cl.plugin.consistency.custom;
 
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.StyledString.Styler;

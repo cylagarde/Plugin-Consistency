@@ -1,4 +1,4 @@
-package cl.plugin.consistency.tooltip;
+package cl.plugin.consistency.custom;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;

@@ -37,16 +37,16 @@
       <command
             categoryId="cl.plugin_consistency.commands"
             defaultHandler="cl.plugin.consistency.handlers.LaunchCheckConsistencyHandler"
-            description="Launch check consistency"
+            description="Launch consistency check"
             id="cl.plugin_consistency.launch_check_consistency.command"
-            name="Launch check consistency">
+            name="Launch consistency check">
       </command>
       <command
             categoryId="cl.plugin_consistency.commands"
             defaultHandler="cl.plugin.consistency.handlers.RemoveAllCheckConsistencyHandler"
-            description="Remove all check consistency"
+            description="Remove all consistencies check"
             id="cl.plugin_consistency.remove_all_check_consistency.command"
-            name="Remove all check consistency">
+            name="Remove all consistencies check">
       </command>
       <command
             categoryId="cl.plugin_consistency.commands"

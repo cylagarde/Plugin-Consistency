@@ -358,9 +358,9 @@ public class PatternTabItem
   private void configurePatternTableViewer(Composite parent)
   {
     patternCheckTableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
+    patternCheckTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     Table table = patternCheckTableViewer.getTable();
     table.setLayout(new TableLayout());
-    patternCheckTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     table.setHeaderVisible(true);
     table.setLinesVisible(true);
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -392,7 +392,6 @@ public class PatternTabItem
     patternTableViewerColumn.getColumn().setText("Contains pattern");
     patternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     patternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-
     patternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getContainsPattern));
     DefaultLabelViewerComparator.configureForSortingColumn(patternTableViewerColumn);
 
@@ -401,7 +400,6 @@ public class PatternTabItem
     searchTypeTableViewerColumn.getColumn().setText("Do not contains pattern");
     searchTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     searchTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-
     searchTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getDoNotContainsPattern));
     DefaultLabelViewerComparator.configureForSortingColumn(searchTypeTableViewerColumn);
 
@@ -410,7 +408,6 @@ public class PatternTabItem
     typeTableViewerColumn.getColumn().setText("Plugin type");
     typeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     typeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-
     typeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.typeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
     DefaultLabelViewerComparator.configureForSortingColumn(typeTableViewerColumn);
 
@@ -419,7 +416,6 @@ public class PatternTabItem
     forbiddenTypeTableViewerColumn.getColumn().setText("Forbidden plugin type");
     forbiddenTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     forbiddenTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-
     forbiddenTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.forbiddenTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
     DefaultLabelViewerComparator.configureForSortingColumn(forbiddenTypeTableViewerColumn);
 
@@ -462,9 +458,10 @@ public class PatternTabItem
           if (columnIndex == 0)
           {
             PatternInfo patternInfo = (PatternInfo) elt;
+            String index = String.valueOf(patternList.indexOf(patternInfo));
             if (first[0])
-              return String.valueOf(patternList.indexOf(patternInfo));
-            return Boolean.toString(patternInfo.activate);
+              return index;
+            return Boolean.toString(patternInfo.activate) + " " + index;
           }
           return super.getTextForComparaison(viewer, elt, columnIndex);
         }

@@ -56,14 +56,14 @@ import org.eclipse.ui.ide.IDE.SharedImages;
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.custom.StyledToolTip;
+import cl.plugin.consistency.custom.StylerUtilities;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
-import cl.plugin.consistency.tooltip.StyledToolTip;
-import cl.plugin.consistency.tooltip.StylerUtilities;
 
 /**
  * The class <b>PluginTabItem</b> allows to.<br>
