@@ -48,7 +48,10 @@ public class Cache
       else
         id = ((Bundle) o).getSymbolicName();
 
-      elementToIdCacheMap.put(o, id);
+      if (id != null)
+        elementToIdCacheMap.put(o, id);
+      else
+        PluginConsistencyActivator.logWarning("id is null for '" + o + "'");
     }
 
     return id;

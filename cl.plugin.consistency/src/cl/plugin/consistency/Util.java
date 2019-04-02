@@ -215,43 +215,54 @@ public class Util
     for(IProject pluginProject : validPluginProjects)
     {
       String id = cache.getId(pluginProject);
+      if (id != null)
+      {
+        // find PluginInfo with 'id' and update 'name'
+        Optional<PluginInfo> pluginInfoWithIdOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> id.equals(pluginInfo.id)).findAny();
+        if (pluginInfoWithIdOptional.isPresent())
+        {
+          PluginInfo pluginInfo = pluginInfoWithIdOptional.get();
+          pluginInfo.name = pluginProject.getName();
+
+          //
+          updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
+
+          continue;
+        }
+      }
+
+      // find PluginInfo with 'name' and update 'id'
+      String name = pluginProject.getName();
+      if (name != null)
+      {
+        Optional<PluginInfo> pluginInfoWithNameOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> name.equals(pluginInfo.name)).findAny();
+        if (pluginInfoWithNameOptional.isPresent())
+        {
+          PluginInfo pluginInfo = pluginInfoWithNameOptional.get();
+          pluginInfo.id = cache.getId(pluginProject);
+
+          //
+          updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
+
+          continue;
+        }
+      }
+
       if (id == null)
       {
         PluginConsistencyActivator.logError("id null for '" + pluginProject + "'");
         continue;
       }
-      String name = pluginProject.getName();
-
-      // find PluginInfo with 'id' and update 'name'
-      Optional<PluginInfo> pluginInfoWithIdOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> id.equals(pluginInfo.id)).findAny();
-      if (pluginInfoWithIdOptional.isPresent())
+      if (name == null)
       {
-        PluginInfo pluginInfo = pluginInfoWithIdOptional.get();
-        pluginInfo.name = pluginProject.getName();
-
-        //
-        updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
-
-        continue;
-      }
-
-      // find PluginInfo with 'name' and update 'id'
-      Optional<PluginInfo> pluginInfoWithNameOptional = pluginConsistency.pluginInfoList.stream().filter(pluginInfo -> name.equals(pluginInfo.name)).findAny();
-      if (pluginInfoWithNameOptional.isPresent())
-      {
-        PluginInfo pluginInfo = pluginInfoWithNameOptional.get();
-        pluginInfo.id = cache.getId(pluginProject);
-
-        //
-        updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
-
+        PluginConsistencyActivator.logError("name null for '" + pluginProject + "'");
         continue;
       }
 
       // add
       PluginInfo pluginInfo = new PluginInfo();
       pluginInfo.id = id;
-      pluginInfo.name = pluginProject.getName();
+      pluginInfo.name = name;
 
       //
       updatePluginInfoWithPattern(pluginConsistency, pluginInfo);
