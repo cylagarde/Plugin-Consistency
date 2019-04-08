@@ -219,7 +219,7 @@ public class PatternTabItem
       @Override
       public String getSectionTitle()
       {
-        return "Plugin types";
+        return "Authorized plugin types";
       }
 
       @Override
@@ -405,7 +405,7 @@ public class PatternTabItem
 
     // 'Type' TableViewerColumn
     TableViewerColumn typeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    typeTableViewerColumn.getColumn().setText("Plugin type");
+    typeTableViewerColumn.getColumn().setText("Authorized plugin type");
     typeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     typeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
     typeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.typeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));

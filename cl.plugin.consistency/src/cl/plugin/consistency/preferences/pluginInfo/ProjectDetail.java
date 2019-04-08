@@ -97,7 +97,7 @@ class ProjectDetail
       @Override
       public String getSectionTitle()
       {
-        return "Plugin types";
+        return "Authorized plugin types";
       }
 
       @Override

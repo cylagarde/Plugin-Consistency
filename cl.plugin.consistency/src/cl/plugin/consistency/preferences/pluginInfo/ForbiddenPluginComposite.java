@@ -89,7 +89,7 @@ class ForbiddenPluginComposite
 
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
-    sectionPane.getHeaderSection().setText("Forbidden bundles/projects");
+    sectionPane.getHeaderSection().setText("Forbidden plugins/projects");
     sectionPane.getHeaderSection().setImage(PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_PLUGIN_OBJ));
 
     // Add toolbar to section
