@@ -54,6 +54,7 @@ import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
@@ -366,21 +367,16 @@ class ForbiddenPluginComposite
       dialog.setMessage("Select the forbidden plugins:");
 
       //
-      Comparator<Object> bundleProjectComparator = (o1, o2) -> {
-        String id1 = cache.getId(o1);
-        String id2 = cache.getId(o2);
-        return String.CASE_INSENSITIVE_ORDER.compare(id1, id2);
-      };
-      TreeSet<Object> set = new TreeSet<>(bundleProjectComparator);
-      set.addAll(Arrays.asList(cache.getValidProjects()));
+      TreeSet<Object> treeSet = new TreeSet<>(Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE));
+      treeSet.addAll(Arrays.asList(cache.getValidProjects()));
 
       // remove current plugin/project
-      set.removeIf(o -> cache.getId(o).equals(pluginInfo.id));
+      treeSet.removeIf(o -> cache.getId(o).equals(pluginInfo.id));
 
-      set.addAll(Arrays.asList(bundles));
+      treeSet.addAll(Arrays.asList(bundles));
 
       //
-      dialog.setInput(set.toArray());
+      dialog.setInput(treeSet.toArray());
       dialog.setInitialSelections(ArrayContentProvider.getInstance().getElements(forbiddenPluginTableViewer.getInput()));
 
       //

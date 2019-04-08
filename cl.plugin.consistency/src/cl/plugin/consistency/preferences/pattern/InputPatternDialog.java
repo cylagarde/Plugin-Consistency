@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import cl.plugin.consistency.Cache;
+import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
 
@@ -307,7 +308,7 @@ class InputPatternDialog extends Dialog
       patternInfo.setPattern(containsPatternValue, doNotContainsPatternValue);
 
       Predicate<IProject> predicate = project -> patternInfo.acceptPlugin(cache.getId(project));
-      Comparator<IProject> projectComparator = Comparator.comparing(cache::getId);
+      Comparator<IProject> projectComparator = Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE);
       IProject[] projects = cache.getValidProjects();
       Map<Boolean, List<IProject>> map = Stream.of(projects).sorted(projectComparator).collect(Collectors.partitioningBy(predicate));
       pluginAcceptedTableViewer.setInput(map.get(Boolean.TRUE));

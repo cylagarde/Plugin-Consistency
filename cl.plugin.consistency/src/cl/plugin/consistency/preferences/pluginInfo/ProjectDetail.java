@@ -17,6 +17,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.TypeElement;
@@ -177,8 +178,8 @@ class ProjectDetail
     if (pluginInfo != null)
     {
       // sort
-      Collections.sort(pluginInfo.typeList, Comparator.comparing(type -> type.name));
-      Collections.sort(pluginInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
+      Collections.sort(pluginInfo.typeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      Collections.sort(pluginInfo.forbiddenTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
 
       Set<Type> typeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.typeList.stream()).collect(Collectors.toSet());
       typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.typeList, typeFromPatternInfoSet, false));

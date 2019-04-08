@@ -17,6 +17,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 
+import cl.plugin.consistency.custom.NaturalOrderComparator;
+
 /**
  * The class <b>DefaultLabelViewerComparator</b> allows to.<br>
  * <li>for TableViewer</li>
@@ -70,7 +72,7 @@ public class DefaultLabelViewerComparator extends ViewerComparator
   {
     String t1 = getTextForComparaison(viewer, e1, columnIndex);
     String t2 = getTextForComparaison(viewer, e2, columnIndex);
-    Comparator<String> comparator = Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER);
+    Comparator<String> comparator = Comparator.nullsFirst(NaturalOrderComparator.INSTANCE);
     int rc = comparator.compare(t1, t2);
 
     // If descending order, flip the direction

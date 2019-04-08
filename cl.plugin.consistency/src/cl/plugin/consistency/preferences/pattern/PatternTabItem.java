@@ -51,6 +51,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
@@ -160,11 +161,11 @@ public class PatternTabItem
       patternForbiddenTypeComposite.setEnabled(patternInfo != null);
 
       if (patternInfo != null)
-        Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name));
+        Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
       patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.typeList, false));
 
       if (patternInfo != null)
-        Collections.sort(patternInfo.forbiddenTypeList, Comparator.comparing(type -> type.name));
+        Collections.sort(patternInfo.forbiddenTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
       patternForbiddenTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.forbiddenTypeList, true));
     });
 
@@ -461,7 +462,7 @@ public class PatternTabItem
             String index = String.valueOf(patternList.indexOf(patternInfo));
             if (first[0])
               return index;
-            return Boolean.toString(patternInfo.activate) + " " + index;
+            return patternInfo.activate + " " + index;
           }
           return super.getTextForComparaison(viewer, elt, columnIndex);
         }
