@@ -209,10 +209,8 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
         }
       }
 
-      // enable if last combo dont use empty selection
-      Control[] children = elementListComposite.getChildren();
-      Combo combo = children.length == 0? null : (Combo) children[children.length - 1];
-      boolean enabled = combo == null || (combo.getSelectionIndex() != 0 && getNotUsedElements().size() != 1);
+      // enable if find not used elements
+      boolean enabled = getNotUsedElements().size() != 1;
       addElementAction.setEnabled(enabled);
 
       // reconstruct items for all combos
