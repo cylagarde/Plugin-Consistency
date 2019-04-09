@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/cl.plugin.consistency.features_1.6.1.qualifier.jar" id="cl.plugin.consistency.features" version="1.6.1.qualifier">
+   <feature url="features/cl.plugin.consistency.features_1.7.0.201904092056.jar" id="cl.plugin.consistency.features" version="1.7.0.201904092056">
       <category name="Plugin consistency category"/>
    </feature>
    <category-def name="Plugin consistency category" label="Plugin consistency category"/>
