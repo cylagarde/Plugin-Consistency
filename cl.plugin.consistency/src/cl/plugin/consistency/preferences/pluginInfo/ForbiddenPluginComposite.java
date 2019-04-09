@@ -1,10 +1,9 @@
 package cl.plugin.consistency.preferences.pluginInfo;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -23,6 +22,8 @@ import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CheckboxTreeViewer;
+import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
@@ -46,6 +47,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.CheckedTreeSelectionDialog;
 import org.osgi.framework.Bundle;
@@ -74,9 +76,11 @@ class ForbiddenPluginComposite
   PluginInfo pluginInfo;
   CompletableFuture<Set<String>> requireBundleSetCompletableFuture;
   final Cache cache;
+  final Set<Object> checkedObjects = new HashSet<>();
 
   /**
    * Constructor
+   *
    * @param projectDetail
    * @param parent
    * @param style
@@ -111,31 +115,35 @@ class ForbiddenPluginComposite
 
   /**
    * Set PluginInfo
+   *
    * @param pluginInfo
    */
   public void setPluginInfo(PluginInfo pluginInfo)
   {
     this.pluginInfo = pluginInfo;
-    //    Util.setEnabled(section, pluginInfo != null);
+    // Util.setEnabled(section, pluginInfo != null);
 
     // select forbidden plugins for TableViewer
-    List<Object> bundleList = new ArrayList<>();
+    checkedObjects.clear();
     if (pluginInfo != null)
     {
       for(ForbiddenPlugin forbiddenPluginInfo : pluginInfo.forbiddenPluginList)
       {
         Bundle bundle = Platform.getBundle(forbiddenPluginInfo.id);
         if (bundle != null)
-          bundleList.add(bundle);
+          checkedObjects.add(bundle);
         else
         {
-          Optional<IProject> optional = Stream.of(cache.getValidProjects()).filter(project -> cache.getId(project).equals(forbiddenPluginInfo.id)).findFirst();
-          optional.ifPresent(bundleList::add);
+          Optional<IProject> optional = Stream.of(cache.getValidProjects())
+            .filter(project -> cache.getId(project).equals(forbiddenPluginInfo.id))
+            .findFirst();
+          optional.ifPresent(checkedObjects::add);
         }
       }
     }
 
-    forbiddenPluginTableViewer.setInput(bundleList);
+    // toArray: create copy
+    forbiddenPluginTableViewer.setInput(checkedObjects.toArray());
 
     //
     if (pluginInfo == null)
@@ -194,23 +202,38 @@ class ForbiddenPluginComposite
     @Override
     public void run()
     {
-      Set<String> tmpSet = null;
+      Object[] checkedElements = ((IStructuredContentProvider) forbiddenPluginTableViewer.getContentProvider()).getElements(forbiddenPluginTableViewer.getInput());
+      checkedObjects.clear();
+      checkedObjects.addAll(Arrays.asList(checkedElements));
+
+      Set<String> requireBundleSet = new HashSet<>();
       try
       {
-        tmpSet = requireBundleSetCompletableFuture.get();
+        requireBundleSet.addAll(requireBundleSetCompletableFuture.get());
       }
       catch(InterruptedException | ExecutionException e)
       {
         PluginConsistencyActivator.logError("Error: " + e, e);
-        tmpSet = Collections.emptySet();
       }
-      Set<String> requireBundleSet = tmpSet;
 
       //
       BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(cache, requireBundleSet);
-      CheckedTreeSelectionDialog dialog = new CheckedTreeSelectionDialog(forbiddenPluginTableViewer.getControl().getShell(), bundlesLabelProvider, new BundleTreeContentProvider())
+      CheckedTreeSelectionDialog checkedTreeDialog = new CheckedTreeSelectionDialog(forbiddenPluginTableViewer.getControl().getShell(), bundlesLabelProvider, new BundleTreeContentProvider())
       {
         Text searchPluginText;
+
+        @Override
+        protected CheckboxTreeViewer createTreeViewer(Composite parent)
+        {
+          CheckboxTreeViewer checkboxTreeViewer = super.createTreeViewer(parent);
+          checkboxTreeViewer.addCheckStateListener(event -> {
+            if (event.getChecked())
+              checkedObjects.add(event.getElement());
+            else
+              checkedObjects.remove(event.getElement());
+          });
+          return checkboxTreeViewer;
+        }
 
         @Override
         protected Label createMessageArea(Composite parent)
@@ -245,11 +268,13 @@ class ForbiddenPluginComposite
               // init searchPluginText
               searchPluginText.setText("");
 
+              getTreeViewer().getTree().setRedraw(false);
               seeCheckedPluginButton.setEnabled(!seeRequirePluginButton.getSelection());
               if (seeRequirePluginButton.getSelection())
                 getTreeViewer().addFilter(seeRequirePluginViewerFilter);
               else
                 getTreeViewer().removeFilter(seeRequirePluginViewerFilter);
+              getTreeViewer().getTree().setRedraw(true);
             }
           });
 
@@ -261,21 +286,32 @@ class ForbiddenPluginComposite
               @Override
               public boolean select(Viewer viewer, Object parentElement, Object element)
               {
-                return getTreeViewer().getChecked(element);
+                // boolean result = getTreeViewer().getChecked(element); // slow
+                boolean result = checkedObjects.contains(element);
+                return result;
               }
             };
 
             @Override
             public void widgetSelected(SelectionEvent e)
             {
+              checkedObjects.clear();
+              for(TreeItem treeItem : getTreeViewer().getTree().getItems())
+              {
+                if (treeItem.getChecked())
+                  checkedObjects.add(treeItem.getData());
+              }
+
               // init searchPluginText
               searchPluginText.setText("");
 
+              getTreeViewer().getTree().setRedraw(false);
               seeRequirePluginButton.setEnabled(!seeCheckedPluginButton.getSelection());
               if (seeCheckedPluginButton.getSelection())
                 getTreeViewer().addFilter(seeOnlyCheckedPluginViewerFilter);
               else
                 getTreeViewer().removeFilter(seeOnlyCheckedPluginViewerFilter);
+              getTreeViewer().getTree().setRedraw(true);
             }
           });
 
@@ -363,8 +399,9 @@ class ForbiddenPluginComposite
           return label;
         }
       };
-      dialog.setTitle("Bundles and worskspace projects");
-      dialog.setMessage("Select the forbidden plugins:");
+      checkedTreeDialog.setTitle("Bundles and worskspace projects");
+      checkedTreeDialog.setMessage("Select the forbidden plugins:");
+      checkedTreeDialog.setContainerMode(true);
 
       //
       TreeSet<Object> treeSet = new TreeSet<>(Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE));
@@ -376,23 +413,25 @@ class ForbiddenPluginComposite
       treeSet.addAll(Arrays.asList(bundles));
 
       //
-      dialog.setInput(treeSet.toArray());
-      dialog.setInitialSelections(ArrayContentProvider.getInstance().getElements(forbiddenPluginTableViewer.getInput()));
+      checkedTreeDialog.setInput(treeSet.toArray());
+      checkedTreeDialog.setInitialSelections(checkedObjects.toArray());
 
       //
-      if (dialog.open() == IDialogConstants.OK_ID)
+      if (checkedTreeDialog.open() == IDialogConstants.OK_ID)
       {
         pluginInfo.forbiddenPluginList.clear();
-        for(Object o : dialog.getResult())
+        for(Object o : checkedTreeDialog.getResult())
         {
           ForbiddenPlugin forbiddenPluginInfo = new ForbiddenPlugin();
           forbiddenPluginInfo.id = cache.getId(o);
           pluginInfo.forbiddenPluginList.add(forbiddenPluginInfo);
         }
-        forbiddenPluginTableViewer.setInput(dialog.getResult());
+        forbiddenPluginTableViewer.setInput(checkedTreeDialog.getResult());
 
         projectDetail.pluginTabItem.refreshPluginInfo(pluginInfo);
       }
+
+      checkedObjects.clear();
     }
 
     /**
