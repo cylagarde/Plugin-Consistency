@@ -266,7 +266,8 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
       ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
       List<String> notUsedElements = getNotUsedElements();
       Collections.sort(notUsedElements, NaturalOrderComparator.INSTANCE);
-      ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, "", elementBiConsumer);
+      String firstSelection = notUsedElements.stream().filter(item -> !item.equals("")).findFirst().orElse("");
+      ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, firstSelection, elementBiConsumer);
       elementComboViewer.getControl().setFocus();
       elementBiConsumer.elementComboViewer = elementComboViewer;
       elementComboViewer.getControl().setData(IS_PATTERN_TYPE_TAG, false);
@@ -274,7 +275,11 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
 
       elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 
-      setEnabled(false);
+      setEnabled(!firstSelection.equals(""));
+
+      IStructuredSelection[] oldStructuredSelection = new IStructuredSelection[]{new StructuredSelection(firstSelection)};
+      elementComboViewer.setSelection(oldStructuredSelection[0]);
+
       elementListComposite.layout();
       scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
     }
