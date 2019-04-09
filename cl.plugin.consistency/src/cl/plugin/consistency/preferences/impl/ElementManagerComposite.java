@@ -1,5 +1,6 @@
 package cl.plugin.consistency.preferences.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -144,15 +145,16 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
       {
         boolean isPatternType = element.isPatternType();
         ElementBiConsumer elementBiConsumer = null;
-        List<String> notUsedElements = Collections.singletonList(element.getName());
+        List<String> items = new ArrayList<>();
+        items.add(element.getName());
         if (!isPatternType)
         {
           elementBiConsumer = new ElementBiConsumer();
-          notUsedElements = getNotUsedElements();
-          notUsedElements.add(element.getName());
-          Collections.sort(notUsedElements, NaturalOrderComparator.INSTANCE);
+          items.addAll(getNotUsedElements());
+          Collections.sort(items, NaturalOrderComparator.INSTANCE);
         }
-        ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, element.getName(), elementBiConsumer);
+
+        ComboViewer elementComboViewer = Util.createCombo(elementListComposite, items, element.getName(), elementBiConsumer);
         elementComboViewer.getControl().setData(IS_PATTERN_TYPE_TAG, isPatternType);
         elementComboViewer.getControl().setData(COMBO_VIEWER_TAG, elementComboViewer);
         if (isPatternType)
@@ -223,17 +225,19 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
           if (control instanceof Combo)
           {
             Combo child = (Combo) control;
-            boolean isEnabled = (boolean) child.getData(IS_PATTERN_TYPE_TAG);
-            if (isEnabled)
+            List<String> items = new ArrayList<>();
+            String selection = child.getText();
+            items.add(selection);
+            boolean isPatternType = (boolean) child.getData(IS_PATTERN_TYPE_TAG);
+            if (!isPatternType)
             {
-              List<String> notUsedElements = getNotUsedElements();
-              String selection = child.getText();
-              notUsedElements.add(selection);
-              Collections.sort(notUsedElements, NaturalOrderComparator.INSTANCE);
-              ComboViewer comboViewer = (ComboViewer) child.getData(COMBO_VIEWER_TAG);
-              comboViewer.setInput(notUsedElements);
-              comboViewer.setSelection(new StructuredSelection(selection));
+              items.addAll(getNotUsedElements());
+              Collections.sort(items, NaturalOrderComparator.INSTANCE);
             }
+
+            ComboViewer comboViewer = (ComboViewer) child.getData(COMBO_VIEWER_TAG);
+            comboViewer.setInput(items);
+            comboViewer.setSelection(new StructuredSelection(selection));
           }
         }
       }
@@ -265,7 +269,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
       ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, "", elementBiConsumer);
       elementComboViewer.getControl().setFocus();
       elementBiConsumer.elementComboViewer = elementComboViewer;
-      elementComboViewer.getControl().setData(IS_PATTERN_TYPE_TAG, true);
+      elementComboViewer.getControl().setData(IS_PATTERN_TYPE_TAG, false);
       elementComboViewer.getControl().setData(COMBO_VIEWER_TAG, elementComboViewer);
 
       elementComboViewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
