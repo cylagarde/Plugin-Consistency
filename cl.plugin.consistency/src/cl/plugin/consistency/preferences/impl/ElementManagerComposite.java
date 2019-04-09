@@ -32,6 +32,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.preferences.SectionPane;
 
 /**
@@ -149,7 +150,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
           elementBiConsumer = new ElementBiConsumer();
           notUsedElements = getNotUsedElements();
           notUsedElements.add(element.getName());
-          Collections.sort(notUsedElements);
+          Collections.sort(notUsedElements, NaturalOrderComparator.INSTANCE);
         }
         ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, element.getName(), elementBiConsumer);
         elementComboViewer.getControl().setData(IS_PATTERN_TYPE_TAG, isPatternType);
@@ -228,7 +229,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
               List<String> notUsedElements = getNotUsedElements();
               String selection = child.getText();
               notUsedElements.add(selection);
-              Collections.sort(notUsedElements);
+              Collections.sort(notUsedElements, NaturalOrderComparator.INSTANCE);
               ComboViewer comboViewer = (ComboViewer) child.getData(COMBO_VIEWER_TAG);
               comboViewer.setInput(notUsedElements);
               comboViewer.setSelection(new StructuredSelection(selection));
@@ -260,7 +261,7 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
     {
       ElementBiConsumer elementBiConsumer = new ElementBiConsumer();
       List<String> notUsedElements = getNotUsedElements();
-      Collections.sort(notUsedElements);
+      Collections.sort(notUsedElements, NaturalOrderComparator.INSTANCE);
       ComboViewer elementComboViewer = Util.createCombo(elementListComposite, notUsedElements, "", elementBiConsumer);
       elementComboViewer.getControl().setFocus();
       elementBiConsumer.elementComboViewer = elementComboViewer;

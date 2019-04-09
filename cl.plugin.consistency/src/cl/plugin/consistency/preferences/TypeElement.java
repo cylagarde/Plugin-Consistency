@@ -46,21 +46,16 @@ public class TypeElement implements IElement
     return isPatternType;
   }
 
-  /*
-   * @see java.lang.Object#hashCode()
-   */
   @Override
   public int hashCode()
   {
     final int prime = 31;
     int result = 1;
+    result = prime * result + (isPatternType? 1231 : 1237);
     result = prime * result + ((type == null)? 0 : type.hashCode());
     return result;
   }
 
-  /*
-   * @see java.lang.Object#equals(java.lang.Object)
-   */
   @Override
   public boolean equals(Object obj)
   {
@@ -68,9 +63,11 @@ public class TypeElement implements IElement
       return true;
     if (obj == null)
       return false;
-    if (getClass() != obj.getClass())
+    if (!(obj instanceof TypeElement))
       return false;
     TypeElement other = (TypeElement) obj;
+    if (isPatternType != other.isPatternType)
+      return false;
     if (type == null)
     {
       if (other.type != null)
@@ -79,5 +76,11 @@ public class TypeElement implements IElement
     else if (!type.equals(other.type))
       return false;
     return true;
+  }
+
+  @Override
+  public String toString()
+  {
+    return "TypeElement[type=" + type + ", isPatternType=" + isPatternType + "]";
   }
 }
