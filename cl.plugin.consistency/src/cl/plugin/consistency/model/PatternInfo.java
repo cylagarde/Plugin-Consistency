@@ -32,7 +32,8 @@ public class PatternInfo
   @XmlElement(name = "Type")
   public List<Type> forbiddenTypeList = new ArrayList<>();
 
-  private static final String SEPARATOR = ";";
+  private static final String TYPE_PATTERN_SEPARATOR = "#";
+  private static final String PATTERN_SEPARATOR = ";";
 
   /*
    * @see java.lang.Object#toString()
@@ -49,19 +50,19 @@ public class PatternInfo
   {
     String containsPattern = getContainsPattern();
     String doNotContainsPattern = getDoNotContainsPattern();
-    return containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? SEPARATOR + doNotContainsPattern : "");
+    return containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? TYPE_PATTERN_SEPARATOR + doNotContainsPattern : "");
   }
 
   public String getContainsPattern()
   {
-    int index = pattern.indexOf(SEPARATOR);
+    int index = pattern.indexOf(TYPE_PATTERN_SEPARATOR);
     String containsPattern = index >= 0? pattern.substring(0, index) : pattern;
     return containsPattern;
   }
 
   public String getDoNotContainsPattern()
   {
-    int index = pattern.indexOf(SEPARATOR);
+    int index = pattern.indexOf(TYPE_PATTERN_SEPARATOR);
     String doNotContainsPattern = index >= 0? pattern.substring(index + 1) : "";
     return doNotContainsPattern;
   }
@@ -78,26 +79,44 @@ public class PatternInfo
     if (!activate)
       return false;
 
-    SearchPattern containsPatternSearchPattern = new SearchPattern();
-    containsPatternSearchPattern.setPattern('*'+getContainsPattern());
-
-    if (containsPatternSearchPattern.matches(pluginId))
+    //
+    String containsPatterns = getContainsPattern();
+    if (containsPatterns != null && !containsPatterns.isEmpty())
     {
-      String doNotContainsPatterns = getDoNotContainsPattern();
-      if (doNotContainsPatterns == null || doNotContainsPatterns.isEmpty())
-        return true;
+      SearchPattern containsPatternSearchPattern = new SearchPattern();
+
+      StringTokenizer stringTokenizer = new StringTokenizer(containsPatterns, PATTERN_SEPARATOR);
+      boolean acceptPlugin = false;
+      while(stringTokenizer.hasMoreTokens())
+      {
+        String containsPattern = stringTokenizer.nextToken();
+        containsPatternSearchPattern.setPattern('*' + containsPattern);
+        if (containsPatternSearchPattern.matches(pluginId))
+        {
+          acceptPlugin = true;
+          break;
+        }
+      }
+      if (!acceptPlugin)
+        return false;
+    }
+
+    //
+    String doNotContainsPatterns = getDoNotContainsPattern();
+    if (doNotContainsPatterns != null && !doNotContainsPatterns.isEmpty())
+    {
       SearchPattern doNotContainsPatternSearchPattern = new SearchPattern();
-      StringTokenizer stringTokenizer = new StringTokenizer(doNotContainsPatterns, ";");
-      while (stringTokenizer.hasMoreTokens()) {
+      StringTokenizer stringTokenizer = new StringTokenizer(doNotContainsPatterns, PATTERN_SEPARATOR);
+      while(stringTokenizer.hasMoreTokens())
+      {
         String doNotContainsPattern = stringTokenizer.nextToken();
         doNotContainsPatternSearchPattern.setPattern('*' + doNotContainsPattern);
         if (doNotContainsPatternSearchPattern.matches(pluginId))
           return false;
       }
-      return true;
     }
 
-    return false;
+    return true;
   }
 
   /**
@@ -108,6 +127,6 @@ public class PatternInfo
    */
   public void setPattern(String containsPattern, String doNotContainsPattern)
   {
-    pattern = doNotContainsPattern == null || doNotContainsPattern.isEmpty()? containsPattern : containsPattern + SEPARATOR + doNotContainsPattern;
+    pattern = doNotContainsPattern == null || doNotContainsPattern.isEmpty()? containsPattern : containsPattern + TYPE_PATTERN_SEPARATOR + doNotContainsPattern;
   }
 }
