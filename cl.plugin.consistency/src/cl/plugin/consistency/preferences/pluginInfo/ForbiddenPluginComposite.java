@@ -44,6 +44,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
@@ -107,7 +108,6 @@ class ForbiddenPluginComposite
 
     //
     forbiddenPluginTableViewer = new TableViewer(sectionPane, SWT.BORDER);
-    forbiddenPluginTableViewer.getTable().setLinesVisible(true);
     forbiddenPluginTableViewer.setLabelProvider(new BundlesLabelProvider(cache));
     forbiddenPluginTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     forbiddenPluginTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -186,7 +186,6 @@ class ForbiddenPluginComposite
   public void setEnabled(boolean enabled)
   {
     toolBar.setEnabled(enabled);
-    forbiddenPluginTableViewer.getControl().setEnabled(enabled);
   }
 
   /**
@@ -196,7 +195,7 @@ class ForbiddenPluginComposite
   {
     {
       setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().getImageDescriptor(org.eclipse.ui.ISharedImages.IMG_OBJ_ADD));
-      setToolTipText("Select forbidden plugins");
+      setToolTipText("Add forbidden plugins/projects");
     }
 
     @Override
@@ -385,7 +384,7 @@ class ForbiddenPluginComposite
           Label clearLabel = new Label(borderComposite, SWT.NONE);
           clearLabel.setImage(Images.CLEAR.getImage());
           clearLabel.setToolTipText("Clear");
-          clearLabel.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+          clearLabel.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
           clearLabel.addMouseListener(new MouseAdapter()
           {
             @Override

@@ -26,14 +26,14 @@ public class PatternInfo
 
   @XmlElementWrapper(name = "AuthorizedPluginTypes")
   @XmlElement(name = "Type")
-  public List<Type> typeList = new ArrayList<>();
+  public List<Type> authorizedPluginTypeList = new ArrayList<>();
 
   @XmlElementWrapper(name = "ForbiddenPluginTypes")
   @XmlElement(name = "Type")
-  public List<Type> forbiddenTypeList = new ArrayList<>();
+  public List<Type> forbiddenPluginTypeList = new ArrayList<>();
 
   private static final String TYPE_PATTERN_SEPARATOR = "#";
-  private static final String PATTERN_SEPARATOR = ";";
+  public static final String PATTERN_SEPARATOR = ";";
 
   /*
    * @see java.lang.Object#toString()
@@ -69,7 +69,7 @@ public class PatternInfo
 
   public boolean containsTypes()
   {
-    if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty())
+    if (!authorizedPluginTypeList.isEmpty() || !forbiddenPluginTypeList.isEmpty())
       return true;
     return false;
   }

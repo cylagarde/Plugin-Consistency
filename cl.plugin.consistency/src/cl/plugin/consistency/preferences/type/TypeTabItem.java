@@ -303,8 +303,8 @@ public class TypeTabItem
 
         // edit types in pattern infos
         Consumer<PatternInfo> editTypeInPatternInfoConsumer = patternInfo -> {
-          patternInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
-          patternInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          patternInfo.authorizedPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          patternInfo.forbiddenPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(editTypeInPatternInfoConsumer);
 
@@ -354,8 +354,8 @@ public class TypeTabItem
 
         // remove types in pattern infos
         Consumer<PatternInfo> removeTypeInPatternInfoConsumer = patternInfo -> {
-          patternInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
-          patternInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          patternInfo.authorizedPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          patternInfo.forbiddenPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(removeTypeInPatternInfoConsumer);
 

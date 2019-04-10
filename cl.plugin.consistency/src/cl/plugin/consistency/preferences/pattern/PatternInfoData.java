@@ -15,13 +15,13 @@ class PatternInfoData implements IData<TypeElement>
 {
   final PatternInfo patternInfo;
   final List<Type> typeList;
-  final boolean isForbiddenTypeList;
+  final boolean isForbiddenPluginTypeList;
 
-  PatternInfoData(PatternInfo patternInfo, List<Type> typeList, boolean isForbiddenTypeList)
+  PatternInfoData(PatternInfo patternInfo, List<Type> typeList, boolean isForbiddenPluginTypeList)
   {
     this.patternInfo = patternInfo;
     this.typeList = typeList;
-    this.isForbiddenTypeList = isForbiddenTypeList;
+    this.isForbiddenPluginTypeList = isForbiddenPluginTypeList;
   }
 
   /*

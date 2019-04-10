@@ -17,14 +17,14 @@ class PluginInfoData implements IData<TypeElement>
   final PluginInfo pluginInfo;
   final List<Type> typeList;
   final Set<Type> typeFromPatternSet;
-  final boolean isForbiddenTypeList;
+  final boolean isForbiddenPluginTypeList;
 
-  PluginInfoData(PluginInfo pluginInfo, List<Type> typeList, Set<Type> typeFromPatternSet, boolean isForbiddenTypeList)
+  PluginInfoData(PluginInfo pluginInfo, List<Type> typeList, Set<Type> typeFromPatternSet, boolean isForbiddenPluginTypeList)
   {
     this.pluginInfo = pluginInfo;
     this.typeList = typeList;
     this.typeFromPatternSet = typeFromPatternSet;
-    this.isForbiddenTypeList = isForbiddenTypeList;
+    this.isForbiddenPluginTypeList = isForbiddenPluginTypeList;
   }
 
   /*

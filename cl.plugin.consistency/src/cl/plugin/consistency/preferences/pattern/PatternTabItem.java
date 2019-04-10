@@ -72,6 +72,9 @@ public class PatternTabItem
   private CheckboxTableViewer patternCheckTableViewer;
   private Button selectAllButton;
 
+  private final static String containsPatternMessage = "Enter a value for contains pattern ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
+  private final static String doNotContainsPatternMessage = "Enter a value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
+
   /**
    * Constructor
    */
@@ -150,7 +153,7 @@ public class PatternTabItem
     ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = createTypeComposite(sashForm);
 
     //
-    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenTypeComposite = createForbiddenTypeComposite(sashForm);
+    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenPluginTypeComposite = createForbiddenPluginTypeComposite(sashForm);
 
     // selection
     patternCheckTableViewer.addSelectionChangedListener(event -> {
@@ -158,15 +161,15 @@ public class PatternTabItem
       IStructuredSelection selection = (IStructuredSelection) patternCheckTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
       patternTypeComposite.setEnabled(patternInfo != null);
-      patternForbiddenTypeComposite.setEnabled(patternInfo != null);
+      patternForbiddenPluginTypeComposite.setEnabled(patternInfo != null);
 
       if (patternInfo != null)
-        Collections.sort(patternInfo.typeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
-      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.typeList, false));
+        Collections.sort(patternInfo.authorizedPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.authorizedPluginTypeList, false));
 
       if (patternInfo != null)
-        Collections.sort(patternInfo.forbiddenTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
-      patternForbiddenTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.forbiddenTypeList, true));
+        Collections.sort(patternInfo.forbiddenPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      patternForbiddenPluginTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.forbiddenPluginTypeList, true));
     });
 
     sashForm.setWeights(new int[]{1, 1});
@@ -183,12 +186,12 @@ public class PatternTabItem
     {
       if (patternInfoData.patternInfo.acceptPlugin(pluginInfo.id))
       {
-        if (!patternInfoData.isForbiddenTypeList)
+        if (!patternInfoData.isForbiddenPluginTypeList)
           pluginInfo.authorizedPluginTypeList.removeAll(patternInfoData.patternInfo.authorizedPluginTypeList);
         else
           pluginInfo.forbiddenPluginTypeList.removeAll(patternInfoData.patternInfo.forbiddenPluginTypeList);
 
-        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, !patternInfoData.isForbiddenTypeList, patternInfoData.isForbiddenTypeList);
+        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, !patternInfoData.isForbiddenPluginTypeList, patternInfoData.isForbiddenPluginTypeList);
       }
     }
 
@@ -243,9 +246,9 @@ public class PatternTabItem
   /**
    * @param parent
    */
-  private ElementManagerComposite<TypeElement, PatternInfoData> createForbiddenTypeComposite(Composite parent)
+  private ElementManagerComposite<TypeElement, PatternInfoData> createForbiddenPluginTypeComposite(Composite parent)
   {
-    IElementManagerDataModel<TypeElement, PatternInfoData> forbiddenTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>()
+    IElementManagerDataModel<TypeElement, PatternInfoData> forbiddenPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>()
     {
       @Override
       public void refreshData(PatternInfoData patternInfoData)
@@ -278,8 +281,8 @@ public class PatternTabItem
       }
     };
 
-    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenTypeComposite = new ElementManagerComposite<>(forbiddenTypeElementManagerDataModel, parent, SWT.NONE);
-    return patternForbiddenTypeComposite;
+    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenPluginTypeComposite = new ElementManagerComposite<>(forbiddenPluginTypeElementManagerDataModel, parent, SWT.NONE);
+    return patternForbiddenPluginTypeComposite;
   }
 
   /**
@@ -314,8 +317,10 @@ public class PatternTabItem
 
         Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-        InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "", "Enter a value for contains pattern ('?' and '*' are supported)", "",
-          "Enter a value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", "", cache, patternValidator);
+        InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "",
+          containsPatternMessage, "",
+          doNotContainsPatternMessage, "",
+          cache, patternValidator);
         if (inputPatternDialog.open() == InputDialog.OK)
         {
           PatternInfo patternInfo = new PatternInfo();
@@ -389,36 +394,36 @@ public class PatternTabItem
     DefaultLabelViewerComparator.configureForSortingColumn(activatePatternTableViewerColumn);
 
     // 'Contains pattern' TableViewerColumn
-    TableViewerColumn patternTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    patternTableViewerColumn.getColumn().setText("Contains pattern");
-    patternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
-    patternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-    patternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getContainsPattern));
-    DefaultLabelViewerComparator.configureForSortingColumn(patternTableViewerColumn);
+    TableViewerColumn containsPatternTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    containsPatternTableViewerColumn.getColumn().setText("Contains pattern");
+    containsPatternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    containsPatternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+    containsPatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getContainsPattern));
+    DefaultLabelViewerComparator.configureForSortingColumn(containsPatternTableViewerColumn);
 
     // 'Do not contains pattern' TableViewerColumn
-    TableViewerColumn searchTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    searchTypeTableViewerColumn.getColumn().setText("Do not contains pattern");
-    searchTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
-    searchTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-    searchTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getDoNotContainsPattern));
-    DefaultLabelViewerComparator.configureForSortingColumn(searchTypeTableViewerColumn);
+    TableViewerColumn doNotContainsPatternTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    doNotContainsPatternTableViewerColumn.getColumn().setText("Do not contains pattern");
+    doNotContainsPatternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    doNotContainsPatternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+    doNotContainsPatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getDoNotContainsPattern));
+    DefaultLabelViewerComparator.configureForSortingColumn(doNotContainsPatternTableViewerColumn);
 
-    // 'Type' TableViewerColumn
-    TableViewerColumn typeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    typeTableViewerColumn.getColumn().setText("Authorized plugin type");
-    typeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
-    typeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-    typeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.typeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
-    DefaultLabelViewerComparator.configureForSortingColumn(typeTableViewerColumn);
+    // 'Authorized plugin types' TableViewerColumn
+    TableViewerColumn authorizedPluginTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    authorizedPluginTypeTableViewerColumn.getColumn().setText("Authorized plugin types");
+    authorizedPluginTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    authorizedPluginTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+    authorizedPluginTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.authorizedPluginTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
+    DefaultLabelViewerComparator.configureForSortingColumn(authorizedPluginTypeTableViewerColumn);
 
-    // 'Forbidden type' TableViewerColumn
-    TableViewerColumn forbiddenTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    forbiddenTypeTableViewerColumn.getColumn().setText("Forbidden plugin type");
-    forbiddenTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
-    forbiddenTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-    forbiddenTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.forbiddenTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
-    DefaultLabelViewerComparator.configureForSortingColumn(forbiddenTypeTableViewerColumn);
+    // 'Forbidden plugin types' TableViewerColumn
+    TableViewerColumn forbiddenPluginTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    forbiddenPluginTypeTableViewerColumn.getColumn().setText("Forbidden plugin types");
+    forbiddenPluginTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    forbiddenPluginTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+    forbiddenPluginTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.forbiddenPluginTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
+    DefaultLabelViewerComparator.configureForSortingColumn(forbiddenPluginTypeTableViewerColumn);
 
     //
     configurePopupMenuForTypeTableViewer();
@@ -501,8 +506,8 @@ public class PatternTabItem
    */
   class PatternMenuListener implements IMenuListener
   {
-    List<Type> copiedTypeList = Collections.emptyList();
-    List<Type> copiedForbiddenTypeList = Collections.emptyList();
+    List<Type> copiedAuthorizedPluginTypeList = Collections.emptyList();
+    List<Type> copiedForbiddenPluginTypeList = Collections.emptyList();
 
     @Override
     public void menuAboutToShow(IMenuManager manager)
@@ -532,9 +537,9 @@ public class PatternTabItem
         PatternInfo patternInfo = selectedPluginInfoSet.iterator().next();
         if (patternInfo.containsTypes())
         {
-          List<Type> currentTypeList = patternInfo.typeList.stream().collect(Collectors.toList());
-          List<Type> currentForbiddenTypeList = patternInfo.forbiddenTypeList.stream().collect(Collectors.toList());
-          if (!currentTypeList.equals(copiedTypeList) || !currentForbiddenTypeList.equals(copiedForbiddenTypeList))
+          List<Type> currentAuthorizedPluginTypeList = patternInfo.authorizedPluginTypeList.stream().collect(Collectors.toList());
+          List<Type> currentForbiddenPluginTypeList = patternInfo.forbiddenPluginTypeList.stream().collect(Collectors.toList());
+          if (!currentAuthorizedPluginTypeList.equals(copiedAuthorizedPluginTypeList) || !currentForbiddenPluginTypeList.equals(copiedForbiddenPluginTypeList))
           {
             if (manager.getItems().length > 1)
               manager.add(new Separator());
@@ -545,15 +550,15 @@ public class PatternTabItem
               @Override
               public void run()
               {
-                copiedTypeList = currentTypeList;
-                copiedForbiddenTypeList = currentForbiddenTypeList;
+                copiedAuthorizedPluginTypeList = currentAuthorizedPluginTypeList;
+                copiedForbiddenPluginTypeList = currentForbiddenPluginTypeList;
               }
             });
           }
         }
       }
 
-      if (!copiedTypeList.isEmpty() || !copiedForbiddenTypeList.isEmpty())
+      if (!copiedAuthorizedPluginTypeList.isEmpty() || !copiedForbiddenPluginTypeList.isEmpty())
       {
         if (!selectedPluginInfoSet.isEmpty())
         {
@@ -572,21 +577,21 @@ public class PatternTabItem
                 PatternInfo oldPatternInfo = Util.duplicatePatternInfo(patternInfo);
 
                 // clear
-                patternInfo.typeList.clear();
-                patternInfo.forbiddenTypeList.clear();
+                patternInfo.authorizedPluginTypeList.clear();
+                patternInfo.forbiddenPluginTypeList.clear();
 
                 // copy type
-                copiedTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.typeList::add);
-                copiedForbiddenTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.forbiddenTypeList::add);
+                copiedAuthorizedPluginTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.authorizedPluginTypeList::add);
+                copiedForbiddenPluginTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.forbiddenPluginTypeList::add);
 
-                if (!copiedTypeList.isEmpty())
+                if (!copiedAuthorizedPluginTypeList.isEmpty())
                 {
-                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedTypeList, false);
+                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedAuthorizedPluginTypeList, false);
                   updateAllPluginInfosWithPatternInfo(patternInfoData, false);
                 }
-                if (!copiedForbiddenTypeList.isEmpty())
+                if (!copiedForbiddenPluginTypeList.isEmpty())
                 {
-                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedForbiddenTypeList, true);
+                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedForbiddenPluginTypeList, true);
                   updateAllPluginInfosWithPatternInfo(patternInfoData, false);
                 }
               }
@@ -680,8 +685,9 @@ public class PatternTabItem
 
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Edit pattern", selectedDescription, "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern,
-        "Enter a new value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by ;)", selectedDoNotContainsPattern, cache, patternValidator);
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Edit pattern", selectedDescription,
+        containsPatternMessage, selectedContainsPattern,
+        doNotContainsPatternMessage, selectedDoNotContainsPattern, cache, patternValidator);
       if (inputPatternDialog.open() == InputDialog.OK)
       {
         updateAfterChange(() -> {

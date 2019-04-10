@@ -34,10 +34,10 @@ public class PluginInfo
   @Override
   public String toString()
   {
-    String types = authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
-    String forbiddenTypes = forbiddenPluginTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.joining(", ", "[", "]"));
+    String authorizedPluginTypes = authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
+    String forbiddenPluginTypes = forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
     String forbiddenPlugins = forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).collect(Collectors.joining(", ", "[", "]"));
-    return "PluginInfo[id=" + id + ", name=" + name + ", types=" + types + ", forbiddenTypes=" + forbiddenTypes + ", forbiddenPlugins=" + forbiddenPlugins + "]";
+    return "PluginInfo[id=" + id + ", name=" + name + ", authorizedPluginTypes=" + authorizedPluginTypes + ", forbiddenPluginTypes=" + forbiddenPluginTypes + ", forbiddenPlugins=" + forbiddenPlugins + "]";
   }
 
   /**
