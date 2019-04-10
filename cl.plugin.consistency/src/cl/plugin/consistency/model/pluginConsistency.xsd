@@ -11,14 +11,14 @@
 
   <xs:complexType name="patternInfo">
     <xs:sequence>
-      <xs:element name="Types" minOccurs="0">
+      <xs:element name="AuthorizedPluginTypes" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="Type" type="type" minOccurs="0" maxOccurs="unbounded"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
-      <xs:element name="ForbiddenTypes" minOccurs="0">
+      <xs:element name="ForbiddenPluginTypes" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="Type" type="type" minOccurs="0" maxOccurs="unbounded"/>
@@ -26,7 +26,7 @@
         </xs:complexType>
       </xs:element>
     </xs:sequence>
-    <xs:attribute name="activate" type="xs:boolean"/>
+    <xs:attribute name="activate" type="xs:boolean" use="required"/>
     <xs:attribute name="pattern" type="xs:string" use="required"/>
     <xs:attribute name="description" type="xs:string"/>
   </xs:complexType>
@@ -59,14 +59,14 @@
 
   <xs:complexType name="pluginInfo">
     <xs:sequence>
-      <xs:element name="Types" minOccurs="0">
+      <xs:element name="AuthorizedPluginTypes" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="Type" type="type" minOccurs="0" maxOccurs="unbounded"/>
           </xs:sequence>
         </xs:complexType>
       </xs:element>
-      <xs:element name="ForbiddenTypes" minOccurs="0">
+      <xs:element name="ForbiddenPluginTypes" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="Type" type="type" minOccurs="0" maxOccurs="unbounded"/>
@@ -90,3 +90,4 @@
     <xs:attribute name="id" type="xs:string" use="required"/>
   </xs:complexType>
 </xs:schema>
+

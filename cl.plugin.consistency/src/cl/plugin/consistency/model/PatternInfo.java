@@ -24,11 +24,11 @@ public class PatternInfo
   @XmlAttribute(name = "description")
   public String description;
 
-  @XmlElementWrapper(name = "Types")
+  @XmlElementWrapper(name = "AuthorizedPluginTypes")
   @XmlElement(name = "Type")
   public List<Type> typeList = new ArrayList<>();
 
-  @XmlElementWrapper(name = "ForbiddenTypes")
+  @XmlElementWrapper(name = "ForbiddenPluginTypes")
   @XmlElement(name = "Type")
   public List<Type> forbiddenTypeList = new ArrayList<>();
 

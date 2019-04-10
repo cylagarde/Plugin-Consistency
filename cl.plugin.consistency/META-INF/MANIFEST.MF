@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Plugin Consistency
 Bundle-SymbolicName: cl.plugin.consistency;singleton:=true
-Bundle-Version: 1.7.0.qualifier
+Bundle-Version: 1.8.0.qualifier
 Bundle-Activator: cl.plugin.consistency.PluginConsistencyActivator
 Bundle-Vendor: CL
 Require-Bundle: org.eclipse.core.resources,

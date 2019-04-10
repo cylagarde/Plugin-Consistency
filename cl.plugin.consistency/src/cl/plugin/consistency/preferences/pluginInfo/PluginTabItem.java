@@ -307,8 +307,8 @@ public class PluginTabItem
           .map(type -> type.name)
           .collect(Collectors.toSet());
 
-        int[] size = {pluginInfo.typeList.size()};
-        pluginInfo.typeList.stream()
+        int[] size = {pluginInfo.authorizedPluginTypeList.size()};
+        pluginInfo.authorizedPluginTypeList.stream()
           .map(type -> type.name)
           .sorted()
           .forEach(typename -> {
@@ -340,8 +340,8 @@ public class PluginTabItem
         Set<String> forbiddenTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
           .flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).map(type -> type.name).collect(Collectors.toSet());
 
-        int[] size = {pluginInfo.forbiddenTypeList.size()};
-        pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).sorted().forEach(forbiddenTypename -> {
+        int[] size = {pluginInfo.forbiddenPluginTypeList.size()};
+        pluginInfo.forbiddenPluginTypeList.stream().map(forbiddenType -> forbiddenType.name).sorted().forEach(forbiddenTypename -> {
           if (forbiddenTypeFromPatternInfoSet.contains(forbiddenTypename))
             styledString.append(forbiddenTypename, StyledString.COUNTER_STYLER);
           else
@@ -521,8 +521,8 @@ public class PluginTabItem
         PluginInfo pluginInfo = selectedPluginInfoSet.iterator().next();
         if (pluginInfo.containsInformations())
         {
-          Set<String> currentTypeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-          Set<String> currentForbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+          Set<String> currentTypeSet = pluginInfo.authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+          Set<String> currentForbiddenTypeSet = pluginInfo.forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
           if (!currentTypeSet.equals(copiedTypeSet) || !currentForbiddenTypeSet.equals(copiedForbiddenTypeSet))
           {
             if (manager.getItems().length > 1)
@@ -559,8 +559,8 @@ public class PluginTabItem
               for(PluginInfo pluginInfo : selectedPluginInfoSet)
               {
                 // clear
-                pluginInfo.typeList.clear();
-                pluginInfo.forbiddenTypeList.clear();
+                pluginInfo.authorizedPluginTypeList.clear();
+                pluginInfo.forbiddenPluginTypeList.clear();
 
                 // copy type
                 for(String typeName : copiedTypeSet)
@@ -569,7 +569,7 @@ public class PluginTabItem
                   {
                     Type newType = new Type();
                     newType.name = typeName;
-                    pluginInfo.typeList.add(newType);
+                    pluginInfo.authorizedPluginTypeList.add(newType);
                   }
                 }
 
@@ -580,7 +580,7 @@ public class PluginTabItem
                   {
                     Type newForbiddentType = new Type();
                     newForbiddentType.name = forbiddenTypeName;
-                    pluginInfo.forbiddenTypeList.add(newForbiddentType);
+                    pluginInfo.forbiddenPluginTypeList.add(newForbiddentType);
                   }
                 }
               }

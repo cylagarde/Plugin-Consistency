@@ -184,9 +184,9 @@ public class PatternTabItem
       if (patternInfoData.patternInfo.acceptPlugin(pluginInfo.id))
       {
         if (!patternInfoData.isForbiddenTypeList)
-          pluginInfo.typeList.removeAll(patternInfoData.patternInfo.typeList);
+          pluginInfo.authorizedPluginTypeList.removeAll(patternInfoData.patternInfo.authorizedPluginTypeList);
         else
-          pluginInfo.forbiddenTypeList.removeAll(patternInfoData.patternInfo.forbiddenTypeList);
+          pluginInfo.forbiddenPluginTypeList.removeAll(patternInfoData.patternInfo.forbiddenPluginTypeList);
 
         Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, !patternInfoData.isForbiddenTypeList, patternInfoData.isForbiddenTypeList);
       }

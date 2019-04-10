@@ -19,13 +19,13 @@ public class PluginInfo
   @XmlAttribute(name = "name", required = true)
   public String name;
 
-  @XmlElementWrapper(name = "Types")
+  @XmlElementWrapper(name = "AuthorizedPluginTypes")
   @XmlElement(name = "Type")
-  public List<Type> typeList = new ArrayList<>();
+  public List<Type> authorizedPluginTypeList = new ArrayList<>();
 
-  @XmlElementWrapper(name = "ForbiddenTypes")
+  @XmlElementWrapper(name = "ForbiddenPluginTypes")
   @XmlElement(name = "Type")
-  public List<Type> forbiddenTypeList = new ArrayList<>();
+  public List<Type> forbiddenPluginTypeList = new ArrayList<>();
 
   @XmlElementWrapper(name = "ForbiddenPlugins")
   @XmlElement(name = "ForbiddenPlugin")
@@ -34,8 +34,8 @@ public class PluginInfo
   @Override
   public String toString()
   {
-    String types = typeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
-    String forbiddenTypes = forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.joining(", ", "[", "]"));
+    String types = authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
+    String forbiddenTypes = forbiddenPluginTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.joining(", ", "[", "]"));
     String forbiddenPlugins = forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).collect(Collectors.joining(", ", "[", "]"));
     return "PluginInfo[id=" + id + ", name=" + name + ", types=" + types + ", forbiddenTypes=" + forbiddenTypes + ", forbiddenPlugins=" + forbiddenPlugins + "]";
   }
@@ -44,7 +44,7 @@ public class PluginInfo
    */
   public boolean containsInformations()
   {
-    if (!typeList.isEmpty() || !forbiddenTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
+    if (!authorizedPluginTypeList.isEmpty() || !forbiddenPluginTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
       return true;
     return false;
   }
@@ -58,8 +58,8 @@ public class PluginInfo
     pluginInfo.id = id;
     pluginInfo.name = name;
 
-    pluginInfo.typeList.addAll(typeList);
-    pluginInfo.forbiddenTypeList.addAll(forbiddenTypeList);
+    pluginInfo.authorizedPluginTypeList.addAll(authorizedPluginTypeList);
+    pluginInfo.forbiddenPluginTypeList.addAll(forbiddenPluginTypeList);
     pluginInfo.forbiddenPluginList.addAll(forbiddenPluginList);
 
     return pluginInfo;

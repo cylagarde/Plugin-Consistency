@@ -296,8 +296,8 @@ public class TypeTabItem
 
         // edit types in plugin infos
         Consumer<PluginInfo> editTypeInPluginInfoConsumer = pluginInfo -> {
-          pluginInfo.typeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
-          pluginInfo.forbiddenTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          pluginInfo.authorizedPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          pluginInfo.forbiddenPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(editTypeInPluginInfoConsumer);
 
@@ -347,8 +347,8 @@ public class TypeTabItem
 
         // remove types in plugin infos
         Consumer<PluginInfo> removeTypeInPluginInfoConsumer = pluginInfo -> {
-          pluginInfo.typeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
-          pluginInfo.forbiddenTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          pluginInfo.authorizedPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          pluginInfo.forbiddenPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeInPluginInfoConsumer);
 

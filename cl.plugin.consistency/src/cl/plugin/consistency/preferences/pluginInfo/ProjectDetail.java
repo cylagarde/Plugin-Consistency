@@ -178,14 +178,14 @@ class ProjectDetail
     if (pluginInfo != null)
     {
       // sort
-      Collections.sort(pluginInfo.typeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
-      Collections.sort(pluginInfo.forbiddenTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      Collections.sort(pluginInfo.authorizedPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      Collections.sort(pluginInfo.forbiddenPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
 
       Set<Type> typeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.typeList.stream()).collect(Collectors.toSet());
-      typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.typeList, typeFromPatternInfoSet, false));
+      typeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.authorizedPluginTypeList, typeFromPatternInfoSet, false));
 
       Set<Type> forbiddenTypeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenTypeList.stream()).collect(Collectors.toSet());
-      forbiddenTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenTypeList, forbiddenTypeFromPatternInfoSet, true));
+      forbiddenTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenPluginTypeList, forbiddenTypeFromPatternInfoSet, true));
     }
     else
     {

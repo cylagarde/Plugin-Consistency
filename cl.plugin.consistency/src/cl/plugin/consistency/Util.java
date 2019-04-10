@@ -290,8 +290,8 @@ public class Util
   public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo, boolean updateType, boolean updateForbiddenType)
   {
     Set<String> availableTypeSet = pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-    Set<String> typeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-    Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> typeSet = pluginInfo.authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> forbiddenTypeSet = pluginInfo.forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
@@ -308,7 +308,7 @@ public class Util
               Type newType = new Type();
               newType.name = typeName;
               typeSet.add(typeName);
-              pluginInfo.typeList.add(newType);
+              pluginInfo.authorizedPluginTypeList.add(newType);
             }
           }
         }
@@ -324,7 +324,7 @@ public class Util
               Type forbiddenType = new Type();
               forbiddenType.name = forbiddenTypeName;
               forbiddenTypeSet.add(forbiddenTypeName);
-              pluginInfo.forbiddenTypeList.add(forbiddenType);
+              pluginInfo.forbiddenPluginTypeList.add(forbiddenType);
             }
           }
         }
@@ -349,8 +349,8 @@ public class Util
    */
   public static void removePatternInPluginInfo(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
   {
-    Set<String> typeSet = pluginInfo.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
-    Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> typeSet = pluginInfo.authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> forbiddenTypeSet = pluginInfo.forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
@@ -361,7 +361,7 @@ public class Util
         {
           String typeName = type.name;
           if (typeSet.contains(typeName))
-            pluginInfo.typeList.removeIf(type_ -> type_.name.equals(typeName));
+            pluginInfo.authorizedPluginTypeList.removeIf(type_ -> type_.name.equals(typeName));
         }
 
         // remove forbidden type
@@ -369,7 +369,7 @@ public class Util
         {
           String forbiddenTypeName = forbiddenType.name;
           if (forbiddenTypeSet.contains(forbiddenTypeName))
-            pluginInfo.forbiddenTypeList.removeIf(forbiddenType_ -> forbiddenType_.name.equals(forbiddenTypeName));
+            pluginInfo.forbiddenPluginTypeList.removeIf(forbiddenType_ -> forbiddenType_.name.equals(forbiddenTypeName));
         }
       }
     }
@@ -401,8 +401,8 @@ public class Util
    */
   public static void resetTypesInPluginInfo(PluginInfo pluginInfo)
   {
-    pluginInfo.typeList.clear();
-    pluginInfo.forbiddenTypeList.clear();
+    pluginInfo.authorizedPluginTypeList.clear();
+    pluginInfo.forbiddenPluginTypeList.clear();
     pluginInfo.forbiddenPluginList.clear();
   }
 
@@ -455,7 +455,7 @@ public class Util
     //
     if (requiredBundles != null)
     {
-      Set<String> forbiddenTypeSet = pluginInfo.forbiddenTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toSet());
+      Set<String> forbiddenTypeSet = pluginInfo.forbiddenPluginTypeList.stream().map(forbiddenType -> forbiddenType.name).collect(Collectors.toSet());
 
       for(IRequiredBundleDescription requiredBundle : requiredBundles)
       {
@@ -464,7 +464,7 @@ public class Util
         if (optional.isPresent())
         {
           PluginInfo requirePluginInfo = optional.get();
-          for(Type type : requirePluginInfo.typeList)
+          for(Type type : requirePluginInfo.authorizedPluginTypeList)
           {
             String typeName = type.name;
             // check forbidden type
