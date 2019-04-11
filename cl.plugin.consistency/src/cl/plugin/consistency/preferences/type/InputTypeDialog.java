@@ -6,6 +6,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.StringConverter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -51,25 +52,25 @@ class InputTypeDialog extends Dialog
   private String errorMessage;
 
   /**
-     * Creates an input dialog with OK and Cancel buttons. Note that the dialog
-     * will have no visual representation (no widgets) until it is told to open.
-     * <p>
-     * Note that the <code>open</code> method blocks for input dialogs.
-     * </p>
-     *
-     * @param parentShell
-     *            the parent shell, or <code>null</code> to create a top-level
-     *            shell
-     * @param dialogTitle
-     *            the dialog title, or <code>null</code> if none
-     * @param dialogMessage
-     *            the dialog message, or <code>null</code> if none
-     * @param initialNewName
-     *            the initial input value, or <code>null</code> if none
-     *            (equivalent to the empty string)
-     * @param typeValidator
-     *            an input validator, or <code>null</code> if none
-     */
+   * Creates an input dialog with OK and Cancel buttons. Note that the dialog
+   * will have no visual representation (no widgets) until it is told to open.
+   * <p>
+   * Note that the <code>open</code> method blocks for input dialogs.
+   * </p>
+   *
+   * @param parentShell
+   *          the parent shell, or <code>null</code> to create a top-level
+   *          shell
+   * @param dialogTitle
+   *          the dialog title, or <code>null</code> if none
+   * @param dialogMessage
+   *          the dialog message, or <code>null</code> if none
+   * @param initialNewName
+   *          the initial input value, or <code>null</code> if none
+   *          (equivalent to the empty string)
+   * @param typeValidator
+   *          an input (name and description) validator, or <code>null</code> if none
+   */
   InputTypeDialog(Shell parentShell, String dialogTitle, String newNameMessage, String initialNewName, String newDescriptionMessage, String initialNewDescription, BiFunction<String, String, String> typeValidator)
   {
     super(parentShell);
@@ -92,9 +93,15 @@ class InputTypeDialog extends Dialog
   @Override
   protected void configureShell(Shell shell)
   {
+    shell.setSize(320, 250);
     super.configureShell(shell);
     if (title != null)
       shell.setText(title);
+
+    Point controlSize = getParentShell().getSize();
+    Point displayLocation = getParentShell().toDisplay(controlSize.x / 2, controlSize.y / 2);
+    Point shellSize = shell.getSize();
+    shell.setLocation(displayLocation.x - shellSize.x / 2, displayLocation.y - shellSize.y / 2);
   }
 
   /*
@@ -227,9 +234,9 @@ class InputTypeDialog extends Dialog
     String errorMessage = null;
     if (typeValidator != null)
     {
-      String containsPatternValue = newNameText.getText();
-      String doNotContainsPatternValue = newDescriptionText.getText();
-      errorMessage = typeValidator.apply(containsPatternValue, doNotContainsPatternValue);
+      String nameValue = newNameText.getText();
+      String descriptionValue = newDescriptionText.getText();
+      errorMessage = typeValidator.apply(nameValue, descriptionValue);
     }
 
     setErrorMessage(errorMessage);
@@ -240,7 +247,7 @@ class InputTypeDialog extends Dialog
    * If not <code>null</code>, the OK button is disabled.
    *
    * @param errorMessage
-   *            the error message, or <code>null</code> to clear
+   *          the error message, or <code>null</code> to clear
    * @since 3.0
    */
   public void setErrorMessage(String errorMessage)
@@ -250,7 +257,7 @@ class InputTypeDialog extends Dialog
     {
       errorMessageText.setText(errorMessage == null? " \n " : errorMessage); //$NON-NLS-1$
       // Disable the error message text control if there is no error, or
-      // no error text (empty or whitespace only).  Hide it also to avoid
+      // no error text (empty or whitespace only). Hide it also to avoid
       // color change.
       // See https://bugs.eclipse.org/bugs/show_bug.cgi?id=130281
       boolean hasError = errorMessage != null && (StringConverter.removeWhiteSpaces(errorMessage)).length() > 0;
@@ -271,7 +278,6 @@ class InputTypeDialog extends Dialog
    *
    * @return the integer style bits that should be used when creating the
    *         input text
-   *
    * @since 3.4
    */
   protected int getInputTextStyle()

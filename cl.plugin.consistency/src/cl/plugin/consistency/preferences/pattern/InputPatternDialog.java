@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -121,6 +122,11 @@ class InputPatternDialog extends Dialog
     super.configureShell(shell);
     if (title != null)
       shell.setText(title);
+
+    Point controlSize = getParentShell().getSize();
+    Point displayLocation = getParentShell().toDisplay(controlSize.x / 2, controlSize.y / 2);
+    Point shellSize = shell.getSize();
+    shell.setLocation(displayLocation.x - shellSize.x / 2, displayLocation.y - shellSize.y / 2);
   }
 
   /*
