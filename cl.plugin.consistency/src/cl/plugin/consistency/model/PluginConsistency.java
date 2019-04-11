@@ -49,10 +49,10 @@ public class PluginConsistency
         PluginInfo newPluginInfo = pluginInfo.duplicate();
 
         // remove types from pattern
-        Set<Type> authorizedPluginTypeFromPatternInfoSet = patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.authorizedPluginTypeList.stream()).collect(Collectors.toSet());
+        Set<Type> declaredPluginTypeFromPatternInfoSet = patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.declaredPluginTypeList.stream()).collect(Collectors.toSet());
         Set<Type> forbiddenPluginTypeFromPatternInfoSet = patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream()).collect(Collectors.toSet());
 
-        newPluginInfo.authorizedPluginTypeList.removeIf(authorizedPluginTypeFromPatternInfoSet::contains);
+        newPluginInfo.declaredPluginTypeList.removeIf(declaredPluginTypeFromPatternInfoSet::contains);
         newPluginInfo.forbiddenPluginTypeList.removeIf(forbiddenPluginTypeFromPatternInfoSet::contains);
 
         if (newPluginInfo.containsInformations())

@@ -19,9 +19,9 @@ public class PluginInfo
   @XmlAttribute(name = "name", required = true)
   public String name;
 
-  @XmlElementWrapper(name = "AuthorizedPluginTypes")
+  @XmlElementWrapper(name = "DeclaredPluginTypes")
   @XmlElement(name = "Type")
-  public List<Type> authorizedPluginTypeList = new ArrayList<>();
+  public List<Type> declaredPluginTypeList = new ArrayList<>();
 
   @XmlElementWrapper(name = "ForbiddenPluginTypes")
   @XmlElement(name = "Type")
@@ -34,17 +34,17 @@ public class PluginInfo
   @Override
   public String toString()
   {
-    String authorizedPluginTypes = authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
+    String declaredPluginTypes = declaredPluginTypeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
     String forbiddenPluginTypes = forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.joining(", ", "[", "]"));
     String forbiddenPlugins = forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).collect(Collectors.joining(", ", "[", "]"));
-    return "PluginInfo[id=" + id + ", name=" + name + ", authorizedPluginTypes=" + authorizedPluginTypes + ", forbiddenPluginTypes=" + forbiddenPluginTypes + ", forbiddenPlugins=" + forbiddenPlugins + "]";
+    return "PluginInfo[id=" + id + ", name=" + name + ", declaredPluginTypes=" + declaredPluginTypes + ", forbiddenPluginTypes=" + forbiddenPluginTypes + ", forbiddenPlugins=" + forbiddenPlugins + "]";
   }
 
   /**
    */
   public boolean containsInformations()
   {
-    if (!authorizedPluginTypeList.isEmpty() || !forbiddenPluginTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
+    if (!declaredPluginTypeList.isEmpty() || !forbiddenPluginTypeList.isEmpty() || !forbiddenPluginList.isEmpty())
       return true;
     return false;
   }
@@ -58,7 +58,7 @@ public class PluginInfo
     pluginInfo.id = id;
     pluginInfo.name = name;
 
-    pluginInfo.authorizedPluginTypeList.addAll(authorizedPluginTypeList);
+    pluginInfo.declaredPluginTypeList.addAll(declaredPluginTypeList);
     pluginInfo.forbiddenPluginTypeList.addAll(forbiddenPluginTypeList);
     pluginInfo.forbiddenPluginList.addAll(forbiddenPluginList);
 

@@ -24,9 +24,9 @@ public class PatternInfo
   @XmlAttribute(name = "description")
   public String description;
 
-  @XmlElementWrapper(name = "AuthorizedPluginTypes")
+  @XmlElementWrapper(name = "DeclaredPluginTypes")
   @XmlElement(name = "Type")
-  public List<Type> authorizedPluginTypeList = new ArrayList<>();
+  public List<Type> declaredPluginTypeList = new ArrayList<>();
 
   @XmlElementWrapper(name = "ForbiddenPluginTypes")
   @XmlElement(name = "Type")
@@ -69,7 +69,7 @@ public class PatternInfo
 
   public boolean containsTypes()
   {
-    if (!authorizedPluginTypeList.isEmpty() || !forbiddenPluginTypeList.isEmpty())
+    if (!declaredPluginTypeList.isEmpty() || !forbiddenPluginTypeList.isEmpty())
       return true;
     return false;
   }

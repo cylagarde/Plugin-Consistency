@@ -11,7 +11,7 @@
 
   <xs:complexType name="patternInfo">
     <xs:sequence>
-      <xs:element name="AuthorizedPluginTypes" minOccurs="0">
+      <xs:element name="DeclaredPluginTypes" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="Type" type="type" minOccurs="0" maxOccurs="unbounded"/>
@@ -59,7 +59,7 @@
 
   <xs:complexType name="pluginInfo">
     <xs:sequence>
-      <xs:element name="AuthorizedPluginTypes" minOccurs="0">
+      <xs:element name="DeclaredPluginTypes" minOccurs="0">
         <xs:complexType>
           <xs:sequence>
             <xs:element name="Type" type="type" minOccurs="0" maxOccurs="unbounded"/>

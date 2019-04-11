@@ -150,7 +150,7 @@ public class PatternTabItem
     sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     //
-    ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = createTypeComposite(sashForm);
+    ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = createDeclaredPluginTypeComposite(sashForm);
 
     //
     ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenPluginTypeComposite = createForbiddenPluginTypeComposite(sashForm);
@@ -164,8 +164,8 @@ public class PatternTabItem
       patternForbiddenPluginTypeComposite.setEnabled(patternInfo != null);
 
       if (patternInfo != null)
-        Collections.sort(patternInfo.authorizedPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
-      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.authorizedPluginTypeList, false));
+        Collections.sort(patternInfo.declaredPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.declaredPluginTypeList, false));
 
       if (patternInfo != null)
         Collections.sort(patternInfo.forbiddenPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
@@ -187,7 +187,7 @@ public class PatternTabItem
       if (patternInfoData.patternInfo.acceptPlugin(pluginInfo.id))
       {
         if (!patternInfoData.isForbiddenPluginTypeList)
-          pluginInfo.authorizedPluginTypeList.removeAll(patternInfoData.patternInfo.authorizedPluginTypeList);
+          pluginInfo.declaredPluginTypeList.removeAll(patternInfoData.patternInfo.declaredPluginTypeList);
         else
           pluginInfo.forbiddenPluginTypeList.removeAll(patternInfoData.patternInfo.forbiddenPluginTypeList);
 
@@ -203,7 +203,7 @@ public class PatternTabItem
   /**
    * @param parent
    */
-  private ElementManagerComposite<TypeElement, PatternInfoData> createTypeComposite(Composite parent)
+  private ElementManagerComposite<TypeElement, PatternInfoData> createDeclaredPluginTypeComposite(Composite parent)
   {
     //
     IElementManagerDataModel<TypeElement, PatternInfoData> typeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>()
@@ -223,7 +223,7 @@ public class PatternTabItem
       @Override
       public String getSectionTitle()
       {
-        return "Authorized plugin types";
+        return "Declared plugin types";
       }
 
       @Override
@@ -235,7 +235,7 @@ public class PatternTabItem
       @Override
       public String getAddElementToolTipText()
       {
-        return "Add new type";
+        return "Add declared plugin type";
       }
     };
 
@@ -277,7 +277,7 @@ public class PatternTabItem
       @Override
       public String getAddElementToolTipText()
       {
-        return "Add new forbidden type";
+        return "Add forbidden plugin type";
       }
     };
 
@@ -409,13 +409,13 @@ public class PatternTabItem
     doNotContainsPatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getDoNotContainsPattern));
     DefaultLabelViewerComparator.configureForSortingColumn(doNotContainsPatternTableViewerColumn);
 
-    // 'Authorized plugin types' TableViewerColumn
-    TableViewerColumn authorizedPluginTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    authorizedPluginTypeTableViewerColumn.getColumn().setText("Authorized plugin types");
-    authorizedPluginTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
-    authorizedPluginTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-    authorizedPluginTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.authorizedPluginTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
-    DefaultLabelViewerComparator.configureForSortingColumn(authorizedPluginTypeTableViewerColumn);
+    // 'Declared plugin types' TableViewerColumn
+    TableViewerColumn declaredPluginTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    declaredPluginTypeTableViewerColumn.getColumn().setText("Declared plugin types");
+    declaredPluginTypeTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    declaredPluginTypeTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+    declaredPluginTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.declaredPluginTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
+    DefaultLabelViewerComparator.configureForSortingColumn(declaredPluginTypeTableViewerColumn);
 
     // 'Forbidden plugin types' TableViewerColumn
     TableViewerColumn forbiddenPluginTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
@@ -506,7 +506,7 @@ public class PatternTabItem
    */
   class PatternMenuListener implements IMenuListener
   {
-    List<Type> copiedAuthorizedPluginTypeList = Collections.emptyList();
+    List<Type> copiedDeclaredPluginTypeList = Collections.emptyList();
     List<Type> copiedForbiddenPluginTypeList = Collections.emptyList();
 
     @Override
@@ -537,9 +537,9 @@ public class PatternTabItem
         PatternInfo patternInfo = selectedPluginInfoSet.iterator().next();
         if (patternInfo.containsTypes())
         {
-          List<Type> currentAuthorizedPluginTypeList = patternInfo.authorizedPluginTypeList.stream().collect(Collectors.toList());
+          List<Type> currentDeclaredPluginTypeList = patternInfo.declaredPluginTypeList.stream().collect(Collectors.toList());
           List<Type> currentForbiddenPluginTypeList = patternInfo.forbiddenPluginTypeList.stream().collect(Collectors.toList());
-          if (!currentAuthorizedPluginTypeList.equals(copiedAuthorizedPluginTypeList) || !currentForbiddenPluginTypeList.equals(copiedForbiddenPluginTypeList))
+          if (!currentDeclaredPluginTypeList.equals(copiedDeclaredPluginTypeList) || !currentForbiddenPluginTypeList.equals(copiedForbiddenPluginTypeList))
           {
             if (manager.getItems().length > 1)
               manager.add(new Separator());
@@ -550,7 +550,7 @@ public class PatternTabItem
               @Override
               public void run()
               {
-                copiedAuthorizedPluginTypeList = currentAuthorizedPluginTypeList;
+                copiedDeclaredPluginTypeList = currentDeclaredPluginTypeList;
                 copiedForbiddenPluginTypeList = currentForbiddenPluginTypeList;
               }
             });
@@ -558,7 +558,7 @@ public class PatternTabItem
         }
       }
 
-      if (!copiedAuthorizedPluginTypeList.isEmpty() || !copiedForbiddenPluginTypeList.isEmpty())
+      if (!copiedDeclaredPluginTypeList.isEmpty() || !copiedForbiddenPluginTypeList.isEmpty())
       {
         if (!selectedPluginInfoSet.isEmpty())
         {
@@ -577,16 +577,16 @@ public class PatternTabItem
                 PatternInfo oldPatternInfo = Util.duplicatePatternInfo(patternInfo);
 
                 // clear
-                patternInfo.authorizedPluginTypeList.clear();
+                patternInfo.declaredPluginTypeList.clear();
                 patternInfo.forbiddenPluginTypeList.clear();
 
                 // copy type
-                copiedAuthorizedPluginTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.authorizedPluginTypeList::add);
+                copiedDeclaredPluginTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.declaredPluginTypeList::add);
                 copiedForbiddenPluginTypeList.stream().filter(availableTypeSet::contains).map(Util::duplicateType).forEach(patternInfo.forbiddenPluginTypeList::add);
 
-                if (!copiedAuthorizedPluginTypeList.isEmpty())
+                if (!copiedDeclaredPluginTypeList.isEmpty())
                 {
-                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedAuthorizedPluginTypeList, false);
+                  PatternInfoData patternInfoData = new PatternInfoData(oldPatternInfo, copiedDeclaredPluginTypeList, false);
                   updateAllPluginInfosWithPatternInfo(patternInfoData, false);
                 }
                 if (!copiedForbiddenPluginTypeList.isEmpty())

@@ -296,14 +296,14 @@ public class TypeTabItem
 
         // edit types in plugin infos
         Consumer<PluginInfo> editTypeInPluginInfoConsumer = pluginInfo -> {
-          pluginInfo.authorizedPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          pluginInfo.declaredPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
           pluginInfo.forbiddenPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(editTypeInPluginInfoConsumer);
 
         // edit types in pattern infos
         Consumer<PatternInfo> editTypeInPatternInfoConsumer = patternInfo -> {
-          patternInfo.authorizedPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
+          patternInfo.declaredPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
           patternInfo.forbiddenPluginTypeList.stream().filter(type -> selectedTypeName.equals(type.name)).findAny().ifPresent(type -> type.name = newTypeName);
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(editTypeInPatternInfoConsumer);
@@ -347,14 +347,14 @@ public class TypeTabItem
 
         // remove types in plugin infos
         Consumer<PluginInfo> removeTypeInPluginInfoConsumer = pluginInfo -> {
-          pluginInfo.authorizedPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          pluginInfo.declaredPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
           pluginInfo.forbiddenPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList.forEach(removeTypeInPluginInfoConsumer);
 
         // remove types in pattern infos
         Consumer<PatternInfo> removeTypeInPatternInfoConsumer = patternInfo -> {
-          patternInfo.authorizedPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
+          patternInfo.declaredPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
           patternInfo.forbiddenPluginTypeList.removeIf(type -> selectedTypeNameSet.contains(type.name));
         };
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.forEach(removeTypeInPatternInfoConsumer);

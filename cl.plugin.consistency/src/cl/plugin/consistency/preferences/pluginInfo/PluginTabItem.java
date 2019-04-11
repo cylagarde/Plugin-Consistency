@@ -77,7 +77,7 @@ public class PluginTabItem
   final PluginTabFolder pluginTabFolder;
   final Cache cache;
   TableViewer projectTableViewer;
-  TableViewerColumn authorizedPluginTypeTableViewerColumn;
+  TableViewerColumn declaredPluginTypeTableViewerColumn;
   TableViewerColumn forbiddenPluginTypeTableViewerColumn;
   TableViewerColumn forbiddenBundlesTableViewerColumn;
   ProjectDetail projectDetail;
@@ -170,7 +170,7 @@ public class PluginTabItem
 
     // define specific tooltip
     BiFunction<Integer, Integer, StyledString> styledStringFunction = (row, column) -> {
-      if (row >= 0 && column >= 0 && (table.getColumn(column) == authorizedPluginTypeTableViewerColumn.getColumn() || table.getColumn(column) == forbiddenPluginTypeTableViewerColumn.getColumn()))
+      if (row >= 0 && column >= 0 && (table.getColumn(column) == declaredPluginTypeTableViewerColumn.getColumn() || table.getColumn(column) == forbiddenPluginTypeTableViewerColumn.getColumn()))
       {
         PluginInfo pluginInfo = (PluginInfo) table.getItem(row).getData();
 
@@ -182,8 +182,8 @@ public class PluginTabItem
         if (!patternInfos.isEmpty())
         {
           Map<String, List<PatternInfo>> typeToPatternInfoMap = new TreeMap<>();
-          if (table.getColumn(column) == authorizedPluginTypeTableViewerColumn.getColumn())
-            patternInfos.forEach(patternInfo -> patternInfo.authorizedPluginTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
+          if (table.getColumn(column) == declaredPluginTypeTableViewerColumn.getColumn())
+            patternInfos.forEach(patternInfo -> patternInfo.declaredPluginTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
           else
             patternInfos.forEach(patternInfo -> patternInfo.forbiddenPluginTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
 
@@ -289,10 +289,10 @@ public class PluginTabItem
     }));
     DefaultLabelViewerComparator.configureForSortingColumn(pluginIdTableViewerColumn);
 
-    // 'Authorized plugin types' TableViewerColumn
-    authorizedPluginTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    authorizedPluginTypeTableViewerColumn.getColumn().setText("Authorized plugin types");
-    authorizedPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
+    // 'Declared plugin types' TableViewerColumn
+    declaredPluginTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    declaredPluginTypeTableViewerColumn.getColumn().setText("Declared plugin types");
+    declaredPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
     {
       @Override
       public StyledString getStyledText(Object element)
@@ -301,18 +301,18 @@ public class PluginTabItem
 
         StyledString styledString = new StyledString();
 
-        Set<String> authorizedPluginTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+        Set<String> declaredPluginTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
           .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
-          .flatMap(patternInfo -> patternInfo.authorizedPluginTypeList.stream())
+          .flatMap(patternInfo -> patternInfo.declaredPluginTypeList.stream())
           .map(type -> type.name)
           .collect(Collectors.toSet());
 
-        int[] size = {pluginInfo.authorizedPluginTypeList.size()};
-        pluginInfo.authorizedPluginTypeList.stream()
+        int[] size = {pluginInfo.declaredPluginTypeList.size()};
+        pluginInfo.declaredPluginTypeList.stream()
           .map(type -> type.name)
           .sorted()
           .forEach(typename -> {
-            if (authorizedPluginTypeFromPatternInfoSet.contains(typename))
+            if (declaredPluginTypeFromPatternInfoSet.contains(typename))
               styledString.append(typename, StyledString.COUNTER_STYLER);
             else
               styledString.append(typename);
@@ -323,7 +323,7 @@ public class PluginTabItem
         return styledString;
       }
     }));
-    DefaultLabelViewerComparator.configureForSortingColumn(authorizedPluginTypeTableViewerColumn);
+    DefaultLabelViewerComparator.configureForSortingColumn(declaredPluginTypeTableViewerColumn);
 
     // 'Forbidden plugin types' TableViewerColumn
     forbiddenPluginTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
@@ -443,7 +443,7 @@ public class PluginTabItem
     {
       projectTableViewer.refresh(pluginInfo);
 
-      pack(authorizedPluginTypeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
+      pack(declaredPluginTypeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
       pack(forbiddenPluginTypeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
     }
     finally
@@ -487,7 +487,7 @@ public class PluginTabItem
    */
   class PluginInfoMenuListener implements IMenuListener
   {
-    Set<String> copiedTypeSet = Collections.emptySet();
+    Set<String> copiedDeclaredTypeSet = Collections.emptySet();
     Set<String> copiedForbiddenPluginTypeSet = Collections.emptySet();
 
     @Override
@@ -522,9 +522,9 @@ public class PluginTabItem
         PluginInfo pluginInfo = selectedPluginInfoSet.iterator().next();
         if (pluginInfo.containsInformations())
         {
-          Set<String> currentAuthorizedPluginTypeSet = pluginInfo.authorizedPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+          Set<String> currentDeclaredPluginTypeSet = pluginInfo.declaredPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
           Set<String> currentForbiddenPluginTypeSet = pluginInfo.forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
-          if (!currentAuthorizedPluginTypeSet.equals(copiedTypeSet) || !currentForbiddenPluginTypeSet.equals(copiedForbiddenPluginTypeSet))
+          if (!currentDeclaredPluginTypeSet.equals(copiedDeclaredTypeSet) || !currentForbiddenPluginTypeSet.equals(copiedForbiddenPluginTypeSet))
           {
             if (manager.getItems().length > 1)
               manager.add(new Separator());
@@ -535,7 +535,7 @@ public class PluginTabItem
               @Override
               public void run()
               {
-                copiedTypeSet = currentAuthorizedPluginTypeSet;
+                copiedDeclaredTypeSet = currentDeclaredPluginTypeSet;
                 copiedForbiddenPluginTypeSet = currentForbiddenPluginTypeSet;
               }
             });
@@ -543,7 +543,7 @@ public class PluginTabItem
         }
       }
 
-      if (!copiedTypeSet.isEmpty() || !copiedForbiddenPluginTypeSet.isEmpty())
+      if (!copiedDeclaredTypeSet.isEmpty() || !copiedForbiddenPluginTypeSet.isEmpty())
       {
         if (!selectedPluginInfoSet.isEmpty())
         {
@@ -560,17 +560,17 @@ public class PluginTabItem
               for(PluginInfo pluginInfo : selectedPluginInfoSet)
               {
                 // clear
-                pluginInfo.authorizedPluginTypeList.clear();
+                pluginInfo.declaredPluginTypeList.clear();
                 pluginInfo.forbiddenPluginTypeList.clear();
 
-                // copy authorized type
-                for(String typeName : copiedTypeSet)
+                // copy declared type
+                for(String typeName : copiedDeclaredTypeSet)
                 {
                   if (availableTypeSet.contains(typeName))
                   {
                     Type newType = new Type();
                     newType.name = typeName;
-                    pluginInfo.authorizedPluginTypeList.add(newType);
+                    pluginInfo.declaredPluginTypeList.add(newType);
                   }
                 }
 

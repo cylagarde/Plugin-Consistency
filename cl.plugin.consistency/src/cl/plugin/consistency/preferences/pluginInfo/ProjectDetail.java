@@ -31,7 +31,7 @@ class ProjectDetail
 {
   final PluginTabItem pluginTabItem;
   PluginInfo pluginInfo;
-  ElementManagerComposite<TypeElement, PluginInfoData> authorizedPluginTypeComposite;
+  ElementManagerComposite<TypeElement, PluginInfoData> declaredPluginTypeComposite;
   ElementManagerComposite<TypeElement, PluginInfoData> forbiddenPluginTypeComposite;
   ForbiddenPluginComposite forbiddenPluginComposite;
   Composite content;
@@ -65,7 +65,7 @@ class ProjectDetail
     sashForm.setLayoutData(sashFormLayoutData);
 
     //
-    createAuthorizedPluginTypeComposite(sashForm);
+    createDeclaredPluginTypeComposite(sashForm);
 
     //
     createForbiddenPluginTypeComposite(sashForm);
@@ -79,9 +79,9 @@ class ProjectDetail
   /**
    *
    */
-  private void createAuthorizedPluginTypeComposite(Composite parent)
+  private void createDeclaredPluginTypeComposite(Composite parent)
   {
-    IElementManagerDataModel<TypeElement, PluginInfoData> authorizedPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PluginInfoData>()
+    IElementManagerDataModel<TypeElement, PluginInfoData> declaredPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PluginInfoData>()
     {
       @Override
       public void refreshData(PluginInfoData pluginInfoData)
@@ -98,7 +98,7 @@ class ProjectDetail
       @Override
       public String getSectionTitle()
       {
-        return "Authorized plugin types";
+        return "Declared plugin types";
       }
 
       @Override
@@ -110,11 +110,11 @@ class ProjectDetail
       @Override
       public String getAddElementToolTipText()
       {
-        return "Add authorized plugin type";
+        return "Add declared plugin type";
       }
     };
 
-    authorizedPluginTypeComposite = new ElementManagerComposite<>(authorizedPluginTypeElementManagerDataModel, parent, SWT.NONE);
+    declaredPluginTypeComposite = new ElementManagerComposite<>(declaredPluginTypeElementManagerDataModel, parent, SWT.NONE);
   }
 
   /**
@@ -178,12 +178,12 @@ class ProjectDetail
     if (pluginInfo != null)
     {
       // sort
-      Collections.sort(pluginInfo.authorizedPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      Collections.sort(pluginInfo.declaredPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
       Collections.sort(pluginInfo.forbiddenPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
 
-      Set<Type> authorizedPluginTypeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
-        .flatMap(patternInfo -> patternInfo.authorizedPluginTypeList.stream()).collect(Collectors.toSet());
-      authorizedPluginTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.authorizedPluginTypeList, authorizedPluginTypeFromPatternInfoSet, false));
+      Set<Type> declaredPluginTypeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+        .flatMap(patternInfo -> patternInfo.declaredPluginTypeList.stream()).collect(Collectors.toSet());
+      declaredPluginTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.declaredPluginTypeList, declaredPluginTypeFromPatternInfoSet, false));
 
       Set<Type> forbiddenPluginTypeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
         .flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream()).collect(Collectors.toSet());
@@ -191,7 +191,7 @@ class ProjectDetail
     }
     else
     {
-      authorizedPluginTypeComposite.setData(null);
+      declaredPluginTypeComposite.setData(null);
       forbiddenPluginTypeComposite.setData(null);
     }
 
@@ -205,7 +205,7 @@ class ProjectDetail
       validPlugin = pluginTabItem.cache.isValidProject(project);
     }
 
-    authorizedPluginTypeComposite.setEnabled(validPlugin);
+    declaredPluginTypeComposite.setEnabled(validPlugin);
     forbiddenPluginTypeComposite.setEnabled(validPlugin);
     forbiddenPluginComposite.setEnabled(validPlugin);
   }
