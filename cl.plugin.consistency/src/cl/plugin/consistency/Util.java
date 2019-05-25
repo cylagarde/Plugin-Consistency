@@ -124,9 +124,7 @@ public class Util
         // check if project exists
         Path path = new Path(consistency_file_path);
         IProject project = getWorkspaceProject(consistency_file_path);
-        if (project == null)
-          pluginConsistencyFile = null;
-        else
+        if (project != null)
           pluginConsistencyFile = new File(project.getLocation().toFile(), path.removeFirstSegments(1).toString());
       }
     }
