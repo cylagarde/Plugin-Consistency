@@ -1,5 +1,6 @@
 package cl.plugin.consistency.preferences;
 
+import org.eclipse.e4.ui.css.swt.theme.IThemeEngine;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.layout.GridLayoutFactory;
@@ -9,8 +10,10 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.FormColors;
 import org.eclipse.ui.forms.IFormColors;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -95,7 +98,7 @@ public class SectionPane extends Composite
           titleLabel.setFont(font);
         }
       };
-      //      headerComposite.setBackground(null);
+      // headerComposite.setBackground(null);
       headerComposite.setLayout(GridLayoutFactory.fillDefaults().spacing(0, 0).margins(0, 0).numColumns(50).extendedMargins(0, 0, 2, 0).create());
       textLabel = headerComposite;
 
@@ -113,10 +116,30 @@ public class SectionPane extends Composite
       setTitleBarBackground(colors.getColor(IFormColors.TB_BG));
       setTitleBarBorderColor(colors.getColor(IFormColors.TB_BORDER));
       setTitleBarForeground(colors.getColor(IFormColors.TB_TOGGLE));
+
+      IThemeEngine themeEngine = PlatformUI.getWorkbench().getService(IThemeEngine.class);
+      if (themeEngine != null && "Dark".equals(themeEngine.getActiveTheme().getLabel()))
+      {
+        Color darkTitleBarBackground = new Color(Display.getDefault(), 181, 186, 188);
+        setTitleBarBackground(darkTitleBarBackground);
+
+        Color darkTitleBarBorderColor = new Color(Display.getDefault(), 81 + 50, 86 + 50, 88 + 50);
+        setTitleBarBorderColor(darkTitleBarBorderColor);
+
+        Color darkBackground = new Color(Display.getDefault(), 81, 86, 88);
+        setBackground(darkBackground);
+        getParent().setBackground(darkBackground);
+      }
+      else
+      {
+        setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
+        getParent().setBackground(Display.getDefault().getSystemColor(SWT.COLOR_WHITE));
+      }
     }
 
     /**
      * Set image
+     *
      * @param image
      */
     public void setImage(Image image)
@@ -128,6 +151,7 @@ public class SectionPane extends Composite
 
     /**
      * Set text
+     *
      * @param text
      */
     @Override

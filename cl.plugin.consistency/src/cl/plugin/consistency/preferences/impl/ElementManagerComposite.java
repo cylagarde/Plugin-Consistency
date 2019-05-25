@@ -75,15 +75,15 @@ public class ElementManagerComposite<E extends IElement, T extends IData<E>>
     toolBarManager.update(true);
 
     //
-    scrolledComposite = new ScrolledComposite(sectionPane, SWT.H_SCROLL | SWT.V_SCROLL);
+    scrolledComposite = new ScrolledComposite(sectionPane, SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
     scrolledComposite.setExpandHorizontal(true);
     scrolledComposite.setExpandVertical(true);
-    scrolledComposite.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).indent(6, 0).create());
+    scrolledComposite.setLayoutData(GridDataFactory.fillDefaults().grab(true, true).create());
 
     //
     elementListComposite = formToolkit.createComposite(scrolledComposite);
     GridLayout gridLayout = new GridLayout();
-    gridLayout.marginWidth = gridLayout.marginHeight = 0;
+    gridLayout.marginWidth = gridLayout.marginHeight = 3;
     gridLayout.marginTop = gridLayout.marginLeft = gridLayout.marginRight = gridLayout.marginBottom = 0;
     elementListComposite.setLayout(gridLayout);
     scrolledComposite.setContent(elementListComposite);
