@@ -19,7 +19,8 @@ import cl.plugin.consistency.model.PluginInfo;
  */
 public class PluginConsistencyLoader
 {
-  static final String SCHEMA_XSD = PluginConsistency.class.getPackage().getName().replace('.', '/') + "/pluginConsistency.xsd";
+  static final String SCHEMA_XSD = "pluginConsistency.xsd";
+  static final URL SCHEMA_URL = PluginConsistency.class.getResource(SCHEMA_XSD);
   static Schema pluginConsistencySchema;
 
   /**
@@ -33,8 +34,7 @@ public class PluginConsistencyLoader
     if (pluginConsistencySchema == null)
     {
       final SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      final URL schemaURL = PluginConsistency.class.getClassLoader().getResource(SCHEMA_XSD);
-      pluginConsistencySchema = schemaFactory.newSchema(schemaURL);
+      pluginConsistencySchema = schemaFactory.newSchema(SCHEMA_URL);
     }
     return pluginConsistencySchema;
   }
@@ -67,6 +67,9 @@ public class PluginConsistencyLoader
    */
   public static void savePluginConsistency(PluginConsistency pluginConsistency, File pluginConsistencyFile) throws Exception
   {
-    JaxbLoaderUtil.save(pluginConsistency, pluginConsistencyFile);
+    String schemaLocation = SCHEMA_URL.getPath();
+    if (schemaLocation.startsWith("/"))
+      schemaLocation = schemaLocation.substring(1);
+    JaxbLoaderUtil.save(pluginConsistency, pluginConsistencyFile, schemaLocation);
   }
 }
