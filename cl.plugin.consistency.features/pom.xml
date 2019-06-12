@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>cl.plugin.consistency</groupId>
 		<artifactId>cl.plugin.consistency.parent</artifactId>
-		<version>1.8.1-SNAPSHOT</version>
+		<version>1.8.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>cl.plugin.consistency.features</artifactId>

@@ -69,6 +69,7 @@ public class Util
 
   /**
    * Recursive all controls
+   * 
    * @param control
    * @param consumer
    */
@@ -82,7 +83,6 @@ public class Util
         recursive(child, consumer);
     }
   }
-
 
   /**
    * Create combo
@@ -139,7 +139,7 @@ public class Util
     // check if project exists
     String projectName = new Path(fullPath).segment(0);
     IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(projectName);
-    if (project == null || ! project.exists())
+    if (project == null || !project.exists())
       project = null;
     return project;
   }
@@ -166,6 +166,7 @@ public class Util
 
   /**
    * Load and update plugin consistency file
+   * 
    * @param consistencyFile
    */
   public static PluginConsistency loadAndUpdateConsistencyFile(File consistencyFile)
@@ -174,7 +175,7 @@ public class Util
 
     try
     {
-      if (consistencyFile != null && consistencyFile.exists())
+      if (consistencyFile != null && consistencyFile.exists() && consistencyFile.isFile())
         pluginConsistency = PluginConsistencyLoader.loadPluginConsistencyFile(consistencyFile);
     }
     catch(Exception e)
@@ -202,6 +203,7 @@ public class Util
 
   /**
    * Update plugin consistency, adding new workspace projects, updating name, id, type, etc...
+   * 
    * @param pluginConsistency
    */
   public static void updatePluginConsistency(PluginConsistency pluginConsistency)
@@ -272,6 +274,7 @@ public class Util
 
   /**
    * Update pluginInfo with Pattern information
+   * 
    * @param pluginConsistency
    * @param pluginInfo
    */
@@ -282,6 +285,7 @@ public class Util
 
   /**
    * Update pluginInfo with Pattern information
+   * 
    * @param pluginConsistency
    * @param pluginInfo
    */
@@ -332,6 +336,7 @@ public class Util
 
   /**
    * Update all pluginInfos with Pattern information
+   * 
    * @param pluginConsistency
    */
   public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency)
@@ -342,6 +347,7 @@ public class Util
 
   /**
    * Remove pattern in pluginInfo
+   * 
    * @param pluginConsistency
    * @param pluginInfo
    */
@@ -375,6 +381,7 @@ public class Util
 
   /**
    * Remove pattern in all pluginInfos
+   * 
    * @param pluginConsistency
    */
   public static void removePatternInAllPluginInfos(PluginConsistency pluginConsistency)
@@ -385,6 +392,7 @@ public class Util
 
   /**
    * Reset types in all pluginInfos
+   * 
    * @param pluginConsistency
    */
   public static void resetTypesInAllPluginInfos(PluginConsistency pluginConsistency)
@@ -395,6 +403,7 @@ public class Util
 
   /**
    * Reset types in pluginInfo
+   * 
    * @param pluginInfo
    */
   public static void resetTypesInPluginInfo(PluginInfo pluginInfo)
@@ -409,6 +418,7 @@ public class Util
 
   /**
    * Check project consistency
+   * 
    * @param pluginConsistency
    * @param project
    * @param markerConsumer
@@ -546,8 +556,7 @@ public class Util
     // launch job
     if (!runnableList.isEmpty() || pbMarkers.length != 0)
     {
-      workspaceJob = new WorkspaceJob("Check consistency '" + project.getName() + "'")
-      {
+      workspaceJob = new WorkspaceJob("Check consistency '" + project.getName() + "'") {
         @Override
         public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
         {
@@ -579,6 +588,7 @@ public class Util
 
   /**
    * Create Manifest Problem Marker
+   * 
    * @param manifest
    * @param requireBundle
    * @param message
@@ -621,7 +631,7 @@ public class Util
     int sourceOffset = 0;
     String requireTag = "Require-Bundle:";
 
-    try (LineNumberReader br = new LineNumberReader(new InputStreamReader(manifest.getContents())))
+    try(LineNumberReader br = new LineNumberReader(new InputStreamReader(manifest.getContents())))
     {
       String line = null;
       while((line = br.readLine()) != null)
@@ -678,6 +688,7 @@ public class Util
 
   /**
    * Update marker
+   * 
    * @param marker
    * @param char_start
    * @param char_end
@@ -746,6 +757,7 @@ public class Util
 
   /**
    * Remove all consistency markers
+   * 
    * @param project
    */
   public static void removeCheckProjectConsistency(IProject project) throws Exception
@@ -781,6 +793,7 @@ public class Util
 
   /**
    * Save PluginConsistency
+   * 
    * @param pluginConsistency
    */
   public static void savePluginConsistency(PluginConsistency pluginConsistency, File consistencyFile)
@@ -801,6 +814,7 @@ public class Util
 
   /**
    * Return the project
+   * 
    * @param pluginInfo
    */
   public static IProject getProject(PluginInfo pluginInfo)
@@ -810,14 +824,14 @@ public class Util
 
   /**
    * Launch job for checking projects
+   * 
    * @param pluginConsistency
    * @param markerConsumer
    */
   public static void launchConsistencyCheck(PluginConsistency pluginConsistency, Consumer<List<IMarker>> markerConsumer)
   {
     // launch project checking
-    WorkspaceJob job = new WorkspaceJob("Check all projects consistency")
-    {
+    WorkspaceJob job = new WorkspaceJob("Check all projects consistency") {
       @Override
       public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
       {
@@ -859,6 +873,7 @@ public class Util
 
   /**
    * Join WorkspaceJob
+   * 
    * @param workspaceJob
    */
   private static void join(WorkspaceJob workspaceJob)

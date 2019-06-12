@@ -106,6 +106,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
   /**
    * Configure Activate checkbox
+   *
    * @param content
    */
   private void configureActivate(Composite content)
@@ -132,8 +133,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     Button launchCheckConsistencyButton = new Button(activateComposite, SWT.NONE);
     launchCheckConsistencyButton.setImage(Images.LAUNCH_CHECK_CONSISTENCY.getImage());
     launchCheckConsistencyButton.setToolTipText("Launch check consistency");
-    launchCheckConsistencyButton.addSelectionListener(new SelectionAdapter()
-    {
+    launchCheckConsistencyButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent se)
       {
@@ -144,6 +144,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
   /**
    * Configure Import Consistency File
+   *
    * @param content
    */
   private void configureImportConsistencyFile(Composite content)
@@ -170,8 +171,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     reloadPluginConsistencyFileButton.setText("Reload");
     reloadPluginConsistencyFileButton.setToolTipText("Reload model from XML file");
     reloadPluginConsistencyFileButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ELCL_SYNCED));
-    reloadPluginConsistencyFileButton.addSelectionListener(new SelectionAdapter()
-    {
+    reloadPluginConsistencyFileButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent se)
       {
@@ -192,8 +192,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     saveModelButton.setText("Save");
     saveModelButton.setToolTipText("Save model to XML file");
     saveModelButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ETOOL_SAVE_EDIT));
-    saveModelButton.addSelectionListener(new SelectionAdapter()
-    {
+    saveModelButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent se)
       {
@@ -206,8 +205,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     findPluginConsistencyFromFileSystemButton.setText("File system");
     findPluginConsistencyFromFileSystemButton.setToolTipText("Select consistency file from file system");
     findPluginConsistencyFromFileSystemButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FILE));
-    findPluginConsistencyFromFileSystemButton.addSelectionListener(new SelectionAdapter()
-    {
+    findPluginConsistencyFromFileSystemButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent se)
       {
@@ -248,18 +246,16 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     findPluginConsistencyFromWorkspaceButton.setText("Workspace");
     findPluginConsistencyFromWorkspaceButton.setToolTipText("Select consistency file from workspace");
     findPluginConsistencyFromWorkspaceButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
-    findPluginConsistencyFromWorkspaceButton.addSelectionListener(new SelectionAdapter()
-    {
+    findPluginConsistencyFromWorkspaceButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent se)
       {
-        WorkspaceResourceDialog dialog = new WorkspaceResourceDialog(getShell())
-        {
+        WorkspaceResourceDialog dialog = new WorkspaceResourceDialog(getShell()) {
           @Override
           protected String acceptFilename(String filename)
           {
             String message = super.acceptFilename(filename);
-            if (message == null && ! filename.endsWith("." + PLUGIN_CONSISTENCY_FILE_EXTENSION))
+            if (message == null && !filename.endsWith("." + PLUGIN_CONSISTENCY_FILE_EXTENSION))
               message = "File name must have extension '." + PLUGIN_CONSISTENCY_FILE_EXTENSION + "'";
             return message;
           }
@@ -271,14 +267,16 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
         String consistency_file_path = pluginConsistencyFileText.getText();
         Path path = new Path(consistency_file_path);
-        IResource resource = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-        dialog.setInitialSelection(resource);
+        if (ResourcesPlugin.getWorkspace().getRoot().exists(path))
+        {
+          IResource resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
+          dialog.setInitialSelection(resource);
+        }
 
         dialog.setShowNewFolderControl(true);
         dialog.setShowFileControl(true);
 
-        ViewerFilter filter = new ViewerFilter()
-        {
+        ViewerFilter filter = new ViewerFilter() {
           PluginConsistencyFileChecker pluginConsistencyFileChecker = new PluginConsistencyFileChecker();
 
           @Override
@@ -365,6 +363,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
 
   /**
    * Check consistency file path
+   *
    * @param consistency_file_path
    */
   private String checkConsistencyFilePath(String consistency_file_path, boolean mustExists, boolean checkLoad)
