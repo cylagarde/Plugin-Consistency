@@ -1,6 +1,7 @@
 package cl.plugin.consistency.model.util;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
@@ -10,6 +11,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.PropertyException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.validation.Schema;
 
 /**
@@ -52,8 +59,6 @@ public final class JaxbLoaderUtil
     final Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
     jaxbMarshaller.setProperty(javax.xml.bind.Marshaller.JAXB_ENCODING, "UTF-8");
     jaxbMarshaller.setProperty(javax.xml.bind.Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-    final String /* MarshallerImpl. */ INDENT_STRING = "com.sun.xml.internal.bind.indentString";
-    jaxbMarshaller.setProperty(INDENT_STRING, "  ");
     if (schemaLocation != null)
       jaxbMarshaller.setProperty(javax.xml.bind.Marshaller.JAXB_NO_NAMESPACE_SCHEMA_LOCATION, schemaLocation);
     return jaxbMarshaller;
@@ -147,8 +152,10 @@ public final class JaxbLoaderUtil
    */
   public static void save(Object o, File file, String schemaLocation) throws Exception
   {
-    final Marshaller jaxbMarshaller = createMarshaller(o.getClass(), schemaLocation);
-    jaxbMarshaller.marshal(o, file);
+    try(FileOutputStream fileOutputStream = new FileOutputStream(file))
+    {
+      save(o, fileOutputStream, schemaLocation);
+    }
   }
 
   /**
@@ -161,6 +168,14 @@ public final class JaxbLoaderUtil
   public static void save(Object o, OutputStream outputStream, String schemaLocation) throws Exception
   {
     final Marshaller jaxbMarshaller = createMarshaller(o.getClass(), schemaLocation);
-    jaxbMarshaller.marshal(o, outputStream);
+    //    jaxbMarshaller.marshal(o, outputStream);
+
+    DOMResult domResult = new DOMResult();
+    jaxbMarshaller.marshal(o, domResult);
+
+    Transformer transformer = TransformerFactory.newInstance().newTransformer();
+    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+    transformer.transform(new DOMSource(domResult.getNode()), new StreamResult(outputStream));
   }
 }
