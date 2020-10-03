@@ -69,14 +69,23 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
     plugin = this;
 
     //
-    CompletableFuture.runAsync(() -> {try{JAXBContext.newInstance(PluginConsistency.class);} catch(Exception e) {e.printStackTrace();}});
+    CompletableFuture.runAsync(() -> {
+      try
+      {
+        JAXBContext.newInstance(PluginConsistency.class);
+      }
+      catch(Exception e)
+      {
+        e.printStackTrace();
+      }
+    });
 
     //
     ServiceReference<IBundleProjectService> ref = context.getServiceReference(IBundleProjectService.class);
     bundleProjectService = context.getService(ref);
 
     //    if (isPluginConsistencyActivated())
-      activate();
+    activate();
   }
 
   /*
@@ -191,7 +200,7 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
 
   /**
    * Returns an image descriptor for the image
-   * @param img the image path
+   * @param img the image key
    * @return the image descriptor
    */
   public static ImageDescriptor getImageDescriptor(Images img)
@@ -201,7 +210,7 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
 
   /**
    * Returns an image for the image key
-   * @param imageKey The image key
+   * @param img The image key
    * @return the image
    */
   public static Image getImage(Images img)
@@ -230,7 +239,6 @@ public class PluginConsistencyActivator extends AbstractUIPlugin
   }
 
   /**
-   * @return
    */
   private void initCheckPluginConsistencyResourceChangeListener()
   {
