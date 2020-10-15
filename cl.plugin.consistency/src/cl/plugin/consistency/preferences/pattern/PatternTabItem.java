@@ -99,25 +99,30 @@ public class PatternTabItem
     configurateToobar(patternTabComposite);
 
     //
-    configurePatternSashForm(patternTabComposite);
+    configurePatternInfoSashForm(patternTabComposite);
 
     refresh();
   }
 
   /**
+   * Configure patternInfo SashForm
    * @param parent
    */
-  private void configurePatternSashForm(Composite parent)
+  private void configurePatternInfoSashForm(Composite parent)
   {
     FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
 
     //
     SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL | SWT.SMOOTH);
     formToolkit.adapt(sashForm);
-    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+    // sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
+    GridData layoutData = new GridData(GridData.FILL_BOTH);
+    // layoutData.widthHint = 800;
+    layoutData.heightHint = 1;
+    sashForm.setLayoutData(layoutData);
 
     //
-    configurePatternTableViewer(sashForm);
+    configurePatternInfoTableViewer(sashForm);
 
     //
     ScrolledComposite scrolledComposite = new ScrolledComposite(sashForm, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -191,7 +196,7 @@ public class PatternTabItem
         else
           pluginInfo.forbiddenPluginTypeList.removeAll(patternInfoData.patternInfo.forbiddenPluginTypeList);
 
-        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, !patternInfoData.isForbiddenPluginTypeList, patternInfoData.isForbiddenPluginTypeList);
+        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, !patternInfoData.isForbiddenPluginTypeList, patternInfoData.isForbiddenPluginTypeList, true);
       }
     }
 
@@ -206,8 +211,7 @@ public class PatternTabItem
   private ElementManagerComposite<TypeElement, PatternInfoData> createDeclaredPluginTypeComposite(Composite parent)
   {
     //
-    IElementManagerDataModel<TypeElement, PatternInfoData> typeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>()
-    {
+    IElementManagerDataModel<TypeElement, PatternInfoData> typeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>() {
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
@@ -248,8 +252,7 @@ public class PatternTabItem
    */
   private ElementManagerComposite<TypeElement, PatternInfoData> createForbiddenPluginTypeComposite(Composite parent)
   {
-    IElementManagerDataModel<TypeElement, PatternInfoData> forbiddenPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>()
-    {
+    IElementManagerDataModel<TypeElement, PatternInfoData> forbiddenPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>() {
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
@@ -299,8 +302,7 @@ public class PatternTabItem
     Button addPatternButton = new Button(toolbarComposite, SWT.FLAT);
     addPatternButton.setToolTipText("Add new pattern");
     addPatternButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ISharedImages.IMG_OBJ_ADD));
-    addPatternButton.addSelectionListener(new SelectionAdapter()
-    {
+    addPatternButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e)
       {
@@ -338,8 +340,7 @@ public class PatternTabItem
 
     selectAllButton = new Button(toolbarComposite, SWT.CHECK);
     selectAllButton.setText("Select all");
-    selectAllButton.addSelectionListener(new SelectionListener()
-    {
+    selectAllButton.addSelectionListener(new SelectionListener() {
       @Override
       public void widgetSelected(SelectionEvent e)
       {
@@ -361,7 +362,7 @@ public class PatternTabItem
   /**
    * @param parent
    */
-  private void configurePatternTableViewer(Composite parent)
+  private void configurePatternInfoTableViewer(Composite parent)
   {
     patternCheckTableViewer = CheckboxTableViewer.newCheckList(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
     patternCheckTableViewer.setContentProvider(ArrayContentProvider.getInstance());
@@ -425,6 +426,12 @@ public class PatternTabItem
     forbiddenPluginTypeTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.forbiddenPluginTypeList.stream().map(type -> type.name).sorted().collect(Collectors.joining(", "))));
     DefaultLabelViewerComparator.configureForSortingColumn(forbiddenPluginTypeTableViewerColumn);
 
+    // 'Forbidden plugins/projects' TableViewerColumn
+    TableViewerColumn forbiddenBundlesTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    forbiddenBundlesTableViewerColumn.getColumn().setText("Forbidden plugins/projects");
+    forbiddenBundlesTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.forbiddenPluginList.stream().map(forbiddenPluginInfo -> forbiddenPluginInfo.id).sorted().collect(Collectors.joining(", "))));
+    DefaultLabelViewerComparator.configureForSortingColumn(forbiddenBundlesTableViewerColumn);
+
     //
     configurePopupMenuForTypeTableViewer();
   }
@@ -456,8 +463,7 @@ public class PatternTabItem
       List<PatternInfo> patternList = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList;
       patternCheckTableViewer.setInput(patternList);
       boolean[] first = new boolean[]{true};
-      patternCheckTableViewer.setComparator(new DefaultLabelViewerComparator()
-      {
+      patternCheckTableViewer.setComparator(new DefaultLabelViewerComparator() {
         @Override
         protected String getTextForComparaison(Viewer viewer, Object elt, int columnIndex)
         {
@@ -545,8 +551,7 @@ public class PatternTabItem
               manager.add(new Separator());
             separatorAdded = true;
 
-            manager.add(new Action("Copy types in memory")
-            {
+            manager.add(new Action("Copy types in memory") {
               @Override
               public void run()
               {
@@ -565,8 +570,7 @@ public class PatternTabItem
           if (!separatorAdded && manager.getItems().length > 1)
             manager.add(new Separator());
 
-          manager.add(new Action("Paste and replace types from memory")
-          {
+          manager.add(new Action("Paste and replace types from memory") {
             @Override
             public void run()
             {

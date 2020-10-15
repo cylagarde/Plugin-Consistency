@@ -79,8 +79,8 @@ public class PluginTabItem
   TableViewer projectTableViewer;
   TableViewerColumn declaredPluginTypeTableViewerColumn;
   TableViewerColumn forbiddenPluginTypeTableViewerColumn;
-  TableViewerColumn forbiddenBundlesTableViewerColumn;
-  ProjectDetail projectDetail;
+  TableViewerColumn forbiddenPluginTableViewerColumn;
+  PluginInfoDetail pluginInfoDetail;
 
   /**
    * Constructor
@@ -104,18 +104,17 @@ public class PluginTabItem
     pluginTabCompositeLayout.verticalSpacing = 10;
     pluginTabComposite.setLayout(pluginTabCompositeLayout);
 
-    configureProjectSashForm(pluginTabComposite);
+    configurePluginInfoSashForm(pluginTabComposite);
 
     //
     refresh();
   }
 
   /**
-   * Configure Project SashForm
-   *
+   * Configure pluginInfo SashForm
    * @param parent
    */
-  private void configureProjectSashForm(Composite parent)
+  private void configurePluginInfoSashForm(Composite parent)
   {
     FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
 
@@ -129,7 +128,7 @@ public class PluginTabItem
     sashForm.setLayoutData(layoutData);
 
     //
-    configureProjectTableViewer(sashForm);
+    configurePluginInfoTableViewer(sashForm);
 
     //
     ScrolledComposite scrolledComposite = new ScrolledComposite(sashForm, SWT.H_SCROLL | SWT.V_SCROLL);
@@ -137,15 +136,15 @@ public class PluginTabItem
     scrolledComposite.setExpandVertical(true);
 
     //
-    projectDetail = new ProjectDetail(this, scrolledComposite);
-    scrolledComposite.setContent(projectDetail.content);
+    pluginInfoDetail = new PluginInfoDetail(this, scrolledComposite);
+    scrolledComposite.setContent(pluginInfoDetail.content);
     scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
     // selection
     projectTableViewer.addSelectionChangedListener(event -> {
       IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
       PluginInfo pluginInfo = (PluginInfo) selection.getFirstElement();
-      projectDetail.setPluginInfo(pluginInfo);
+      pluginInfoDetail.setPluginInfo(pluginInfo);
     });
 
     sashForm.setWeights(new int[]{2, 1});
@@ -156,7 +155,7 @@ public class PluginTabItem
    *
    * @param parent
    */
-  private void configureProjectTableViewer(Composite parent)
+  private void configurePluginInfoTableViewer(Composite parent)
   {
     //
     projectTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
@@ -170,7 +169,10 @@ public class PluginTabItem
 
     // define specific tooltip
     BiFunction<Integer, Integer, StyledString> styledStringFunction = (row, column) -> {
-      if (row >= 0 && column >= 0 && (table.getColumn(column) == declaredPluginTypeTableViewerColumn.getColumn() || table.getColumn(column) == forbiddenPluginTypeTableViewerColumn.getColumn()))
+      if (row < 0 || column < 0)
+        return null;
+      TableColumn tableColumn = table.getColumn(column);
+      if (tableColumn == declaredPluginTypeTableViewerColumn.getColumn() || tableColumn == forbiddenPluginTypeTableViewerColumn.getColumn() || tableColumn == forbiddenPluginTableViewerColumn.getColumn())
       {
         PluginInfo pluginInfo = (PluginInfo) table.getItem(row).getData();
 
@@ -182,10 +184,12 @@ public class PluginTabItem
         if (!patternInfos.isEmpty())
         {
           Map<String, List<PatternInfo>> typeToPatternInfoMap = new TreeMap<>();
-          if (table.getColumn(column) == declaredPluginTypeTableViewerColumn.getColumn())
+          if (tableColumn == declaredPluginTypeTableViewerColumn.getColumn())
             patternInfos.forEach(patternInfo -> patternInfo.declaredPluginTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
-          else
+          else if (tableColumn == forbiddenPluginTypeTableViewerColumn.getColumn())
             patternInfos.forEach(patternInfo -> patternInfo.forbiddenPluginTypeList.forEach(type -> typeToPatternInfoMap.computeIfAbsent(type.name, k -> new ArrayList<>()).add(patternInfo)));
+          else if (tableColumn == forbiddenPluginTableViewerColumn.getColumn())
+            patternInfos.forEach(patternInfo -> patternInfo.forbiddenPluginList.forEach(forbiddenPlugin -> typeToPatternInfoMap.computeIfAbsent(forbiddenPlugin.id, k -> new ArrayList<>()).add(patternInfo)));
 
           if (!typeToPatternInfoMap.isEmpty())
           {
@@ -234,15 +238,14 @@ public class PluginTabItem
       }
       return null;
     };
-    StyledToolTip styledToolTip = new StyledToolTip(table, styledStringFunction);
+    new StyledToolTip(table, styledStringFunction);
 
     // 'Plugin id' TableViewerColumn
     TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
     pluginIdTableViewerColumn.getColumn().setText("Workspace plugin id");
     pluginIdTableViewerColumn.getColumn().setWidth(COLUMN_PREFERRED_WIDTH);
     pluginIdTableViewerColumn.getColumn().setData(COLUMN_SPACE_KEY, COLUMN_SPACE);
-    pluginIdTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache)
-    {
+    pluginIdTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache) {
       @Override
       public StyledString getStyledText(Object element)
       {
@@ -292,8 +295,7 @@ public class PluginTabItem
     // 'Declared plugin types' TableViewerColumn
     declaredPluginTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
     declaredPluginTypeTableViewerColumn.getColumn().setText("Declared plugin types");
-    declaredPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
-    {
+    declaredPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider() {
       @Override
       public StyledString getStyledText(Object element)
       {
@@ -328,8 +330,7 @@ public class PluginTabItem
     // 'Forbidden plugin types' TableViewerColumn
     forbiddenPluginTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
     forbiddenPluginTypeTableViewerColumn.getColumn().setText("Forbidden plugin types");
-    forbiddenPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider()
-    {
+    forbiddenPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider() {
       @Override
       public StyledString getStyledText(Object element)
       {
@@ -337,11 +338,16 @@ public class PluginTabItem
 
         StyledString styledString = new StyledString();
 
-        Set<String> forbiddenPluginTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
-          .flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream()).map(type -> type.name).collect(Collectors.toSet());
+        Set<String> forbiddenPluginTypeFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream())
+          .map(type -> type.name)
+          .collect(Collectors.toSet());
 
         int[] size = {pluginInfo.forbiddenPluginTypeList.size()};
-        pluginInfo.forbiddenPluginTypeList.stream().map(type -> type.name).sorted()
+        pluginInfo.forbiddenPluginTypeList.stream()
+          .map(type -> type.name)
+          .sorted()
           .forEach(typename -> {
             if (forbiddenPluginTypeFromPatternInfoSet.contains(typename))
               styledString.append(typename, StyledString.COUNTER_STYLER);
@@ -356,20 +362,38 @@ public class PluginTabItem
     }));
     DefaultLabelViewerComparator.configureForSortingColumn(forbiddenPluginTypeTableViewerColumn);
 
-    // 'Forbidden plugin/project' TableViewerColumn
-    forbiddenBundlesTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
-    forbiddenBundlesTableViewerColumn.getColumn().setText("Forbidden plugins/projects");
-    forbiddenBundlesTableViewerColumn.setLabelProvider(new PluginInfoColumnLabelProvider()
-    {
+    // 'Forbidden plugins/projects' TableViewerColumn
+    forbiddenPluginTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    forbiddenPluginTableViewerColumn.getColumn().setText("Forbidden plugins/projects");
+    forbiddenPluginTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider() {
       @Override
-      public String getText(Object element)
+      public StyledString getStyledText(Object element)
       {
         PluginInfo pluginInfo = (PluginInfo) element;
-        String forbiddenBundles = pluginInfo.forbiddenPluginList.stream().map(forbiddenPluginInfo -> forbiddenPluginInfo.id).sorted().collect(Collectors.joining(", "));
-        return forbiddenBundles;
+
+        StyledString styledString = new StyledString();
+
+        Set<String> forbiddenPluginFromPatternInfoSet = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .flatMap(patternInfo -> patternInfo.forbiddenPluginList.stream())
+          .map(forbiddenPlugin -> forbiddenPlugin.id)
+          .collect(Collectors.toSet());
+
+        int[] size = {pluginInfo.forbiddenPluginList.size()};
+        pluginInfo.forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).sorted()
+          .forEach(id -> {
+            if (forbiddenPluginFromPatternInfoSet.contains(id))
+              styledString.append(id, StyledString.COUNTER_STYLER);
+            else
+              styledString.append(id);
+            if (size[0]-- != 1)
+              styledString.append(", ");
+          });
+
+        return styledString;
       }
-    });
-    DefaultLabelViewerComparator.configureForSortingColumn(forbiddenBundlesTableViewerColumn);
+    }));
+    DefaultLabelViewerComparator.configureForSortingColumn(forbiddenPluginTableViewerColumn);
 
     //
     configurePopupMenuForProjectTableViewer();
@@ -412,7 +436,7 @@ public class PluginTabItem
     }
 
     //
-    projectDetail.refresh();
+    pluginInfoDetail.refresh();
   }
 
   /**
@@ -530,8 +554,7 @@ public class PluginTabItem
               manager.add(new Separator());
             separatorAdded = true;
 
-            manager.add(new Action("Copy types in memory")
-            {
+            manager.add(new Action("Copy types in memory") {
               @Override
               public void run()
               {
@@ -550,8 +573,7 @@ public class PluginTabItem
           if (!separatorAdded && manager.getItems().length > 1)
             manager.add(new Separator());
 
-          manager.add(new Action("Paste and replace types from memory")
-          {
+          manager.add(new Action("Paste and replace types from memory") {
             @Override
             public void run()
             {
@@ -608,8 +630,7 @@ public class PluginTabItem
         if (manager.getItems().length > 1)
           manager.add(new Separator());
 
-        manager.add(new Action("Remove non-existent plugins")
-        {
+        manager.add(new Action("Remove non-existent plugins") {
           @Override
           public void run()
           {
@@ -650,8 +671,7 @@ public class PluginTabItem
             manager.add(new Separator());
           separatorAdded = true;
 
-          manager.add(new Action("Remove types from patterns on selected plugins")
-          {
+          manager.add(new Action("Remove types from patterns on selected plugins") {
             @Override
             public void run()
             {
@@ -671,8 +691,7 @@ public class PluginTabItem
           if (!separatorAdded && manager.getItems().length > 1)
             manager.add(new Separator());
 
-          manager.add(new Action("Remove types from patterns on all plugins")
-          {
+          manager.add(new Action("Remove types from patterns on all plugins") {
             @Override
             public void run()
             {
@@ -706,7 +725,8 @@ public class PluginTabItem
         Set<PluginInfo> modifiedPluginInfoSet = selectedPluginInfoStream.collect(Collectors.toSet());
 
         boolean found = false;
-        loop: for(PatternInfo patternInfo : modifiedPatternInfoSet)
+        loop:
+        for(PatternInfo patternInfo : modifiedPatternInfoSet)
         {
           for(PluginInfo pluginInfo : modifiedPluginInfoSet)
           {
@@ -720,8 +740,7 @@ public class PluginTabItem
 
         if (found)
         {
-          manager.add(new Action("Add types from patterns on selected plugins")
-          {
+          manager.add(new Action("Add types from patterns on selected plugins") {
             @Override
             public void run()
             {
@@ -735,8 +754,7 @@ public class PluginTabItem
           });
         }
 
-        manager.add(new Action("Add types from patterns on all plugins")
-        {
+        manager.add(new Action("Add types from patterns on all plugins") {
           @Override
           public void run()
           {
@@ -767,8 +785,7 @@ public class PluginTabItem
           manager.add(new Separator());
         separatorAdded = true;
 
-        manager.add(new Action("Reset types on selected plugins")
-        {
+        manager.add(new Action("Reset types on selected plugins") {
           @Override
           public void run()
           {
@@ -788,8 +805,7 @@ public class PluginTabItem
         if (!separatorAdded && manager.getItems().length > 1)
           manager.add(new Separator());
 
-        manager.add(new Action("Reset types on all plugins")
-        {
+        manager.add(new Action("Reset types on all plugins") {
           @Override
           public void run()
           {

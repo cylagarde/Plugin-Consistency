@@ -1,12 +1,10 @@
-package cl.plugin.consistency.preferences.pluginInfo;
+package cl.plugin.consistency.preferences.pattern;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.graphics.Image;
@@ -18,33 +16,32 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.custom.NaturalOrderComparator;
-import cl.plugin.consistency.model.PluginInfo;
-import cl.plugin.consistency.model.Type;
+import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.preferences.TypeElement;
 import cl.plugin.consistency.preferences.impl.ElementManagerComposite;
 import cl.plugin.consistency.preferences.impl.IElementManagerDataModel;
 
 /**
- * The class <b>ProjectDetail</b> allows to.<br>
+ * The class <b>PatternInfoDetail</b> allows to.<br>
  */
-class ProjectDetail
+class PatternInfoDetail
 {
-  final PluginTabItem pluginTabItem;
-  PluginInfo pluginInfo;
-  ElementManagerComposite<TypeElement, PluginInfoData> declaredPluginTypeComposite;
-  ElementManagerComposite<TypeElement, PluginInfoData> forbiddenPluginTypeComposite;
+  final PatternTabItem patternTabItem;
+  PatternInfo patternInfo;
+  ElementManagerComposite<TypeElement, PatternInfoData> declaredPluginTypeComposite;
+  ElementManagerComposite<TypeElement, PatternInfoData> forbiddenPluginTypeComposite;
   ForbiddenPluginComposite forbiddenPluginComposite;
   Composite content;
 
   /**
    * Constructor
    *
-   * @param pluginTabItem
+   * @param patternTabItem
    * @param parent
    */
-  ProjectDetail(PluginTabItem pluginTabItem, Composite parent)
+  PatternInfoDetail(PatternTabItem patternTabItem, Composite parent)
   {
-    this.pluginTabItem = pluginTabItem;
+    this.patternTabItem = patternTabItem;
 
     FormToolkit formToolkit = new FormToolkit(parent.getDisplay());
 
@@ -81,18 +78,17 @@ class ProjectDetail
    */
   private void createDeclaredPluginTypeComposite(Composite parent)
   {
-    IElementManagerDataModel<TypeElement, PluginInfoData> declaredPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PluginInfoData>()
-    {
+    IElementManagerDataModel<TypeElement, PatternInfoData> declaredPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>() {
       @Override
-      public void refreshData(PluginInfoData pluginInfoData)
+      public void refreshData(PatternInfoData patternInfoData)
       {
-        pluginTabItem.refreshPluginInfo(pluginInfo);
+        patternTabItem.refreshPatternInfo(patternInfo);
       }
 
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
+        return patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
       }
 
       @Override
@@ -122,18 +118,17 @@ class ProjectDetail
    */
   private void createForbiddenPluginTypeComposite(Composite parent)
   {
-    IElementManagerDataModel<TypeElement, PluginInfoData> forbiddenPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PluginInfoData>()
-    {
+    IElementManagerDataModel<TypeElement, PatternInfoData> forbiddenPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>() {
       @Override
-      public void refreshData(PluginInfoData pluginInfoData)
+      public void refreshData(PatternInfoData patternInfoData)
       {
-        pluginTabItem.refreshPluginInfo(pluginInfo);
+        patternTabItem.refreshPatternInfo(patternInfo);
       }
 
       @Override
       public Collection<TypeElement> getElements()
       {
-        return pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
+        return patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
       }
 
       @Override
@@ -167,27 +162,31 @@ class ProjectDetail
   }
 
   /**
-   * Set PluginInfo
+   * Set PatternInfo
    *
-   * @param pluginInfo
+   * @param patternInfo
    */
-  public void setPluginInfo(PluginInfo pluginInfo)
+  public void setPatternInfo(PatternInfo patternInfo)
   {
-    this.pluginInfo = pluginInfo;
+    this.patternInfo = patternInfo;
 
-    if (pluginInfo != null)
+    if (patternInfo != null)
     {
       // sort
-      Collections.sort(pluginInfo.declaredPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
-      Collections.sort(pluginInfo.forbiddenPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      Collections.sort(patternInfo.declaredPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
+      Collections.sort(patternInfo.forbiddenPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
 
-      Set<Type> declaredPluginTypeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
-        .flatMap(patternInfo -> patternInfo.declaredPluginTypeList.stream()).collect(Collectors.toSet());
-      declaredPluginTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.declaredPluginTypeList, declaredPluginTypeFromPatternInfoSet, false));
+      //      Set<Type> declaredPluginTypeFromPatternInfoSet = patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+      //        .filter(patternInfo -> patternInfo.acceptPlugin(patternInfo.id))
+      //        .flatMap(patternInfo -> patternInfo.declaredPluginTypeList.stream())
+      //        .collect(Collectors.toSet());
+      declaredPluginTypeComposite.setData(new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.declaredPluginTypeList, false));
 
-      Set<Type> forbiddenPluginTypeFromPatternInfoSet = pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
-        .flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream()).collect(Collectors.toSet());
-      forbiddenPluginTypeComposite.setData(new PluginInfoData(pluginInfo, pluginInfo.forbiddenPluginTypeList, forbiddenPluginTypeFromPatternInfoSet, true));
+      //      Set<Type> forbiddenPluginTypeFromPatternInfoSet = patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+      //        .filter(patternInfo -> patternInfo.acceptPlugin(patternInfo.id))
+      //        .flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream())
+      //        .collect(Collectors.toSet());
+      forbiddenPluginTypeComposite.setData(new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.forbiddenPluginTypeList, true));
     }
     else
     {
@@ -195,15 +194,15 @@ class ProjectDetail
       forbiddenPluginTypeComposite.setData(null);
     }
 
-    forbiddenPluginComposite.setPluginInfo(pluginInfo);
+    forbiddenPluginComposite.setPatternInfo(patternInfo);
 
     //
     boolean validPlugin = false;
-    if (pluginInfo != null)
-    {
-      IProject project = Util.getProject(pluginInfo);
-      validPlugin = pluginTabItem.cache.isValidProject(project);
-    }
+    //    if (patternInfo != null)
+    //    {
+    //      IProject project = Util.getProject(patternInfo);
+    //      validPlugin = patternTabItem.cache.isValidProject(project);
+    //    }
 
     declaredPluginTypeComposite.setEnabled(validPlugin);
     forbiddenPluginTypeComposite.setEnabled(validPlugin);
@@ -215,6 +214,6 @@ class ProjectDetail
    */
   public void refresh()
   {
-    setPluginInfo(pluginInfo);
+    setPatternInfo(patternInfo);
   }
 }

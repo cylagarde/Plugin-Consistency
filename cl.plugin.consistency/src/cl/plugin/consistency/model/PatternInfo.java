@@ -1,19 +1,15 @@
 package cl.plugin.consistency.model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 
 import org.eclipse.ui.dialogs.SearchPattern;
 
 /**
  * The class <b>PatternInfo</b> allows to.<br>
  */
-public class PatternInfo
+public class PatternInfo extends AbstractData
 {
   @XmlAttribute(name = "activate")
   public boolean activate = true;
@@ -23,14 +19,6 @@ public class PatternInfo
 
   @XmlAttribute(name = "description")
   public String description;
-
-  @XmlElementWrapper(name = "DeclaredPluginTypes")
-  @XmlElement(name = "Type")
-  public List<Type> declaredPluginTypeList = new ArrayList<>();
-
-  @XmlElementWrapper(name = "ForbiddenPluginTypes")
-  @XmlElement(name = "Type")
-  public List<Type> forbiddenPluginTypeList = new ArrayList<>();
 
   private static final String TYPE_PATTERN_SEPARATOR = "#";
   public static final String PATTERN_SEPARATOR = ";";
@@ -123,7 +111,7 @@ public class PatternInfo
    * Set pattern
    *
    * @param containsPattern
-   * @param doNotContainsPatternValue
+   * @param doNotContainsPattern
    */
   public void setPattern(String containsPattern, String doNotContainsPattern)
   {

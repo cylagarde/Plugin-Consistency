@@ -1,21 +1,15 @@
-package cl.plugin.consistency.preferences.pluginInfo;
+package cl.plugin.consistency.preferences.pattern;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -28,9 +22,6 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.pde.core.project.IBundleProjectDescription;
-import org.eclipse.pde.core.project.IBundleProjectService;
-import org.eclipse.pde.core.project.IRequiredBundleDescription;
 import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.swt.SWT;
@@ -56,10 +47,9 @@ import org.osgi.framework.Bundle;
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PluginConsistencyActivator;
-import cl.plugin.consistency.Util;
 import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.ForbiddenPlugin;
-import cl.plugin.consistency.model.PluginInfo;
+import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
 import cl.plugin.consistency.preferences.SectionPane;
 
@@ -68,14 +58,13 @@ import cl.plugin.consistency.preferences.SectionPane;
  */
 class ForbiddenPluginComposite
 {
-  final PluginInfoDetail projectDetail;
+  final PatternInfoDetail projectDetail;
   final TableViewer forbiddenPluginTableViewer;
   final ToolBar toolBar;
   final Bundle[] bundles;
   final IAction addPluginAction;
 
-  PluginInfo pluginInfo;
-  CompletableFuture<Set<String>> requireBundleSetCompletableFuture;
+  PatternInfo patternInfo;
   final Cache cache;
   final Set<Object> checkedObjects = new HashSet<>();
 
@@ -86,12 +75,12 @@ class ForbiddenPluginComposite
    * @param parent
    * @param style
    */
-  ForbiddenPluginComposite(PluginInfoDetail projectDetail, Composite parent, int style)
+  ForbiddenPluginComposite(PatternInfoDetail projectDetail, Composite parent, int style)
   {
     this.projectDetail = projectDetail;
 
     bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
-    cache = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
+    cache = projectDetail.patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
     // tmp
     Stream.of(bundles).sorted(Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE))
@@ -118,28 +107,28 @@ class ForbiddenPluginComposite
   }
 
   /**
-   * Set PluginInfo
+   * Set PatternInfo
    *
-   * @param pluginInfo
+   * @param patternInfo
    */
-  public void setPluginInfo(PluginInfo pluginInfo)
+  public void setPatternInfo(PatternInfo patternInfo)
   {
-    this.pluginInfo = pluginInfo;
-    // Util.setEnabled(section, pluginInfo != null);
+    this.patternInfo = patternInfo;
+    // Util.setEnabled(section, patternInfo != null);
 
     // select forbidden plugins for TableViewer
     checkedObjects.clear();
-    if (pluginInfo != null)
+    if (patternInfo != null)
     {
-      for(ForbiddenPlugin forbiddenPluginInfo : pluginInfo.forbiddenPluginList)
+      for(ForbiddenPlugin forbiddenPatternInfo : patternInfo.forbiddenPluginList)
       {
-        Bundle bundle = Platform.getBundle(forbiddenPluginInfo.id);
+        Bundle bundle = Platform.getBundle(forbiddenPatternInfo.id);
         if (bundle != null)
           checkedObjects.add(bundle);
         else
         {
           Optional<IProject> optional = Stream.of(cache.getValidProjects())
-            .filter(project -> cache.getId(project).equals(forbiddenPluginInfo.id))
+            .filter(project -> cache.getId(project).equals(forbiddenPatternInfo.id))
             .findFirst();
           optional.ifPresent(checkedObjects::add);
         }
@@ -148,47 +137,6 @@ class ForbiddenPluginComposite
 
     // toArray: create copy
     forbiddenPluginTableViewer.setInput(checkedObjects.toArray());
-
-    //
-    if (pluginInfo == null)
-      return;
-
-    IProject workspaceProject = Util.getProject(pluginInfo);
-    addPluginAction.setEnabled(workspaceProject != null && workspaceProject.isOpen());
-
-    //
-    if (addPluginAction.isEnabled())
-    {
-      Supplier<Set<String>> supplier = () -> {
-        Optional<IProject> optional = Stream.of(cache.getValidProjects())
-          .filter(project -> cache.getId(project).equals(pluginInfo.id))
-          .findFirst();
-
-        IProject project = optional.get();
-        Set<String> requireBundleSet = null;
-        try
-        {
-          IBundleProjectService bundleProjectService = PluginConsistencyActivator.getBundleProjectService();
-          IBundleProjectDescription bundleProjectDescription = bundleProjectService.getDescription(project);
-
-          IRequiredBundleDescription[] requiredBundles = bundleProjectDescription.getRequiredBundles();
-          if (requiredBundles == null)
-            requireBundleSet = Collections.emptySet();
-          else
-            requireBundleSet = Stream.of(requiredBundles)
-              .map(bundleDescription -> bundleDescription.getName())
-              .collect(Collectors.toSet());
-        }
-        catch(CoreException e)
-        {
-          PluginConsistencyActivator.logError("Error: " + e, e);
-        }
-
-        return requireBundleSet;
-      };
-
-      requireBundleSetCompletableFuture = CompletableFuture.supplyAsync(supplier);
-    }
   }
 
   public void setEnabled(boolean enabled)
@@ -214,14 +162,14 @@ class ForbiddenPluginComposite
       checkedObjects.addAll(Arrays.asList(checkedElements));
 
       Set<String> requireBundleSet = new HashSet<>();
-      try
-      {
-        requireBundleSet.addAll(requireBundleSetCompletableFuture.get());
-      }
-      catch(InterruptedException | ExecutionException e)
-      {
-        PluginConsistencyActivator.logError("Error: " + e, e);
-      }
+      //      try
+      //      {
+      //        requireBundleSet.addAll(requireBundleSetCompletableFuture.get());
+      //      }
+      //      catch(InterruptedException | ExecutionException e)
+      //      {
+      //        PluginConsistencyActivator.logError("Error: " + e, e);
+      //      }
 
       //
       BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(cache, requireBundleSet);
@@ -407,7 +355,7 @@ class ForbiddenPluginComposite
       treeSet.addAll(Arrays.asList(cache.getValidProjects()));
 
       // remove current plugin/project
-      treeSet.removeIf(o -> cache.getId(o).equals(pluginInfo.id));
+      //      treeSet.removeIf(o -> cache.getId(o).equals(patternInfo.id));
 
       treeSet.addAll(Arrays.asList(bundles));
 
@@ -418,16 +366,16 @@ class ForbiddenPluginComposite
       //
       if (checkedTreeDialog.open() == IDialogConstants.OK_ID)
       {
-        pluginInfo.forbiddenPluginList.clear();
+        patternInfo.forbiddenPluginList.clear();
         for(Object o : checkedTreeDialog.getResult())
         {
-          ForbiddenPlugin forbiddenPluginInfo = new ForbiddenPlugin();
-          forbiddenPluginInfo.id = cache.getId(o);
-          pluginInfo.forbiddenPluginList.add(forbiddenPluginInfo);
+          ForbiddenPlugin forbiddenPatternInfo = new ForbiddenPlugin();
+          forbiddenPatternInfo.id = cache.getId(o);
+          patternInfo.forbiddenPluginList.add(forbiddenPatternInfo);
         }
         forbiddenPluginTableViewer.setInput(checkedTreeDialog.getResult());
 
-        projectDetail.pluginTabItem.refreshPluginInfo(pluginInfo);
+        projectDetail.patternTabItem.refreshPatternInfo(patternInfo);
       }
 
       checkedObjects.clear();

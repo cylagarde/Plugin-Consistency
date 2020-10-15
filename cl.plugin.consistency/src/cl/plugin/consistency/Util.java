@@ -69,7 +69,7 @@ public class Util
 
   /**
    * Recursive all controls
-   * 
+   *
    * @param control
    * @param consumer
    */
@@ -166,7 +166,7 @@ public class Util
 
   /**
    * Load and update plugin consistency file
-   * 
+   *
    * @param consistencyFile
    */
   public static PluginConsistency loadAndUpdateConsistencyFile(File consistencyFile)
@@ -203,7 +203,7 @@ public class Util
 
   /**
    * Update plugin consistency, adding new workspace projects, updating name, id, type, etc...
-   * 
+   *
    * @param pluginConsistency
    */
   public static void updatePluginConsistency(PluginConsistency pluginConsistency)
@@ -274,26 +274,27 @@ public class Util
 
   /**
    * Update pluginInfo with Pattern information
-   * 
+   *
    * @param pluginConsistency
    * @param pluginInfo
    */
   public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo)
   {
-    updatePluginInfoWithPattern(pluginConsistency, pluginInfo, true, true);
+    updatePluginInfoWithPattern(pluginConsistency, pluginInfo, true, true, true);
   }
 
   /**
    * Update pluginInfo with Pattern information
-   * 
+   *
    * @param pluginConsistency
    * @param pluginInfo
    */
-  public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo, boolean updateType, boolean updateForbiddenPluginType)
+  public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency, PluginInfo pluginInfo, boolean updateType, boolean updateForbiddenPluginType, boolean updateForbiddenPlugin)
   {
     Set<String> availableTypeSet = pluginConsistency.typeList.stream().map(type -> type.name).collect(Collectors.toSet());
     Set<String> declaredPluginTypeSet = pluginInfo.declaredPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
     Set<String> forbiddenPluginTypeSet = pluginInfo.forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> forbiddenPluginSet = pluginInfo.forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).collect(Collectors.toSet());
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
@@ -330,13 +331,29 @@ public class Util
             }
           }
         }
+
+        // add forbidden plugin
+        if (updateForbiddenPlugin)
+        {
+          for(ForbiddenPlugin forbiddenPlugin : patternInfo.forbiddenPluginList)
+          {
+            String id = forbiddenPlugin.id;
+            if (!forbiddenPluginSet.contains(id))
+            {
+              ForbiddenPlugin newForbiddenPlugin = new ForbiddenPlugin();
+              newForbiddenPlugin.id = id;
+              forbiddenPluginSet.add(id);
+              pluginInfo.forbiddenPluginList.add(newForbiddenPlugin);
+            }
+          }
+        }
       }
     }
   }
 
   /**
    * Update all pluginInfos with Pattern information
-   * 
+   *
    * @param pluginConsistency
    */
   public static void updatePluginInfoWithPattern(PluginConsistency pluginConsistency)
@@ -347,7 +364,7 @@ public class Util
 
   /**
    * Remove pattern in pluginInfo
-   * 
+   *
    * @param pluginConsistency
    * @param pluginInfo
    */
@@ -355,6 +372,7 @@ public class Util
   {
     Set<String> declaredPluginTypeSet = pluginInfo.declaredPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
     Set<String> forbiddenPluginTypeSet = pluginInfo.forbiddenPluginTypeList.stream().map(type -> type.name).collect(Collectors.toSet());
+    Set<String> forbiddenPluginSet = pluginInfo.forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).collect(Collectors.toSet());
 
     for(PatternInfo patternInfo : pluginConsistency.patternList)
     {
@@ -375,13 +393,21 @@ public class Util
           if (forbiddenPluginTypeSet.contains(typeName))
             pluginInfo.forbiddenPluginTypeList.removeIf(type_ -> type_.name.equals(typeName));
         }
+
+        // remove forbidden plugin
+        for(ForbiddenPlugin forbiddenPlugin : patternInfo.forbiddenPluginList)
+        {
+          String id = forbiddenPlugin.id;
+          if (forbiddenPluginSet.contains(id))
+            pluginInfo.forbiddenPluginList.removeIf(forbiddenPlugin_ -> forbiddenPlugin_.id.equals(id));
+        }
       }
     }
   }
 
   /**
    * Remove pattern in all pluginInfos
-   * 
+   *
    * @param pluginConsistency
    */
   public static void removePatternInAllPluginInfos(PluginConsistency pluginConsistency)
@@ -392,7 +418,7 @@ public class Util
 
   /**
    * Reset types in all pluginInfos
-   * 
+   *
    * @param pluginConsistency
    */
   public static void resetTypesInAllPluginInfos(PluginConsistency pluginConsistency)
@@ -403,7 +429,7 @@ public class Util
 
   /**
    * Reset types in pluginInfo
-   * 
+   *
    * @param pluginInfo
    */
   public static void resetTypesInPluginInfo(PluginInfo pluginInfo)
@@ -418,7 +444,7 @@ public class Util
 
   /**
    * Check project consistency
-   * 
+   *
    * @param pluginConsistency
    * @param project
    * @param markerConsumer
@@ -588,7 +614,7 @@ public class Util
 
   /**
    * Create Manifest Problem Marker
-   * 
+   *
    * @param manifest
    * @param requireBundle
    * @param message
@@ -688,7 +714,7 @@ public class Util
 
   /**
    * Update marker
-   * 
+   *
    * @param marker
    * @param char_start
    * @param char_end
@@ -757,7 +783,7 @@ public class Util
 
   /**
    * Remove all consistency markers
-   * 
+   *
    * @param project
    */
   public static void removeCheckProjectConsistency(IProject project) throws Exception
@@ -793,7 +819,7 @@ public class Util
 
   /**
    * Save PluginConsistency
-   * 
+   *
    * @param pluginConsistency
    */
   public static void savePluginConsistency(PluginConsistency pluginConsistency, File consistencyFile)
@@ -814,7 +840,7 @@ public class Util
 
   /**
    * Return the project
-   * 
+   *
    * @param pluginInfo
    */
   public static IProject getProject(PluginInfo pluginInfo)
@@ -824,7 +850,7 @@ public class Util
 
   /**
    * Launch job for checking projects
-   * 
+   *
    * @param pluginConsistency
    * @param markerConsumer
    */
@@ -873,7 +899,7 @@ public class Util
 
   /**
    * Join WorkspaceJob
-   * 
+   *
    * @param workspaceJob
    */
   private static void join(WorkspaceJob workspaceJob)
