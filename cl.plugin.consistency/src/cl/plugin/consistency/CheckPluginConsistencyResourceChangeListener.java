@@ -252,7 +252,6 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
   /**
    * Save PluginConsistency
    * @param pluginConsistency
-   * @throws CoreException
    */
   public static void savePluginConsistency(PluginConsistency pluginConsistency, File consistencyFile)
   {
@@ -262,8 +261,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
     IProject project = Util.getWorkspaceProject(consistency_file_path);
     if (project != null && project.isOpen())
     {
-      WorkspaceJob job = new WorkspaceJob("Refresh project " + project.getName())
-      {
+      WorkspaceJob job = new WorkspaceJob("Refresh project " + project.getName()) {
         @Override
         public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
         {

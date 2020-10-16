@@ -137,7 +137,7 @@ public class EhancedStyledText extends StyledText
     {
       try
       {
-        int offset = getOffsetAtLocation(new Point(event.x, event.y));
+        int offset = getOffsetAtPoint(new Point(event.x, event.y));
         if (offset != -1)
         {
           StyleRange style = getStyleRangeAtOffset(offset);

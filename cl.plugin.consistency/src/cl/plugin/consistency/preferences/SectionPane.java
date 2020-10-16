@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.FormColors;
 import org.eclipse.ui.forms.IFormColors;
+import org.eclipse.ui.forms.widgets.ExpandableComposite;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.internal.forms.widgets.FormFonts;
@@ -60,7 +61,7 @@ public class SectionPane extends Composite
   }
 
   /**
-   * @return
+   * Return header section
    */
   public TitledSection getHeaderSection()
   {
@@ -79,7 +80,7 @@ public class SectionPane extends Composite
 
     private TitledSection(Composite parent)
     {
-      super(parent, Section.TITLE_BAR);
+      super(parent, ExpandableComposite.TITLE_BAR);
       setMenu(parent.getMenu());
 
       //
@@ -169,9 +170,9 @@ public class SectionPane extends Composite
      * @param text
      */
     @Override
-    public void setText(String title)
+    public void setText(String text)
     {
-      titleLabel.setText(title);
+      titleLabel.setText(text);
       layout();
     }
   }

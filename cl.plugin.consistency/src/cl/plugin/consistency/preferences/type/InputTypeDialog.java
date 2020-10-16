@@ -134,6 +134,7 @@ class InputTypeDialog extends Dialog
     }
   }
 
+  @SuppressWarnings("unused")
   @Override
   protected Control createDialogArea(Composite parent)
   {

@@ -13,7 +13,7 @@ public class NaturalOrderComparator implements Comparator<String>
   {
   }
 
-  int compareRight(String a, String b)
+  static int compareRight(String a, String b)
   {
     int bias = 0, ia = 0, ib = 0;
 
@@ -111,7 +111,7 @@ public class NaturalOrderComparator implements Comparator<String>
     }
   }
 
-  char charAt(String s, int i)
+  static char charAt(String s, int i)
   {
     return i >= s.length()? 0 : s.charAt(i);
   }

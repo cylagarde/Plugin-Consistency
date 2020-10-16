@@ -29,7 +29,6 @@ public class PluginConsistency
 
   /**
    * Remove useless pluginInfo
-   * @param pluginConsistency
    */
   public PluginConsistency compact()
   {

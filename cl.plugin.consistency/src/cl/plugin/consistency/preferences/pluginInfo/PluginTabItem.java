@@ -155,6 +155,7 @@ public class PluginTabItem
    *
    * @param parent
    */
+  @SuppressWarnings("unused")
   private void configurePluginInfoTableViewer(Composite parent)
   {
     //

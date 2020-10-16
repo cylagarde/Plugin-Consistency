@@ -14,7 +14,6 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
@@ -24,6 +23,7 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -222,7 +222,7 @@ public class PatternTabItem
           containsPatternMessage, "",
           doNotContainsPatternMessage, "",
           cache, patternValidator);
-        if (inputPatternDialog.open() == InputDialog.OK)
+        if (inputPatternDialog.open() == Window.OK)
         {
           PatternInfo patternInfo = new PatternInfo();
           patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
@@ -591,7 +591,7 @@ public class PatternTabItem
       InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Edit pattern", selectedDescription,
         containsPatternMessage, selectedContainsPattern,
         doNotContainsPatternMessage, selectedDoNotContainsPattern, cache, patternValidator);
-      if (inputPatternDialog.open() == InputDialog.OK)
+      if (inputPatternDialog.open() == Window.OK)
       {
         updateAfterChange(() -> {
           selectedPatternInfo.description = inputPatternDialog.getDescription();
@@ -640,7 +640,7 @@ public class PatternTabItem
 
       InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Duplicate pattern", selectedDescription, "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern,
         "Enter a new value for do not contains pattern ('?' and '*' are supported)", selectedDoNotContainsPattern, cache, patternValidator);
-      if (inputPatternDialog.open() == InputDialog.OK)
+      if (inputPatternDialog.open() == Window.OK)
       {
         PatternInfo patternInfo = Util.duplicatePatternInfo(selectedPatternInfo);
         patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());

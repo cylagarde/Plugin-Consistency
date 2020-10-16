@@ -10,8 +10,8 @@
 
 	<properties>
 		<tycho-version>2.0.0</tycho-version>
-		<maven.compiler.source>14</maven.compiler.source>
-		<maven.compiler.target>14</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<modules>
@@ -22,9 +22,9 @@
 
 	<repositories>
 		<repository>
-			<id>oxygen</id>
+			<id>2020-09</id>
 			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/oxygen</url>
+			<url>http://download.eclipse.org/releases/2020-09</url>
 		</repository>
 	</repositories>
 

@@ -11,7 +11,6 @@ import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -19,6 +18,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -90,8 +90,7 @@ public class TypeTabItem
     Button addTypeButton = new Button(toolbarComposite, SWT.FLAT);
     addTypeButton.setToolTipText("Add new type");
     addTypeButton.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(org.eclipse.ui.ISharedImages.IMG_OBJ_ADD));
-    addTypeButton.addSelectionListener(new SelectionAdapter()
-    {
+    addTypeButton.addSelectionListener(new SelectionAdapter() {
       @Override
       public void widgetSelected(SelectionEvent e)
       {
@@ -105,7 +104,7 @@ public class TypeTabItem
           return null;
         };
         InputTypeDialog inputTypeDialog = new InputTypeDialog(parent.getShell(), "Add new type", "Enter a new name", "", "Enter a new description", "", typeValidator);
-        if (inputTypeDialog.open() == InputDialog.OK)
+        if (inputTypeDialog.open() == Window.OK)
         {
           String newTypeName = inputTypeDialog.getNewName();
           String newDescription = inputTypeDialog.getNewDescription();
@@ -144,8 +143,7 @@ public class TypeTabItem
     nameTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     nameTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
 
-    nameTableViewerColumn.setLabelProvider(new ColumnLabelProvider()
-    {
+    nameTableViewerColumn.setLabelProvider(new ColumnLabelProvider() {
       @Override
       public String getText(Object element)
       {
@@ -161,8 +159,7 @@ public class TypeTabItem
     descriptionTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
     descriptionTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
 
-    descriptionTableViewerColumn.setLabelProvider(new ColumnLabelProvider()
-    {
+    descriptionTableViewerColumn.setLabelProvider(new ColumnLabelProvider() {
       @Override
       public String getText(Object element)
       {
@@ -285,7 +282,7 @@ public class TypeTabItem
         return null;
       };
       InputTypeDialog inputTypeDialog = new InputTypeDialog(shell, "Edit type", "Enter a new name", selectedType.name, "Enter a new description", selectedType.description, typeValidator);
-      if (inputTypeDialog.open() == InputDialog.OK)
+      if (inputTypeDialog.open() == Window.OK)
       {
         String newTypeName = inputTypeDialog.getNewName();
         String newDescription = inputTypeDialog.getNewDescription();
