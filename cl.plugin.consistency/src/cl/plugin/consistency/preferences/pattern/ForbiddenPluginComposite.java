@@ -47,6 +47,7 @@ import org.osgi.framework.Bundle;
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PluginConsistencyActivator;
+import cl.plugin.consistency.Util;
 import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PatternInfo;
@@ -363,6 +364,8 @@ class ForbiddenPluginComposite
       //
       if (checkedTreeDialog.open() == IDialogConstants.OK_ID)
       {
+        PatternInfo oldPatternInfo = Util.duplicatePatternInfo(patternInfo);
+
         patternInfo.forbiddenPluginList.clear();
         for(Object o : checkedTreeDialog.getResult())
         {
@@ -372,7 +375,7 @@ class ForbiddenPluginComposite
         }
         forbiddenPluginTableViewer.setInput(checkedTreeDialog.getResult());
 
-        projectDetail.patternTabItem.updateAllPluginInfosWithPatternInfo(patternInfo, true);
+        projectDetail.patternTabItem.updateAllPluginInfosWithPatternInfo(oldPatternInfo, patternInfo, true);
       }
 
       checkedObjects.clear();

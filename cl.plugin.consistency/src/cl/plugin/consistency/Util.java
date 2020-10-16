@@ -57,6 +57,7 @@ public class Util
     duplicatePatternInfo.pattern = patternInfo.pattern;
     patternInfo.declaredPluginTypeList.stream().map(Util::duplicateType).forEach(duplicatePatternInfo.declaredPluginTypeList::add);
     patternInfo.forbiddenPluginTypeList.stream().map(Util::duplicateType).forEach(duplicatePatternInfo.forbiddenPluginTypeList::add);
+    patternInfo.forbiddenPluginList.stream().map(Util::duplicateForbiddenPlugin).forEach(duplicatePatternInfo.forbiddenPluginList::add);
     return duplicatePatternInfo;
   }
 
@@ -65,6 +66,13 @@ public class Util
     Type duplicateType = new Type();
     duplicateType.name = type.name;
     return duplicateType;
+  }
+
+  public static ForbiddenPlugin duplicateForbiddenPlugin(ForbiddenPlugin forbiddenPlugin)
+  {
+    ForbiddenPlugin duplicateForbiddenPlugin = new ForbiddenPlugin();
+    duplicateForbiddenPlugin.id = forbiddenPlugin.id;
+    return duplicateForbiddenPlugin;
   }
 
   /**

@@ -168,15 +168,16 @@ public class PatternTabItem
    *
    * @param patternInfo
    */
-  void updateAllPluginInfosWithPatternInfo(PatternInfo patternInfo, boolean refreshPluginTabFolder)
+  void updateAllPluginInfosWithPatternInfo(PatternInfo oldPatternInfo, PatternInfo patternInfo, boolean refreshPluginTabFolder)
   {
     for(PluginInfo pluginInfo : pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList)
     {
       if (patternInfo.acceptPlugin(pluginInfo.id))
       {
-        pluginInfo.declaredPluginTypeList.clear();
-        pluginInfo.forbiddenPluginTypeList.clear();
-        pluginInfo.forbiddenPluginList.clear();
+        // faux
+        pluginInfo.declaredPluginTypeList.removeAll(oldPatternInfo.declaredPluginTypeList);
+        pluginInfo.forbiddenPluginTypeList.removeAll(oldPatternInfo.forbiddenPluginTypeList);
+        pluginInfo.forbiddenPluginList.removeAll(oldPatternInfo.forbiddenPluginList);
 
         Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, true, true, true);
       }
