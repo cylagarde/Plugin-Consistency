@@ -7,6 +7,7 @@ import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelP
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.swt.SWT;
@@ -49,7 +50,8 @@ public class BundlesLabelProvider extends LabelProvider implements IColorProvide
   {
     StyledString styledString = new StyledString();
     String id = cache.getId(element);
-    styledString.append(id);
+    Styler styler = getStylerForPluginId(id);
+    styledString.append(id, styler);
 
     if (element instanceof IProject)
     {
@@ -59,6 +61,11 @@ public class BundlesLabelProvider extends LabelProvider implements IColorProvide
     }
 
     return styledString;
+  }
+
+  protected Styler getStylerForPluginId(String pluginId)
+  {
+    return null;
   }
 
   @Override

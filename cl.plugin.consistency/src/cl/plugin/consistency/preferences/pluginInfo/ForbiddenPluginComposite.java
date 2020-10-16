@@ -23,8 +23,11 @@ import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
+import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -109,7 +112,16 @@ class ForbiddenPluginComposite
 
     //
     forbiddenPluginTableViewer = new TableViewer(sectionPane, SWT.BORDER);
-    forbiddenPluginTableViewer.setLabelProvider(new BundlesLabelProvider(cache));
+    forbiddenPluginTableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(new BundlesLabelProvider(cache) {
+      @Override
+      protected Styler getStylerForPluginId(String pluginId)
+      {
+        boolean isForbiddenPluginFromPattern = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .anyMatch(patternInfo -> patternInfo.forbiddenPluginList.stream().anyMatch(forbiddenPlugin -> pluginId.equals(forbiddenPlugin.id)));
+        return isForbiddenPluginFromPattern? StyledString.COUNTER_STYLER : null;
+      }
+    }));
     forbiddenPluginTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     forbiddenPluginTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
   }
