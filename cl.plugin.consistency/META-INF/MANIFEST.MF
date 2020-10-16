@@ -18,5 +18,4 @@ Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib_jaxb/javax.activation-1.2.0.jar,
  lib_jaxb/jaxb-api-2.3.1.jar,
- lib_jaxb/jaxb-core-2.3.0.1.jar,
- lib_jaxb/jaxb-impl-2.3.2.jar
+ lib_jaxb/jaxb-impl-2.3.3.jar
