@@ -1,5 +1,6 @@
 package cl.plugin.consistency;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -11,6 +12,8 @@ import org.eclipse.pde.internal.core.bundle.WorkspaceBundlePluginModel;
 import org.eclipse.pde.internal.core.natures.PDE;
 import org.eclipse.pde.internal.core.project.PDEProject;
 import org.osgi.framework.Bundle;
+
+import cl.plugin.consistency.custom.NaturalOrderComparator;
 
 /**
  * The class <b>Cache</b> allows to cache some informations.<br>
@@ -110,5 +113,13 @@ public class Cache
       PluginConsistencyActivator.logError("Error: " + e, e);
     }
     return false;
+  }
+
+  /**
+   * Return comparator using id
+   */
+  public Comparator<Object> getPluginIdComparator()
+  {
+    return Comparator.comparing(this::getId, NaturalOrderComparator.INSTANCE);
   }
 }

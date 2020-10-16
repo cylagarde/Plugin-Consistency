@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.TreeItem;
 
 /**
  * The class <b>StyledToolTip</b> use {@link EhancedStyledText} to give style to tooltip.
- * 
+ *
  * <pre>
  * new StyledToolTip(control, event -> {
  *   if (condition_not_to_show_tooltip)
@@ -43,7 +43,7 @@ public class StyledToolTip extends ToolTip
    * Constructor
    *
    * @param control
-   * @param textFunction Give the text for tooltip from the event
+   * @param styledStringFunction Give the text for tooltip from the event
    */
   public StyledToolTip(Control control, Function<Event, StyledString> styledStringFunction)
   {

@@ -66,7 +66,7 @@ class ForbiddenPluginComposite
 
   PatternInfo patternInfo;
   final Cache cache;
-  final Set<Object> checkedObjects = new HashSet<>();
+  final Set<Object> checkedObjects;
 
   /**
    * Constructor
@@ -81,6 +81,7 @@ class ForbiddenPluginComposite
 
     bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
     cache = projectDetail.patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
+    checkedObjects = new TreeSet<>(cache.getPluginIdComparator());
 
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);

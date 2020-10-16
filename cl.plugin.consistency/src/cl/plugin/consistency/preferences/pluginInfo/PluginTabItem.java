@@ -380,7 +380,9 @@ public class PluginTabItem
           .collect(Collectors.toSet());
 
         int[] size = {pluginInfo.forbiddenPluginList.size()};
-        pluginInfo.forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).sorted()
+        pluginInfo.forbiddenPluginList.stream()
+          .map(forbiddenPlugin -> forbiddenPlugin.id)
+          .sorted()
           .forEach(id -> {
             if (forbiddenPluginFromPatternInfoSet.contains(id))
               styledString.append(id, StyledString.COUNTER_STYLER);

@@ -328,7 +328,7 @@ public class PatternTabItem
     // 'Forbidden plugins/projects' TableViewerColumn
     TableViewerColumn forbiddenBundlesTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
     forbiddenBundlesTableViewerColumn.getColumn().setText("Forbidden plugins/projects");
-    forbiddenBundlesTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.forbiddenPluginList.stream().map(forbiddenPluginInfo -> forbiddenPluginInfo.id).sorted().collect(Collectors.joining(", "))));
+    forbiddenBundlesTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(patternInfo -> patternInfo.forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).sorted().collect(Collectors.joining(", "))));
     DefaultLabelViewerComparator.configureForSortingColumn(forbiddenBundlesTableViewerColumn);
 
     //
