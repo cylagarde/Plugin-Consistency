@@ -82,13 +82,15 @@ class PatternInfoDetail
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
-        patternTabItem.refreshPatternInfo(patternInfo);
+        patternTabItem.updateAllPluginInfosWithPatternInfo(patternInfoData, true);
       }
 
       @Override
       public Collection<TypeElement> getElements()
       {
-        return patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
+        return patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream()
+          .map(type -> new TypeElement(type, false))
+          .collect(Collectors.toList());
       }
 
       @Override
@@ -122,13 +124,15 @@ class PatternInfoDetail
       @Override
       public void refreshData(PatternInfoData patternInfoData)
       {
-        patternTabItem.refreshPatternInfo(patternInfo);
+        patternTabItem.updateAllPluginInfosWithPatternInfo(patternInfoData, true);
       }
 
       @Override
       public Collection<TypeElement> getElements()
       {
-        return patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(type -> new TypeElement(type, false)).collect(Collectors.toList());
+        return patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream()
+          .map(type -> new TypeElement(type, false))
+          .collect(Collectors.toList());
       }
 
       @Override
@@ -198,11 +202,12 @@ class PatternInfoDetail
 
     //
     boolean validPlugin = false;
-    //    if (patternInfo != null)
-    //    {
-    //      IProject project = Util.getProject(patternInfo);
-    //      validPlugin = patternTabItem.cache.isValidProject(project);
-    //    }
+    if (patternInfo != null)
+    {
+      //      IProject project = Util.getProject(patternInfo);
+      //      validPlugin = patternTabItem.cache.isValidProject(project);
+      validPlugin = true;
+    }
 
     declaredPluginTypeComposite.setEnabled(validPlugin);
     forbiddenPluginTypeComposite.setEnabled(validPlugin);

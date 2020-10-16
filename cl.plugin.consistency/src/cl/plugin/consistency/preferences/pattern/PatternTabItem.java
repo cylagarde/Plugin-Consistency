@@ -1,8 +1,6 @@
 package cl.plugin.consistency.preferences.pattern;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -33,7 +31,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -51,15 +48,11 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.Util;
-import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
-import cl.plugin.consistency.preferences.TypeElement;
-import cl.plugin.consistency.preferences.impl.ElementManagerComposite;
-import cl.plugin.consistency.preferences.impl.IElementManagerDataModel;
 import cl.plugin.consistency.preferences.pattern.InputPatternDialog.IPatternValidator;
 import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
 
@@ -71,6 +64,7 @@ public class PatternTabItem
   public final PluginTabFolder pluginTabFolder;
   private CheckboxTableViewer patternCheckTableViewer;
   private Button selectAllButton;
+  private PatternInfoDetail patternInfoDetail;
 
   private final static String containsPatternMessage = "Enter a value for contains pattern ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
   private final static String doNotContainsPatternMessage = "Enter a value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
@@ -130,54 +124,18 @@ public class PatternTabItem
     scrolledComposite.setExpandVertical(true);
 
     //
-    createPatternDetailSashForm(scrolledComposite);
+    patternInfoDetail = new PatternInfoDetail(this, scrolledComposite);
+    scrolledComposite.setContent(patternInfoDetail.content);
     scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
-
-    sashForm.setWeights(new int[]{2, 1});
-  }
-
-  private void createPatternDetailSashForm(ScrolledComposite scrolledComposite)
-  {
-    FormToolkit formToolkit = new FormToolkit(scrolledComposite.getDisplay());
-
-    //
-    Composite content = formToolkit.createComposite(scrolledComposite);
-
-    GridLayout gridLayout = new GridLayout(1, false);
-    gridLayout.marginWidth = gridLayout.marginHeight = 2;
-    gridLayout.marginBottom = 3;
-    content.setLayout(gridLayout);
-    scrolledComposite.setContent(content);
-
-    //
-    SashForm sashForm = new SashForm(content, SWT.VERTICAL | SWT.SMOOTH);
-    formToolkit.adapt(sashForm);
-    sashForm.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-    //
-    ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = createDeclaredPluginTypeComposite(sashForm);
-
-    //
-    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenPluginTypeComposite = createForbiddenPluginTypeComposite(sashForm);
 
     // selection
     patternCheckTableViewer.addSelectionChangedListener(event -> {
-
       IStructuredSelection selection = (IStructuredSelection) patternCheckTableViewer.getSelection();
       PatternInfo patternInfo = (PatternInfo) selection.getFirstElement();
-      patternTypeComposite.setEnabled(patternInfo != null);
-      patternForbiddenPluginTypeComposite.setEnabled(patternInfo != null);
-
-      if (patternInfo != null)
-        Collections.sort(patternInfo.declaredPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
-      patternTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.declaredPluginTypeList, false));
-
-      if (patternInfo != null)
-        Collections.sort(patternInfo.forbiddenPluginTypeList, Comparator.comparing(type -> type.name, NaturalOrderComparator.INSTANCE));
-      patternForbiddenPluginTypeComposite.setData(patternInfo == null? null : new PatternInfoData(Util.duplicatePatternInfo(patternInfo), patternInfo.forbiddenPluginTypeList, true));
+      patternInfoDetail.setPatternInfo(patternInfo);
     });
 
-    sashForm.setWeights(new int[]{1, 1});
+    sashForm.setWeights(new int[]{2, 1});
   }
 
   /**
@@ -206,86 +164,27 @@ public class PatternTabItem
   }
 
   /**
-   * @param parent
+   * Update all pluginInfos with patternInfo (add new types and/or remove old types)
+   *
+   * @param patternInfo
    */
-  private ElementManagerComposite<TypeElement, PatternInfoData> createDeclaredPluginTypeComposite(Composite parent)
+  void updateAllPluginInfosWithPatternInfo(PatternInfo patternInfo, boolean refreshPluginTabFolder)
   {
-    //
-    IElementManagerDataModel<TypeElement, PatternInfoData> typeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>() {
-      @Override
-      public void refreshData(PatternInfoData patternInfoData)
+    for(PluginInfo pluginInfo : pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList)
+    {
+      if (patternInfo.acceptPlugin(pluginInfo.id))
       {
-        updateAllPluginInfosWithPatternInfo(patternInfoData, true);
+        pluginInfo.declaredPluginTypeList.clear();
+        pluginInfo.forbiddenPluginTypeList.clear();
+        pluginInfo.forbiddenPluginList.clear();
+
+        Util.updatePluginInfoWithPattern(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency, pluginInfo, true, true, true);
       }
+    }
 
-      @Override
-      public Collection<TypeElement> getElements()
-      {
-        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
-      }
-
-      @Override
-      public String getSectionTitle()
-      {
-        return "Declared plugin types";
-      }
-
-      @Override
-      public Image getSectionImage()
-      {
-        return Images.TYPE.getImage();
-      }
-
-      @Override
-      public String getAddElementToolTipText()
-      {
-        return "Add declared plugin type";
-      }
-    };
-
-    ElementManagerComposite<TypeElement, PatternInfoData> patternTypeComposite = new ElementManagerComposite<>(typeElementManagerDataModel, parent, SWT.NONE);
-    return patternTypeComposite;
-  }
-
-  /**
-   * @param parent
-   */
-  private ElementManagerComposite<TypeElement, PatternInfoData> createForbiddenPluginTypeComposite(Composite parent)
-  {
-    IElementManagerDataModel<TypeElement, PatternInfoData> forbiddenPluginTypeElementManagerDataModel = new IElementManagerDataModel<TypeElement, PatternInfoData>() {
-      @Override
-      public void refreshData(PatternInfoData patternInfoData)
-      {
-        updateAllPluginInfosWithPatternInfo(patternInfoData, true);
-      }
-
-      @Override
-      public Collection<TypeElement> getElements()
-      {
-        return pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.typeList.stream().map(TypeElement::new).collect(Collectors.toList());
-      }
-
-      @Override
-      public String getSectionTitle()
-      {
-        return "Forbidden plugin types";
-      }
-
-      @Override
-      public Image getSectionImage()
-      {
-        return Images.FORBIDDEN_TYPE.getImage();
-      }
-
-      @Override
-      public String getAddElementToolTipText()
-      {
-        return "Add forbidden plugin type";
-      }
-    };
-
-    ElementManagerComposite<TypeElement, PatternInfoData> patternForbiddenPluginTypeComposite = new ElementManagerComposite<>(forbiddenPluginTypeElementManagerDataModel, parent, SWT.NONE);
-    return patternForbiddenPluginTypeComposite;
+    // refresh all TabFolder
+    if (refreshPluginTabFolder)
+      pluginTabFolder.refresh();
   }
 
   /**

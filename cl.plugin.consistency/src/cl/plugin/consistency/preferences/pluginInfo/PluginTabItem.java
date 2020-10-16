@@ -76,11 +76,11 @@ public class PluginTabItem
 
   final PluginTabFolder pluginTabFolder;
   final Cache cache;
-  TableViewer projectTableViewer;
-  TableViewerColumn declaredPluginTypeTableViewerColumn;
-  TableViewerColumn forbiddenPluginTypeTableViewerColumn;
-  TableViewerColumn forbiddenPluginTableViewerColumn;
-  PluginInfoDetail pluginInfoDetail;
+  private TableViewer pluginInfoTableViewer;
+  private TableViewerColumn declaredPluginTypeTableViewerColumn;
+  private TableViewerColumn forbiddenPluginTypeTableViewerColumn;
+  private TableViewerColumn forbiddenPluginTableViewerColumn;
+  private PluginInfoDetail pluginInfoDetail;
 
   /**
    * Constructor
@@ -141,8 +141,8 @@ public class PluginTabItem
     scrolledComposite.setMinSize(scrolledComposite.getContent().computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
     // selection
-    projectTableViewer.addSelectionChangedListener(event -> {
-      IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+    pluginInfoTableViewer.addSelectionChangedListener(event -> {
+      IStructuredSelection selection = (IStructuredSelection) pluginInfoTableViewer.getSelection();
       PluginInfo pluginInfo = (PluginInfo) selection.getFirstElement();
       pluginInfoDetail.setPluginInfo(pluginInfo);
     });
@@ -158,11 +158,11 @@ public class PluginTabItem
   private void configurePluginInfoTableViewer(Composite parent)
   {
     //
-    projectTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
-    projectTableViewer.setContentProvider(ArrayContentProvider.getInstance());
-    projectTableViewer.setComparator(new DefaultLabelViewerComparator());
+    pluginInfoTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
+    pluginInfoTableViewer.setContentProvider(ArrayContentProvider.getInstance());
+    pluginInfoTableViewer.setComparator(new DefaultLabelViewerComparator());
 
-    Table table = projectTableViewer.getTable();
+    Table table = pluginInfoTableViewer.getTable();
     table.setLayout(new TableLayout());
     table.setHeaderVisible(true);
     table.setLinesVisible(true);
@@ -241,7 +241,7 @@ public class PluginTabItem
     new StyledToolTip(table, styledStringFunction);
 
     // 'Plugin id' TableViewerColumn
-    TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    TableViewerColumn pluginIdTableViewerColumn = new TableViewerColumn(pluginInfoTableViewer, SWT.NONE);
     pluginIdTableViewerColumn.getColumn().setText("Workspace plugin id");
     pluginIdTableViewerColumn.getColumn().setWidth(COLUMN_PREFERRED_WIDTH);
     pluginIdTableViewerColumn.getColumn().setData(COLUMN_SPACE_KEY, COLUMN_SPACE);
@@ -293,7 +293,7 @@ public class PluginTabItem
     DefaultLabelViewerComparator.configureForSortingColumn(pluginIdTableViewerColumn);
 
     // 'Declared plugin types' TableViewerColumn
-    declaredPluginTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    declaredPluginTypeTableViewerColumn = new TableViewerColumn(pluginInfoTableViewer, SWT.NONE);
     declaredPluginTypeTableViewerColumn.getColumn().setText("Declared plugin types");
     declaredPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider() {
       @Override
@@ -328,7 +328,7 @@ public class PluginTabItem
     DefaultLabelViewerComparator.configureForSortingColumn(declaredPluginTypeTableViewerColumn);
 
     // 'Forbidden plugin types' TableViewerColumn
-    forbiddenPluginTypeTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    forbiddenPluginTypeTableViewerColumn = new TableViewerColumn(pluginInfoTableViewer, SWT.NONE);
     forbiddenPluginTypeTableViewerColumn.getColumn().setText("Forbidden plugin types");
     forbiddenPluginTypeTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider() {
       @Override
@@ -363,7 +363,7 @@ public class PluginTabItem
     DefaultLabelViewerComparator.configureForSortingColumn(forbiddenPluginTypeTableViewerColumn);
 
     // 'Forbidden plugins/projects' TableViewerColumn
-    forbiddenPluginTableViewerColumn = new TableViewerColumn(projectTableViewer, SWT.NONE);
+    forbiddenPluginTableViewerColumn = new TableViewerColumn(pluginInfoTableViewer, SWT.NONE);
     forbiddenPluginTableViewerColumn.getColumn().setText("Forbidden plugins/projects");
     forbiddenPluginTableViewerColumn.setLabelProvider(new DelegatingStyledCellLabelProvider(new PluginInfoColumnLabelProvider() {
       @Override
@@ -406,8 +406,8 @@ public class PluginTabItem
   {
     MenuManager manager = new MenuManager();
     manager.setRemoveAllWhenShown(true);
-    Menu menu = manager.createContextMenu(projectTableViewer.getControl());
-    projectTableViewer.getControl().setMenu(menu);
+    Menu menu = manager.createContextMenu(pluginInfoTableViewer.getControl());
+    pluginInfoTableViewer.getControl().setMenu(menu);
 
     manager.addMenuListener(new PluginInfoMenuListener());
   }
@@ -417,22 +417,22 @@ public class PluginTabItem
    */
   public void refresh()
   {
-    projectTableViewer.getTable().setRedraw(false);
+    pluginInfoTableViewer.getTable().setRedraw(false);
 
     try
     {
       // Update projectTableViewer
-      projectTableViewer.setInput(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList);
+      pluginInfoTableViewer.setInput(pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.pluginInfoList);
 
       // pack columns
-      for(TableColumn tableColumn : projectTableViewer.getTable().getColumns())
+      for(TableColumn tableColumn : pluginInfoTableViewer.getTable().getColumns())
         pack(tableColumn, COLUMN_PREFERRED_WIDTH);
 
-      projectTableViewer.setSelection(projectTableViewer.getSelection());
+      pluginInfoTableViewer.setSelection(pluginInfoTableViewer.getSelection());
     }
     finally
     {
-      projectTableViewer.getTable().setRedraw(true);
+      pluginInfoTableViewer.getTable().setRedraw(true);
     }
 
     //
@@ -462,17 +462,17 @@ public class PluginTabItem
    */
   void refreshPluginInfo(PluginInfo pluginInfo)
   {
-    projectTableViewer.getTable().setRedraw(false);
+    pluginInfoTableViewer.getTable().setRedraw(false);
     try
     {
-      projectTableViewer.refresh(pluginInfo);
+      pluginInfoTableViewer.refresh(pluginInfo);
 
       pack(declaredPluginTypeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
       pack(forbiddenPluginTypeTableViewerColumn.getColumn(), COLUMN_PREFERRED_WIDTH);
     }
     finally
     {
-      projectTableViewer.getTable().setRedraw(true);
+      pluginInfoTableViewer.getTable().setRedraw(true);
     }
   }
 
@@ -538,7 +538,7 @@ public class PluginTabItem
     {
       boolean separatorAdded = false;
 
-      IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+      IStructuredSelection selection = (IStructuredSelection) pluginInfoTableViewer.getSelection();
       Stream<PluginInfo> pluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
       Set<PluginInfo> selectedPluginInfoSet = pluginInfoStream.collect(Collectors.toSet());
       if (selectedPluginInfoSet.size() == 1)
@@ -622,7 +622,7 @@ public class PluginTabItem
     @SuppressWarnings("unchecked")
     private void createRemoveInvalidPluginsMenuItem(IMenuManager manager)
     {
-      IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+      IStructuredSelection selection = (IStructuredSelection) pluginInfoTableViewer.getSelection();
       Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
       Set<PluginInfo> notExistPluginInfoSet = selectedPluginInfoStream.filter(pluginInfo -> !Util.getProject(pluginInfo).exists()).collect(Collectors.toSet());
       if (!notExistPluginInfoSet.isEmpty())
@@ -636,7 +636,7 @@ public class PluginTabItem
           {
             String notExistPluginInfoNames = notExistPluginInfoSet.stream().map(pluginInfo -> pluginInfo.name).collect(Collectors.joining(", "));
 
-            Shell shell = projectTableViewer.getControl().getShell();
+            Shell shell = pluginInfoTableViewer.getControl().getShell();
             String message = "Do you want to remove the selected non-existent plugins\n" + notExistPluginInfoNames + " ?";
             boolean result = MessageDialog.openConfirm(shell, "Confirm", message);
             if (result)
@@ -662,7 +662,7 @@ public class PluginTabItem
       {
         boolean separatorAdded = false;
 
-        IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+        IStructuredSelection selection = (IStructuredSelection) pluginInfoTableViewer.getSelection();
         Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
         Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::containsInformations).collect(Collectors.toSet());
         if (!modifiedSelectedPluginInfoSet.isEmpty())
@@ -720,7 +720,7 @@ public class PluginTabItem
           manager.add(new Separator());
 
         //
-        IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+        IStructuredSelection selection = (IStructuredSelection) pluginInfoTableViewer.getSelection();
         Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
         Set<PluginInfo> modifiedPluginInfoSet = selectedPluginInfoStream.collect(Collectors.toSet());
 
@@ -776,7 +776,7 @@ public class PluginTabItem
     {
       boolean separatorAdded = false;
 
-      IStructuredSelection selection = (IStructuredSelection) projectTableViewer.getSelection();
+      IStructuredSelection selection = (IStructuredSelection) pluginInfoTableViewer.getSelection();
       Stream<PluginInfo> selectedPluginInfoStream = selection.toList().stream().filter(PluginInfo.class::isInstance).map(PluginInfo.class::cast);
       Set<PluginInfo> modifiedSelectedPluginInfoSet = selectedPluginInfoStream.filter(PluginInfo::containsInformations).collect(Collectors.toSet());
       if (!modifiedSelectedPluginInfoSet.isEmpty())

@@ -82,10 +82,6 @@ class ForbiddenPluginComposite
     bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
     cache = projectDetail.patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-    // tmp
-    Stream.of(bundles).sorted(Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE))
-      .forEach(bundle -> PluginConsistencyActivator.logInfo("bundle: " + bundle));
-
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
     sectionPane.getHeaderSection().setText("Forbidden plugins/projects");
@@ -375,7 +371,7 @@ class ForbiddenPluginComposite
         }
         forbiddenPluginTableViewer.setInput(checkedTreeDialog.getResult());
 
-        projectDetail.patternTabItem.refreshPatternInfo(patternInfo);
+        projectDetail.patternTabItem.updateAllPluginInfosWithPatternInfo(patternInfo, true);
       }
 
       checkedObjects.clear();

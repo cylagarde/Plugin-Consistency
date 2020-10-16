@@ -93,10 +93,6 @@ class ForbiddenPluginComposite
     bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
     cache = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-    // tmp
-    Stream.of(bundles).sorted(Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE))
-      .forEach(bundle -> PluginConsistencyActivator.logInfo("bundle: " + bundle));
-
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
     sectionPane.getHeaderSection().setText("Forbidden plugins/projects");
