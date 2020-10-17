@@ -2,8 +2,8 @@ package cl.plugin.consistency.preferences.pluginInfo;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -31,6 +31,8 @@ import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.eclipse.pde.core.project.IBundleProjectDescription;
 import org.eclipse.pde.core.project.IBundleProjectService;
 import org.eclipse.pde.core.project.IRequiredBundleDescription;
@@ -60,7 +62,6 @@ import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
-import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
@@ -74,7 +75,7 @@ class ForbiddenPluginComposite
   final PluginInfoDetail projectDetail;
   final TableViewer forbiddenPluginTableViewer;
   final ToolBar toolBar;
-  final Bundle[] bundles;
+  final List<IPluginModelBase> pluginModelBases;
   final IAction addPluginAction;
 
   PluginInfo pluginInfo;
@@ -93,9 +94,9 @@ class ForbiddenPluginComposite
   {
     this.projectDetail = projectDetail;
 
-    bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
     cache = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
     checkedObjects = new TreeSet<>(cache.getPluginIdComparator());
+    pluginModelBases = Arrays.asList(PluginRegistry.getActiveModels(false));
 
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
@@ -169,6 +170,7 @@ class ForbiddenPluginComposite
     if (addPluginAction.isEnabled())
     {
       Supplier<Set<String>> supplier = () -> {
+        // find project with id
         Optional<IProject> optional = Stream.of(cache.getValidProjects())
           .filter(project -> cache.getId(project).equals(pluginInfo.id))
           .findFirst();
@@ -218,9 +220,15 @@ class ForbiddenPluginComposite
     @Override
     public void run()
     {
-      Object[] checkedElements = ((IStructuredContentProvider) forbiddenPluginTableViewer.getContentProvider()).getElements(forbiddenPluginTableViewer.getInput());
+      Object[] forbiddenPlugins = ((IStructuredContentProvider) forbiddenPluginTableViewer.getContentProvider()).getElements(forbiddenPluginTableViewer.getInput());
       checkedObjects.clear();
-      checkedObjects.addAll(Arrays.asList(checkedElements));
+
+      // retrieve checkedElements
+      List<IPluginModelBase> checkedElements = Stream.of(forbiddenPlugins)
+        .map(cache::getId)
+        .map(id -> tryToRetrievePluginModelBase(id).get())
+        .collect(Collectors.toList());
+      checkedObjects.addAll(checkedElements);
 
       Set<String> requireBundleSet = new HashSet<>();
       try
@@ -412,13 +420,19 @@ class ForbiddenPluginComposite
       checkedTreeDialog.setContainerMode(true);
 
       //
-      TreeSet<Object> treeSet = new TreeSet<>(Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE));
-      treeSet.addAll(Arrays.asList(cache.getValidProjects()));
+      TreeSet<Object> treeSet = new TreeSet<>(cache.getPluginIdComparator());
+      treeSet.addAll(pluginModelBases);
 
       // remove current plugin/project
       treeSet.removeIf(o -> cache.getId(o).equals(pluginInfo.id));
 
-      treeSet.addAll(Arrays.asList(bundles));
+      // remove plugin/project from pattern
+      Set<String> forbiddenPluginsFromPattern = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+        .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+        .flatMap(patternInfo -> patternInfo.forbiddenPluginList.stream())
+        .map(forbiddenPlugin -> forbiddenPlugin.id)
+        .collect(Collectors.toSet());
+      treeSet.removeIf(o -> forbiddenPluginsFromPattern.contains(cache.getId(o)));
 
       //
       checkedTreeDialog.setInput(treeSet.toArray());
@@ -428,13 +442,27 @@ class ForbiddenPluginComposite
       if (checkedTreeDialog.open() == IDialogConstants.OK_ID)
       {
         pluginInfo.forbiddenPluginList.clear();
+
+        TreeSet<Object> newInput = new TreeSet<>(cache.getPluginIdComparator());
+
+        for(String id : forbiddenPluginsFromPattern)
+        {
+          ForbiddenPlugin forbiddenPluginInfo = new ForbiddenPlugin();
+          forbiddenPluginInfo.id = id;
+          pluginInfo.forbiddenPluginList.add(forbiddenPluginInfo);
+
+          newInput.add(tryToRetrievePluginModelBase(id).get());
+        }
+
         for(Object o : checkedTreeDialog.getResult())
         {
           ForbiddenPlugin forbiddenPluginInfo = new ForbiddenPlugin();
           forbiddenPluginInfo.id = cache.getId(o);
           pluginInfo.forbiddenPluginList.add(forbiddenPluginInfo);
+          newInput.add(o);
         }
-        forbiddenPluginTableViewer.setInput(checkedTreeDialog.getResult());
+
+        forbiddenPluginTableViewer.setInput(newInput);
 
         projectDetail.pluginTabItem.refreshPluginInfo(pluginInfo);
       }
@@ -472,5 +500,12 @@ class ForbiddenPluginComposite
         return false;
       }
     }
+  }
+
+  private Optional<IPluginModelBase> tryToRetrievePluginModelBase(String id)
+  {
+    return pluginModelBases.stream()
+      .filter(pluginModelBase -> id.equals(cache.getId(pluginModelBase)))
+      .findAny();
   }
 }

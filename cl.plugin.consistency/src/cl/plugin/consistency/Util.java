@@ -24,6 +24,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProduct;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
@@ -32,12 +33,21 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.pde.core.IIdentifiable;
+import org.eclipse.pde.core.IModel;
+import org.eclipse.pde.core.plugin.IFragmentModel;
+import org.eclipse.pde.core.plugin.IPluginModel;
 import org.eclipse.pde.core.project.IBundleProjectDescription;
 import org.eclipse.pde.core.project.IBundleProjectService;
 import org.eclipse.pde.core.project.IRequiredBundleDescription;
+import org.eclipse.pde.internal.core.bundle.WorkspaceBundlePluginModel;
+import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
+import org.eclipse.pde.internal.core.iproduct.IProductFeature;
+import org.eclipse.pde.internal.core.iproduct.IProductPlugin;
 import org.eclipse.pde.internal.core.project.PDEProject;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.osgi.framework.Bundle;
 
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PatternInfo;
@@ -920,5 +930,62 @@ public class Util
     {
       PluginConsistencyActivator.logError("Error when joining WorkspaceJob", e);
     }
+  }
+
+  /**
+   * Get id
+   * @param pdeObject
+   */
+  public static String getId(Object pdeObject)
+  {
+    if (pdeObject instanceof IIdentifiable)
+      return ((IIdentifiable) pdeObject).getId();
+
+    if (pdeObject instanceof IProduct)
+      return ((IProduct) pdeObject).getId();
+
+    if (pdeObject instanceof IProductFeature)
+      return ((IProductFeature) pdeObject).getId();
+
+    if (pdeObject instanceof IProductPlugin)
+      return ((IProductPlugin) pdeObject).getId();
+
+    if (pdeObject instanceof IFeatureModel)
+      return ((IFeatureModel) pdeObject).getFeature().getId();
+
+    if (pdeObject instanceof IPluginModel)
+      return getId(((IPluginModel) pdeObject).getPlugin());
+
+    if (pdeObject instanceof IFragmentModel)
+      return getId(((IFragmentModel) pdeObject).getPluginBase());
+
+    if (pdeObject instanceof IProject)
+      return getId(getWorkspaceBundlePluginModel((IProject) pdeObject));
+
+    if (pdeObject instanceof Bundle)
+      return ((Bundle) pdeObject).getSymbolicName();
+
+    if (pdeObject instanceof IModel)
+    {
+      IModel model = (IModel) pdeObject;
+      IResource underlyingResource = model.getUnderlyingResource();
+      if (underlyingResource != null)
+        return underlyingResource.getName();
+    }
+
+    return null;
+  }
+
+  /**
+   * Return the WorkspaceBundlePluginModel
+   *
+   * @param project
+   */
+  private static WorkspaceBundlePluginModel getWorkspaceBundlePluginModel(IProject project)
+  {
+    IFile pluginXml = null;// PDEProject.getPluginXml(project);
+    IFile manifest = PDEProject.getManifest(project);
+    WorkspaceBundlePluginModel pluginModel = new WorkspaceBundlePluginModel(manifest, pluginXml);
+    return pluginModel;
   }
 }

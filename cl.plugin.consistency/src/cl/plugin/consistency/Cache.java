@@ -5,13 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.pde.internal.core.bundle.WorkspaceBundlePluginModel;
 import org.eclipse.pde.internal.core.natures.PDE;
-import org.eclipse.pde.internal.core.project.PDEProject;
-import org.osgi.framework.Bundle;
 
 import cl.plugin.consistency.custom.NaturalOrderComparator;
 
@@ -46,11 +42,7 @@ public class Cache
     String id = elementToIdCacheMap.get(o);
     if (id == null)
     {
-      if (o instanceof IProject)
-        id = getPluginId((IProject) o);
-      else
-        id = ((Bundle) o).getSymbolicName();
-
+      id = Util.getId(o);
       if (id != null)
         elementToIdCacheMap.put(o, id);
       else
@@ -58,31 +50,6 @@ public class Cache
     }
 
     return id;
-  }
-
-  /**
-   * Return the plugin id
-   *
-   * @param project
-   */
-  private String getPluginId(IProject project)
-  {
-    WorkspaceBundlePluginModel pluginModel = getWorkspaceBundlePluginModel(project);
-    String pluginId = pluginModel.getPlugin().getId();
-    return pluginId;
-  }
-
-  /**
-   * Return the WorkspaceBundlePluginModel
-   *
-   * @param project
-   */
-  private static WorkspaceBundlePluginModel getWorkspaceBundlePluginModel(IProject project)
-  {
-    IFile pluginXml = null;// PDEProject.getPluginXml(project);
-    IFile manifest = PDEProject.getManifest(project);
-    WorkspaceBundlePluginModel pluginModel = new WorkspaceBundlePluginModel(manifest, pluginXml);
-    return pluginModel;
   }
 
   Map<IProject, Boolean> isValidPluginWithCacheMap = new HashMap<>();

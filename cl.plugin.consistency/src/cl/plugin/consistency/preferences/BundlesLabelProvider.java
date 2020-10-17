@@ -1,6 +1,8 @@
 package cl.plugin.consistency.preferences;
 
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -8,6 +10,7 @@ import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
+import org.eclipse.pde.internal.core.ibundle.IBundlePluginModelBase;
 import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.swt.SWT;
@@ -15,7 +18,6 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
-import org.osgi.framework.Bundle;
 
 import cl.plugin.consistency.Cache;
 
@@ -73,14 +75,16 @@ public class BundlesLabelProvider extends LabelProvider implements IColorProvide
   {
     if (element instanceof IProject)
       return workbenchLabelProvider.getImage(element);
-    if (element instanceof Bundle)
+    if (element instanceof IBundlePluginModelBase)
     {
-      Bundle bundle = (Bundle) element;
-      if (bundle.getHeaders().get("Fragment-Host") != null)
-        return PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_FRAGMENT_OBJ);
-      return PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_PLUGIN_OBJ);
+      // find project
+      Optional<IProject> optional = Stream.of(cache.getValidProjects())
+        .filter(project -> cache.getId(project).equals(cache.getId(element)))
+        .findAny();
+      if (optional.isPresent())
+        return workbenchLabelProvider.getImage(optional.get());
     }
-    return null;
+    return PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_PLUGIN_OBJ);
   }
 
   @Override

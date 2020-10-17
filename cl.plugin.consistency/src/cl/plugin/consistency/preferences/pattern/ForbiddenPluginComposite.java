@@ -1,12 +1,12 @@
 package cl.plugin.consistency.preferences.pattern;
 
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
@@ -22,6 +22,8 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.swt.SWT;
@@ -46,9 +48,7 @@ import org.osgi.framework.Bundle;
 
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
-import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
-import cl.plugin.consistency.custom.NaturalOrderComparator;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
@@ -62,7 +62,7 @@ class ForbiddenPluginComposite
   final PatternInfoDetail projectDetail;
   final TableViewer forbiddenPluginTableViewer;
   final ToolBar toolBar;
-  final Bundle[] bundles;
+  final List<IPluginModelBase> pluginModelBases;
   final IAction addPluginAction;
 
   PatternInfo patternInfo;
@@ -80,9 +80,9 @@ class ForbiddenPluginComposite
   {
     this.projectDetail = projectDetail;
 
-    bundles = PluginConsistencyActivator.getDefault().getBundle().getBundleContext().getBundles();
     cache = projectDetail.patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
     checkedObjects = new TreeSet<>(cache.getPluginIdComparator());
+    pluginModelBases = Arrays.asList(PluginRegistry.getActiveModels(false));
 
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
@@ -155,22 +155,20 @@ class ForbiddenPluginComposite
     @Override
     public void run()
     {
-      Object[] checkedElements = ((IStructuredContentProvider) forbiddenPluginTableViewer.getContentProvider()).getElements(forbiddenPluginTableViewer.getInput());
+      Object[] forbiddenPlugins = ((IStructuredContentProvider) forbiddenPluginTableViewer.getContentProvider()).getElements(forbiddenPluginTableViewer.getInput());
       checkedObjects.clear();
-      checkedObjects.addAll(Arrays.asList(checkedElements));
 
-      Set<String> requireBundleSet = new HashSet<>();
-      //      try
-      //      {
-      //        requireBundleSet.addAll(requireBundleSetCompletableFuture.get());
-      //      }
-      //      catch(InterruptedException | ExecutionException e)
-      //      {
-      //        PluginConsistencyActivator.logError("Error: " + e, e);
-      //      }
+      // retrieve checkedElements
+      List<IPluginModelBase> checkedElements = Stream.of(forbiddenPlugins)
+        .map(cache::getId)
+        .map(id -> pluginModelBases.stream()
+          .filter(pluginModelBase -> id.equals(cache.getId(pluginModelBase)))
+          .findAny().get())
+        .collect(Collectors.toList());
+      checkedObjects.addAll(checkedElements);
 
       //
-      BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(cache, requireBundleSet);
+      BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(cache);
       CheckedTreeSelectionDialog checkedTreeDialog = new CheckedTreeSelectionDialog(forbiddenPluginTableViewer.getControl().getShell(), bundlesLabelProvider, new BundleTreeContentProvider()) {
         Text searchPluginText;
 
@@ -197,36 +195,8 @@ class ForbiddenPluginComposite
           layout.marginBottom = 10;
           composite.setLayout(layout);
 
-          Button seeRequirePluginButton = new Button(composite, SWT.CHECK);
-          seeRequirePluginButton.setText("See require plugins");
           Button seeCheckedPluginButton = new Button(composite, SWT.CHECK);
           seeCheckedPluginButton.setText("See checked plugins");
-
-          //
-          seeRequirePluginButton.addSelectionListener(new SelectionAdapter() {
-            ViewerFilter seeRequirePluginViewerFilter = new ViewerFilter() {
-              @Override
-              public boolean select(Viewer viewer, Object parentElement, Object element)
-              {
-                return requireBundleSet.contains(cache.getId(element));
-              }
-            };
-
-            @Override
-            public void widgetSelected(SelectionEvent e)
-            {
-              // init searchPluginText
-              searchPluginText.setText("");
-
-              getTreeViewer().getTree().setRedraw(false);
-              seeCheckedPluginButton.setEnabled(!seeRequirePluginButton.getSelection());
-              if (seeRequirePluginButton.getSelection())
-                getTreeViewer().addFilter(seeRequirePluginViewerFilter);
-              else
-                getTreeViewer().removeFilter(seeRequirePluginViewerFilter);
-              getTreeViewer().getTree().setRedraw(true);
-            }
-          });
 
           //
           seeCheckedPluginButton.addSelectionListener(new SelectionAdapter() {
@@ -254,7 +224,6 @@ class ForbiddenPluginComposite
               searchPluginText.setText("");
 
               getTreeViewer().getTree().setRedraw(false);
-              seeRequirePluginButton.setEnabled(!seeCheckedPluginButton.getSelection());
               if (seeCheckedPluginButton.getSelection())
                 getTreeViewer().addFilter(seeOnlyCheckedPluginViewerFilter);
               else
@@ -349,13 +318,8 @@ class ForbiddenPluginComposite
       checkedTreeDialog.setContainerMode(true);
 
       //
-      TreeSet<Object> treeSet = new TreeSet<>(Comparator.comparing(cache::getId, NaturalOrderComparator.INSTANCE));
-      treeSet.addAll(Arrays.asList(cache.getValidProjects()));
-
-      // remove current plugin/project
-      //      treeSet.removeIf(o -> cache.getId(o).equals(patternInfo.id));
-
-      treeSet.addAll(Arrays.asList(bundles));
+      TreeSet<Object> treeSet = new TreeSet<>(cache.getPluginIdComparator());
+      treeSet.addAll(pluginModelBases);
 
       //
       checkedTreeDialog.setInput(treeSet.toArray());
