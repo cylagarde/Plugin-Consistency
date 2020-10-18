@@ -44,7 +44,7 @@ public class PluginConsistencyLoader
    *
    * @throws Exception
    */
-  public static PluginConsistency loadPluginConsistencyFile(File pluginConsistencyFile) throws Exception
+  public static PluginConsistency loadPluginConsistency(File pluginConsistencyFile) throws Exception
   {
     PluginConsistency pluginConsistency = JaxbLoaderUtil.load(pluginConsistencyFile, PluginConsistency.class, getValidationSchema());
 

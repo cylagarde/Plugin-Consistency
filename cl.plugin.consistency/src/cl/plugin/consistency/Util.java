@@ -169,7 +169,7 @@ public class Util
   {
     try
     {
-      PluginConsistencyLoader.loadPluginConsistencyFile(consistencyFile);
+      PluginConsistencyLoader.loadPluginConsistency(consistencyFile);
       return null;
     }
     catch(UnmarshalException e)
@@ -194,7 +194,7 @@ public class Util
     try
     {
       if (consistencyFile != null && consistencyFile.exists() && consistencyFile.isFile())
-        pluginConsistency = PluginConsistencyLoader.loadPluginConsistencyFile(consistencyFile);
+        pluginConsistency = PluginConsistencyLoader.loadPluginConsistency(consistencyFile);
     }
     catch(Exception e)
     {

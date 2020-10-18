@@ -34,10 +34,10 @@ public class PluginConsistency
   {
     PluginConsistency pluginConsistency = new PluginConsistency();
 
-    // add all availables types
+    // add all available types
     pluginConsistency.typeList.addAll(typeList);
 
-    // add all availables patterns
+    // add all available patterns
     pluginConsistency.patternList.addAll(patternList);
 
     //
@@ -47,12 +47,18 @@ public class PluginConsistency
       {
         PluginInfo newPluginInfo = pluginInfo.duplicate();
 
+        Set<PatternInfo> acceptedPatternInfos = patternList.stream()
+          .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+          .collect(Collectors.toSet());
+
         // remove types from pattern
-        Set<Type> declaredPluginTypeFromPatternInfoSet = patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.declaredPluginTypeList.stream()).collect(Collectors.toSet());
-        Set<Type> forbiddenPluginTypeFromPatternInfoSet = patternList.stream().filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id)).flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream()).collect(Collectors.toSet());
+        Set<Type> declaredPluginTypeFromPatternInfoSet = acceptedPatternInfos.stream().flatMap(patternInfo -> patternInfo.declaredPluginTypeList.stream()).collect(Collectors.toSet());
+        Set<Type> forbiddenPluginTypeFromPatternInfoSet = acceptedPatternInfos.stream().flatMap(patternInfo -> patternInfo.forbiddenPluginTypeList.stream()).collect(Collectors.toSet());
+        Set<ForbiddenPlugin> forbiddenPluginFromPatternInfoSet = acceptedPatternInfos.stream().flatMap(patternInfo -> patternInfo.forbiddenPluginList.stream()).collect(Collectors.toSet());
 
         newPluginInfo.declaredPluginTypeList.removeIf(declaredPluginTypeFromPatternInfoSet::contains);
         newPluginInfo.forbiddenPluginTypeList.removeIf(forbiddenPluginTypeFromPatternInfoSet::contains);
+        newPluginInfo.forbiddenPluginList.removeIf(forbiddenPluginFromPatternInfoSet::contains);
 
         if (newPluginInfo.containsInformations())
           pluginConsistency.pluginInfoList.add(newPluginInfo);
