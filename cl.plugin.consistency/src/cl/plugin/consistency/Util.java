@@ -843,7 +843,7 @@ public class Util
   public static void savePluginConsistency(PluginConsistency pluginConsistency, File consistencyFile)
   {
     // remove useless pluginInfo
-    PluginConsistency compactPluginConsistency = pluginConsistency.compact();
+    PluginConsistency compactPluginConsistency = pluginConsistency.compactForSaving();
 
     try
     {

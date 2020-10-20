@@ -334,9 +334,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       return null;
     }
 
-    // remove useless pluginInfo
-    PluginConsistency compactPluginConsistency = pluginConsistency.compact();
-
     try
     {
       File pluginConsistencyFile = Util.getConsistencyFile(consistency_file_path);
@@ -349,6 +346,8 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       IProject project = Util.getWorkspaceProject(consistency_file_path);
       if (project != null)
         project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+
+      return pluginConsistency;
     }
     catch(Exception e)
     {
@@ -357,8 +356,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       MessageDialog.openError(getShell(), "Error", message);
       return null;
     }
-
-    return compactPluginConsistency;
   }
 
   /**

@@ -1,5 +1,7 @@
 package cl.plugin.consistency.model.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -61,6 +63,28 @@ public class PluginConsistencyLoader
   }
 
   /**
+   * Load plugin consistency file
+   *
+   * @throws Exception
+   */
+  public static PluginConsistency loadPluginConsistency(byte[] pluginConsistencyContent) throws Exception
+  {
+    ByteArrayInputStream bais = new ByteArrayInputStream(pluginConsistencyContent);
+    PluginConsistency pluginConsistency = JaxbLoaderUtil.load(bais, PluginConsistency.class, getValidationSchema());
+
+    // remove duplicate types
+    pluginConsistency.typeList = new ArrayList<>(new LinkedHashSet<>(pluginConsistency.typeList));
+    for(PluginInfo pluginInfo : pluginConsistency.pluginInfoList)
+    {
+      pluginInfo.declaredPluginTypeList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.declaredPluginTypeList));
+      pluginInfo.forbiddenPluginTypeList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.forbiddenPluginTypeList));
+      pluginInfo.forbiddenPluginList = new ArrayList<>(new LinkedHashSet<>(pluginInfo.forbiddenPluginList));
+    }
+
+    return pluginConsistency;
+  }
+
+  /**
    * Save plugin consistency
    *
    * @throws Exception
@@ -71,5 +95,21 @@ public class PluginConsistencyLoader
     if (schemaLocation.startsWith("/"))
       schemaLocation = schemaLocation.substring(1);
     JaxbLoaderUtil.save(pluginConsistency, pluginConsistencyFile, schemaLocation);
+  }
+
+  /**
+   * Save plugin consistency
+   *
+   * @throws Exception
+   */
+  public static byte[] savePluginConsistency(PluginConsistency pluginConsistency) throws Exception
+  {
+    String schemaLocation = SCHEMA_URL.getPath();
+    if (schemaLocation.startsWith("/"))
+      schemaLocation = schemaLocation.substring(1);
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    JaxbLoaderUtil.save(pluginConsistency, baos, schemaLocation);
+    baos.close();
+    return baos.toByteArray();
   }
 }

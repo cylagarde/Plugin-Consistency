@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 /**
  * The class <b>AbstractData</b> allows to.<br>
  */
-public class AbstractData
+public abstract class AbstractData
 {
   @XmlElementWrapper(name = "DeclaredPluginTypes")
   @XmlElement(name = "Type")
@@ -22,4 +22,17 @@ public class AbstractData
   @XmlElementWrapper(name = "ForbiddenPlugins")
   @XmlElement(name = "ForbiddenPlugin")
   public List<ForbiddenPlugin> forbiddenPluginList = new ArrayList<>();
+
+  //  void beforeMarshal(Marshaller u)
+  //  {
+  //    // do not save empty list
+  //    if (declaredPluginTypeList != null && declaredPluginTypeList.isEmpty())
+  //      declaredPluginTypeList = null;
+  //
+  //    if (forbiddenPluginTypeList != null && forbiddenPluginTypeList.isEmpty())
+  //      forbiddenPluginTypeList = null;
+  //
+  //    if (forbiddenPluginList != null && forbiddenPluginList.isEmpty())
+  //      forbiddenPluginList = null;
+  //  }
 }
