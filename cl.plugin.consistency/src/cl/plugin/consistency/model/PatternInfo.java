@@ -1,10 +1,9 @@
 package cl.plugin.consistency.model;
 
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.annotation.XmlAttribute;
-
-import org.eclipse.ui.dialogs.SearchPattern;
 
 /**
  * The class <b>PatternInfo</b> allows to.<br>
@@ -29,30 +28,30 @@ public class PatternInfo extends AbstractData
   @Override
   public String toString()
   {
-    String containsPattern = getContainsPattern();
-    String doNotContainsPattern = getDoNotContainsPattern();
-    return "PatternInfo[activate=" + activate + ", contains=" + containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? ", not contains=" + doNotContainsPattern : "") + "]";
+    String acceptPattern = getAcceptPattern();
+    String doNotAcceptPattern = getDoNotAcceptPattern();
+    return "PatternInfo[activate=" + activate + ", accept=" + acceptPattern + (!doNotAcceptPattern.isEmpty()? ", not accept=" + doNotAcceptPattern : "") + "]";
   }
 
-  public String getContainsAndNotContainsPattern()
+  public String getAcceptAndNotAcceptPattern()
   {
-    String containsPattern = getContainsPattern();
-    String doNotContainsPattern = getDoNotContainsPattern();
-    return containsPattern + (doNotContainsPattern != null && !doNotContainsPattern.isEmpty()? TYPE_PATTERN_SEPARATOR + doNotContainsPattern : "");
+    String containsPattern = getAcceptPattern();
+    String doNotContainsPattern = getDoNotAcceptPattern();
+    return containsPattern + (!doNotContainsPattern.isEmpty()? TYPE_PATTERN_SEPARATOR + doNotContainsPattern : "");
   }
 
-  public String getContainsPattern()
-  {
-    int index = pattern.indexOf(TYPE_PATTERN_SEPARATOR);
-    String containsPattern = index >= 0? pattern.substring(0, index) : pattern;
-    return containsPattern;
-  }
-
-  public String getDoNotContainsPattern()
+  public String getAcceptPattern()
   {
     int index = pattern.indexOf(TYPE_PATTERN_SEPARATOR);
-    String doNotContainsPattern = index >= 0? pattern.substring(index + 1) : "";
-    return doNotContainsPattern;
+    String acceptPattern = index >= 0? pattern.substring(0, index) : pattern;
+    return acceptPattern;
+  }
+
+  public String getDoNotAcceptPattern()
+  {
+    int index = pattern.indexOf(TYPE_PATTERN_SEPARATOR);
+    String doNotAcceptPattern = index >= 0? pattern.substring(index + 1) : "";
+    return doNotAcceptPattern;
   }
 
   public boolean containsTypes()
@@ -68,53 +67,74 @@ public class PatternInfo extends AbstractData
       return false;
 
     //
-    String containsPatterns = getContainsPattern();
-    if (containsPatterns != null && !containsPatterns.isEmpty())
+    String acceptPatterns = getAcceptPattern();
+    StringTokenizer acceptPatternStringTokenizer = new StringTokenizer(acceptPatterns, PATTERN_SEPARATOR);
+    boolean acceptPlugin = false;
+    while(acceptPatternStringTokenizer.hasMoreTokens())
     {
-      SearchPattern containsPatternSearchPattern = new SearchPattern();
-
-      StringTokenizer stringTokenizer = new StringTokenizer(containsPatterns, PATTERN_SEPARATOR);
-      boolean acceptPlugin = false;
-      while(stringTokenizer.hasMoreTokens())
+      String acceptPattern = acceptPatternStringTokenizer.nextToken();
+      if (acceptPattern.contains("*") || acceptPattern.contains("?"))
       {
-        String containsPattern = stringTokenizer.nextToken();
-        containsPatternSearchPattern.setPattern('*' + containsPattern);
-        if (containsPatternSearchPattern.matches(pluginId))
+        Pattern pattern = createRegexPattern(acceptPattern);
+        if (pattern.matcher(pluginId).matches())
         {
           acceptPlugin = true;
           break;
         }
       }
-      if (!acceptPlugin)
-        return false;
+      else if (acceptPattern.equals(pluginId))
+      {
+        acceptPlugin = true;
+        break;
+      }
     }
+    if (!acceptPlugin)
+      return false;
 
     //
-    String doNotContainsPatterns = getDoNotContainsPattern();
-    if (doNotContainsPatterns != null && !doNotContainsPatterns.isEmpty())
+    String doNotAcceptPatterns = getDoNotAcceptPattern();
+    StringTokenizer doNotAcceptPatternsStringTokenizer = new StringTokenizer(doNotAcceptPatterns, PATTERN_SEPARATOR);
+    while(doNotAcceptPatternsStringTokenizer.hasMoreTokens())
     {
-      SearchPattern doNotContainsPatternSearchPattern = new SearchPattern();
-      StringTokenizer stringTokenizer = new StringTokenizer(doNotContainsPatterns, PATTERN_SEPARATOR);
-      while(stringTokenizer.hasMoreTokens())
+      String doNotAcceptPattern = doNotAcceptPatternsStringTokenizer.nextToken();
+      if (doNotAcceptPattern.contains("*") || doNotAcceptPattern.contains("?"))
       {
-        String doNotContainsPattern = stringTokenizer.nextToken();
-        doNotContainsPatternSearchPattern.setPattern('*' + doNotContainsPattern);
-        if (doNotContainsPatternSearchPattern.matches(pluginId))
+        Pattern pattern = createRegexPattern(doNotAcceptPattern);
+        if (pattern.matcher(pluginId).matches())
           return false;
+      }
+      else if (doNotAcceptPattern.equals(pluginId))
+      {
+        return false;
       }
     }
 
     return true;
   }
 
+  private static Pattern createRegexPattern(String text)
+  {
+    // Ajoute de \Q \E autour de la chaine
+    String regexpPattern = Pattern.quote(text);
+    // On remplace toutes les occurences de '*' afin de les interpréter
+    regexpPattern = regexpPattern.replaceAll("\\*", "\\\\E.*\\\\Q");
+    // On remplace toutes les occurences de '?' afin de les interpréter
+    regexpPattern = regexpPattern.replaceAll("\\?", "\\\\E.\\\\Q");
+    // On supprime tous les \Q \E inutiles
+    regexpPattern = regexpPattern.replaceAll("\\\\Q\\\\E", "");
+
+    //
+    return Pattern.compile(regexpPattern);
+  }
+
   /**
    * Set pattern
    *
-   * @param containsPattern
-   * @param doNotContainsPattern
+   * @param acceptPattern
+   * @param doNotAcceptPattern
    */
-  public void setPattern(String containsPattern, String doNotContainsPattern)
+  public void setPattern(String acceptPattern, String doNotAcceptPattern)
   {
-    pattern = doNotContainsPattern == null || doNotContainsPattern.isEmpty()? containsPattern : containsPattern + TYPE_PATTERN_SEPARATOR + doNotContainsPattern;
+    pattern = doNotAcceptPattern == null || doNotAcceptPattern.isEmpty()? acceptPattern : acceptPattern + TYPE_PATTERN_SEPARATOR + doNotAcceptPattern;
   }
 }

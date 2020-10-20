@@ -218,8 +218,8 @@ public class PluginTabItem
                 buffer.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
                 buffer.append("  pattern[");
 
-                String containsPattern = patternInfo.getContainsPattern();
-                String doNotContainsPattern = patternInfo.getDoNotContainsPattern();
+                String containsPattern = patternInfo.getAcceptPattern();
+                String doNotContainsPattern = patternInfo.getDoNotAcceptPattern();
                 if (containsPattern != null && !containsPattern.isEmpty())
                 {
                   buffer.append("contains=").append("\"" + containsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));

@@ -42,8 +42,8 @@ class InputPatternDialog extends Dialog
   /**
    * The message to display, or <code>null</code> if none.
    */
-  private final String containsPatternMessage;
-  private final String doNotContainsPatternMessage;
+  private final String acceptPatternMessage;
+  private final String doNotAcceptPatternMessage;
 
   private final Cache cache;
 
@@ -51,8 +51,8 @@ class InputPatternDialog extends Dialog
    * The input value; the empty string by default.
    */
   private String description;
-  private String containsPattern;
-  private String doNotContainsPattern;
+  private String acceptPattern;
+  private String doNotAcceptPattern;
 
   /**
    * The pattern validator, or <code>null</code> if none.
@@ -62,8 +62,8 @@ class InputPatternDialog extends Dialog
   private Button okButton;
 
   private Text descriptionText;
-  private Text containsPatternText;
-  private Text doNotContainsPatternText;
+  private Text acceptPatternText;
+  private Text doNotAcceptPatternText;
 
   private TableViewer pluginAcceptedTableViewer;
   private TableViewer pluginNotAcceptedTableViewer;
@@ -84,24 +84,24 @@ class InputPatternDialog extends Dialog
      *            shell
      * @param dialogTitle
      *            the dialog title, or <code>null</code> if none
-     * @param containsPatternMessage
+     * @param acceptPatternMessage
      *            the dialog message, or <code>null</code> if none
-     * @param initialContainsPattern
+     * @param initialAcceptPattern
      *            the initial input value, or <code>null</code> if none
      *            (equivalent to the empty string)
      * @param patternValidator
      *            an input validator, or <code>null</code> if none
      */
-  InputPatternDialog(Shell parentShell, String dialogTitle, String initialDescription, String containsPatternMessage, String initialContainsPattern, String doNotContainsPatternMessage, String initialDoNotContainsPattern, Cache cache,
+  InputPatternDialog(Shell parentShell, String dialogTitle, String initialDescription, String acceptPatternMessage, String initialAcceptPattern, String doNotAcceptPatternMessage, String initialDoNotAcceptPattern, Cache cache,
     IPatternValidator patternValidator)
   {
     super(parentShell);
     this.title = dialogTitle;
     this.description = initialDescription == null? "" : initialDescription;
-    this.containsPatternMessage = containsPatternMessage;
-    this.doNotContainsPatternMessage = doNotContainsPatternMessage;
-    containsPattern = initialContainsPattern == null? "" : initialContainsPattern;
-    doNotContainsPattern = initialDoNotContainsPattern == null? "" : initialDoNotContainsPattern;
+    this.acceptPatternMessage = acceptPatternMessage;
+    this.doNotAcceptPatternMessage = doNotAcceptPatternMessage;
+    acceptPattern = initialAcceptPattern == null? "" : initialAcceptPattern;
+    doNotAcceptPattern = initialDoNotAcceptPattern == null? "" : initialDoNotAcceptPattern;
     this.cache = cache;
     this.patternValidator = patternValidator;
   }
@@ -110,8 +110,8 @@ class InputPatternDialog extends Dialog
   protected void buttonPressed(int buttonId)
   {
     description = buttonId == IDialogConstants.OK_ID? descriptionText.getText() : null;
-    containsPattern = buttonId == IDialogConstants.OK_ID? containsPatternText.getText() : null;
-    doNotContainsPattern = buttonId == IDialogConstants.OK_ID? doNotContainsPatternText.getText() : null;
+    acceptPattern = buttonId == IDialogConstants.OK_ID? acceptPatternText.getText() : null;
+    doNotAcceptPattern = buttonId == IDialogConstants.OK_ID? doNotAcceptPatternText.getText() : null;
     super.buttonPressed(buttonId);
   }
 
@@ -147,17 +147,17 @@ class InputPatternDialog extends Dialog
     if (description != null)
       descriptionText.setText(description);
 
-    containsPatternText.setFocus();
-    if (containsPattern != null)
+    acceptPatternText.setFocus();
+    if (acceptPattern != null)
     {
-      containsPatternText.setText(containsPattern);
-      containsPatternText.selectAll();
+      acceptPatternText.setText(acceptPattern);
+      acceptPatternText.selectAll();
     }
-    if (doNotContainsPattern != null)
+    if (doNotAcceptPattern != null)
     {
-      doNotContainsPatternText.setText(doNotContainsPattern);
-      if (containsPattern == null)
-        doNotContainsPatternText.selectAll();
+      doNotAcceptPatternText.setText(doNotAcceptPattern);
+      if (acceptPattern == null)
+        doNotAcceptPatternText.selectAll();
     }
   }
 
@@ -180,32 +180,32 @@ class InputPatternDialog extends Dialog
     new Label(composite, SWT.NONE);
 
     // create message
-    if (containsPatternMessage != null)
+    if (acceptPatternMessage != null)
     {
       Label label = new Label(composite, SWT.WRAP);
       label.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-      label.setText(containsPatternMessage);
+      label.setText(acceptPatternMessage);
     }
 
     //
-    containsPatternText = new Text(composite, getInputTextStyle());
-    containsPatternText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-    containsPatternText.addModifyListener(e -> validateInput());
+    acceptPatternText = new Text(composite, getInputTextStyle());
+    acceptPatternText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
+    acceptPatternText.addModifyListener(e -> validateInput());
 
     new Label(composite, SWT.NONE);
 
     // create message
-    if (doNotContainsPatternMessage != null)
+    if (doNotAcceptPatternMessage != null)
     {
       Label label = new Label(composite, SWT.WRAP);
       label.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-      label.setText(doNotContainsPatternMessage);
+      label.setText(doNotAcceptPatternMessage);
     }
 
     //
-    doNotContainsPatternText = new Text(composite, getInputTextStyle());
-    doNotContainsPatternText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
-    doNotContainsPatternText.addModifyListener(e -> validateInput());
+    doNotAcceptPatternText = new Text(composite, getInputTextStyle());
+    doNotAcceptPatternText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
+    doNotAcceptPatternText.addModifyListener(e -> validateInput());
 
     errorMessageText = new Text(composite, SWT.READ_ONLY | SWT.WRAP);
     errorMessageText.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.HORIZONTAL_ALIGN_FILL));
@@ -258,14 +258,14 @@ class InputPatternDialog extends Dialog
     return okButton;
   }
 
-  protected Text getContainsPatternText()
+  protected Text getAcceptPatternText()
   {
-    return containsPatternText;
+    return acceptPatternText;
   }
 
-  protected Text getDoNotContainsPatternText()
+  protected Text getDoNotAcceptPatternText()
   {
-    return doNotContainsPatternText;
+    return doNotAcceptPatternText;
   }
 
   /**
@@ -281,14 +281,14 @@ class InputPatternDialog extends Dialog
     return description;
   }
 
-  public String getContainsPattern()
+  public String getAcceptPattern()
   {
-    return containsPattern;
+    return acceptPattern;
   }
 
-  public String getDoNotContainsPattern()
+  public String getDoNotAcceptPattern()
   {
-    return doNotContainsPattern;
+    return doNotAcceptPattern;
   }
 
   /**
@@ -306,12 +306,12 @@ class InputPatternDialog extends Dialog
     if (patternValidator != null)
     {
       String descriptionValue = descriptionText.getText();
-      String containsPatternValue = containsPatternText.getText();
-      String doNotContainsPatternValue = doNotContainsPatternText.getText();
-      errorMessage = patternValidator.getErrorMessage(descriptionValue, containsPatternValue, doNotContainsPatternValue);
+      String acceptPatternValue = acceptPatternText.getText();
+      String doNotAcceptPatternValue = doNotAcceptPatternText.getText();
+      errorMessage = patternValidator.getErrorMessage(descriptionValue, acceptPatternValue, doNotAcceptPatternValue);
 
       PatternInfo patternInfo = new PatternInfo();
-      patternInfo.setPattern(containsPatternValue, doNotContainsPatternValue);
+      patternInfo.setPattern(acceptPatternValue, doNotAcceptPatternValue);
 
       Predicate<IProject> predicate = project -> patternInfo.acceptPlugin(cache.getId(project));
       Comparator<Object> pluginIdComparator = cache.getPluginIdComparator();
@@ -373,6 +373,6 @@ class InputPatternDialog extends Dialog
   @FunctionalInterface
   public static interface IPatternValidator
   {
-    String getErrorMessage(String description, String containsPattern, String doNotContainsPatternMessage);
+    String getErrorMessage(String description, String acceptPattern, String doNotAcceptPatternMessage);
   }
 }

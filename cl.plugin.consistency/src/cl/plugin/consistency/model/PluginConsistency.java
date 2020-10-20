@@ -70,6 +70,8 @@ public class PluginConsistency
           if (pluginInfo.declaredPluginTypeList == null && pluginInfo.forbiddenPluginTypeList == null && pluginInfo.forbiddenPluginList == null)
             pluginInfoToRemoveSet.add(pluginInfo);
         }
+        else
+          pluginInfoToRemoveSet.add(pluginInfo);
       }
       pluginConsistency.pluginInfoList.removeAll(pluginInfoToRemoveSet);
 

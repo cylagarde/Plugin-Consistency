@@ -66,8 +66,8 @@ public class PatternTabItem
   private Button selectAllButton;
   private PatternInfoDetail patternInfoDetail;
 
-  private final static String containsPatternMessage = "Enter a value for contains pattern ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
-  private final static String doNotContainsPatternMessage = "Enter a value for do not contains pattern ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
+  private final static String ACCEPT_PLUGIN_MESSAGE = "Enter a pattern to accept plugin ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
+  private final static String NOT_ACCEPT_PLUGIN_MESSAGE = "Enter a pattern not to accept plugin ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
 
   /**
    * Constructor
@@ -206,12 +206,12 @@ public class PatternTabItem
       @Override
       public void widgetSelected(SelectionEvent e)
       {
-        IPatternValidator patternValidator = (description, containsPattern, doNotContainsPattern) -> {
-          if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
+        IPatternValidator patternValidator = (description, acceptPattern, doNotAcceptPattern) -> {
+          if (acceptPattern.isEmpty() && doNotAcceptPattern.isEmpty())
             return "No entry";
-          Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
-          Predicate<PatternInfo> doNotContainsPredicate = patternInfo -> patternInfo.getDoNotContainsPattern().equals(doNotContainsPattern);
-          Predicate<PatternInfo> predicate = containsPredicate.and(doNotContainsPredicate);
+          Predicate<PatternInfo> acceptPredicate = patternInfo -> patternInfo.getAcceptPattern().equals(acceptPattern);
+          Predicate<PatternInfo> doNotAcceptPredicate = patternInfo -> patternInfo.getDoNotAcceptPattern().equals(doNotAcceptPattern);
+          Predicate<PatternInfo> predicate = acceptPredicate.and(doNotAcceptPredicate);
           if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().anyMatch(predicate))
             return "The pattern already exists";
           return null;
@@ -220,13 +220,13 @@ public class PatternTabItem
         Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
         InputPatternDialog inputPatternDialog = new InputPatternDialog(parent.getShell(), "Add new pattern", "",
-          containsPatternMessage, "",
-          doNotContainsPatternMessage, "",
+          ACCEPT_PLUGIN_MESSAGE, "",
+          NOT_ACCEPT_PLUGIN_MESSAGE, "",
           cache, patternValidator);
         if (inputPatternDialog.open() == Window.OK)
         {
           PatternInfo patternInfo = new PatternInfo();
-          patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
+          patternInfo.setPattern(inputPatternDialog.getAcceptPattern(), inputPatternDialog.getDoNotAcceptPattern());
           patternInfo.description = inputPatternDialog.getDescription();
           pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.add(patternInfo);
 
@@ -294,21 +294,21 @@ public class PatternTabItem
     activatePatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(textFunction));
     DefaultLabelViewerComparator.configureForSortingColumn(activatePatternTableViewerColumn);
 
-    // 'Contains pattern' TableViewerColumn
-    TableViewerColumn containsPatternTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    containsPatternTableViewerColumn.getColumn().setText("Contains pattern");
-    containsPatternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
-    containsPatternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-    containsPatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getContainsPattern));
-    DefaultLabelViewerComparator.configureForSortingColumn(containsPatternTableViewerColumn);
+    // 'Accept pattern' TableViewerColumn
+    TableViewerColumn acceptPatternTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    acceptPatternTableViewerColumn.getColumn().setText("Accept pattern");
+    acceptPatternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    acceptPatternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+    acceptPatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getAcceptPattern));
+    DefaultLabelViewerComparator.configureForSortingColumn(acceptPatternTableViewerColumn);
 
-    // 'Do not contains pattern' TableViewerColumn
-    TableViewerColumn doNotContainsPatternTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
-    doNotContainsPatternTableViewerColumn.getColumn().setText("Do not contains pattern");
-    doNotContainsPatternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
-    doNotContainsPatternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
-    doNotContainsPatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getDoNotContainsPattern));
-    DefaultLabelViewerComparator.configureForSortingColumn(doNotContainsPatternTableViewerColumn);
+    // 'Do not accept pattern' TableViewerColumn
+    TableViewerColumn doNotAcceptPatternTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
+    doNotAcceptPatternTableViewerColumn.getColumn().setText("Do not accept pattern");
+    doNotAcceptPatternTableViewerColumn.getColumn().setWidth(PluginTabItem.COLUMN_PREFERRED_WIDTH);
+    doNotAcceptPatternTableViewerColumn.getColumn().setData(PluginTabItem.COLUMN_SPACE_KEY, PluginTabItem.COLUMN_SPACE);
+    doNotAcceptPatternTableViewerColumn.setLabelProvider(new PatternInfoColumnLabelProvider(PatternInfo::getDoNotAcceptPattern));
+    DefaultLabelViewerComparator.configureForSortingColumn(doNotAcceptPatternTableViewerColumn);
 
     // 'Declared plugin types' TableViewerColumn
     TableViewerColumn declaredPluginTypeTableViewerColumn = new TableViewerColumn(patternCheckTableViewer, SWT.NONE);
@@ -567,21 +567,21 @@ public class PatternTabItem
       IStructuredSelection selection = (IStructuredSelection) patternCheckTableViewer.getSelection();
       PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
       String selectedDescription = selectedPatternInfo.description == null? "" : selectedPatternInfo.description;
-      String selectedContainsPattern = selectedPatternInfo.getContainsPattern();
-      String selectedDoNotContainsPattern = selectedPatternInfo.getDoNotContainsPattern();
+      String selectedAcceptPattern = selectedPatternInfo.getAcceptPattern();
+      String selectedDoNotAcceptPattern = selectedPatternInfo.getDoNotAcceptPattern();
 
-      IPatternValidator patternValidator = (description, containsPattern, doNotContainsPattern) -> {
-        if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
+      IPatternValidator patternValidator = (description, acceptPattern, doNotAcceptPattern) -> {
+        if (acceptPattern.isEmpty() && doNotAcceptPattern.isEmpty())
           return "No entry";
-        if (containsPattern.equals(selectedContainsPattern) && doNotContainsPattern.equals(selectedDoNotContainsPattern))
+        if (acceptPattern.equals(selectedAcceptPattern) && doNotAcceptPattern.equals(selectedDoNotAcceptPattern))
         {
           if (!description.equals(selectedDescription))
             return null;
           return "";
         }
-        Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
-        Predicate<PatternInfo> doNotContainsPredicate = patternInfo -> patternInfo.getDoNotContainsPattern().equals(doNotContainsPattern);
-        Predicate<PatternInfo> predicate = containsPredicate.and(doNotContainsPredicate);
+        Predicate<PatternInfo> acceptPredicate = patternInfo -> patternInfo.getAcceptPattern().equals(acceptPattern);
+        Predicate<PatternInfo> doNotAcceptPredicate = patternInfo -> patternInfo.getDoNotAcceptPattern().equals(doNotAcceptPattern);
+        Predicate<PatternInfo> predicate = acceptPredicate.and(doNotAcceptPredicate);
         if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().anyMatch(predicate))
           return "The pattern already exists";
         return null;
@@ -590,13 +590,13 @@ public class PatternTabItem
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
       InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Edit pattern", selectedDescription,
-        containsPatternMessage, selectedContainsPattern,
-        doNotContainsPatternMessage, selectedDoNotContainsPattern, cache, patternValidator);
+        ACCEPT_PLUGIN_MESSAGE, selectedAcceptPattern,
+        NOT_ACCEPT_PLUGIN_MESSAGE, selectedDoNotAcceptPattern, cache, patternValidator);
       if (inputPatternDialog.open() == Window.OK)
       {
         updateAfterChange(() -> {
           selectedPatternInfo.description = inputPatternDialog.getDescription();
-          selectedPatternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
+          selectedPatternInfo.setPattern(inputPatternDialog.getAcceptPattern(), inputPatternDialog.getDoNotAcceptPattern());
         });
       }
     }
@@ -621,17 +621,17 @@ public class PatternTabItem
       IStructuredSelection selection = (IStructuredSelection) patternCheckTableViewer.getSelection();
       PatternInfo selectedPatternInfo = (PatternInfo) selection.getFirstElement();
       String selectedDescription = selectedPatternInfo.description;
-      String selectedContainsPattern = selectedPatternInfo.getContainsPattern();
-      String selectedDoNotContainsPattern = selectedPatternInfo.getDoNotContainsPattern();
+      String selectedAcceptPattern = selectedPatternInfo.getAcceptPattern();
+      String selectedDoNotAcceptPattern = selectedPatternInfo.getDoNotAcceptPattern();
 
-      IPatternValidator patternValidator = (description, containsPattern, doNotContainsPattern) -> {
-        if (containsPattern.isEmpty() && doNotContainsPattern.isEmpty())
+      IPatternValidator patternValidator = (description, acceptPattern, doNotAcceptPattern) -> {
+        if (acceptPattern.isEmpty() && doNotAcceptPattern.isEmpty())
           return "No entry";
-        if (containsPattern.equals(selectedContainsPattern) && doNotContainsPattern.equals(selectedDoNotContainsPattern))
+        if (acceptPattern.equals(selectedAcceptPattern) && doNotAcceptPattern.equals(selectedDoNotAcceptPattern))
           return "";
-        Predicate<PatternInfo> containsPredicate = patternInfo -> patternInfo.getContainsPattern().equals(containsPattern);
-        Predicate<PatternInfo> doNotContainsPredicate = patternInfo -> patternInfo.getDoNotContainsPattern().equals(doNotContainsPattern);
-        Predicate<PatternInfo> predicate = containsPredicate.and(doNotContainsPredicate);
+        Predicate<PatternInfo> acceptPredicate = patternInfo -> patternInfo.getAcceptPattern().equals(acceptPattern);
+        Predicate<PatternInfo> doNotAcceptPredicate = patternInfo -> patternInfo.getDoNotAcceptPattern().equals(doNotAcceptPattern);
+        Predicate<PatternInfo> predicate = acceptPredicate.and(doNotAcceptPredicate);
         if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().anyMatch(predicate))
           return "The pattern already exists";
         return null;
@@ -639,12 +639,12 @@ public class PatternTabItem
 
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();
 
-      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Duplicate pattern", selectedDescription, "Enter a new value for contains pattern ('?' and '*' are supported)", selectedContainsPattern,
-        "Enter a new value for do not contains pattern ('?' and '*' are supported)", selectedDoNotContainsPattern, cache, patternValidator);
+      InputPatternDialog inputPatternDialog = new InputPatternDialog(patternCheckTableViewer.getControl().getShell(), "Duplicate pattern", selectedDescription, ACCEPT_PLUGIN_MESSAGE, selectedAcceptPattern,
+        NOT_ACCEPT_PLUGIN_MESSAGE, selectedDoNotAcceptPattern, cache, patternValidator);
       if (inputPatternDialog.open() == Window.OK)
       {
         PatternInfo patternInfo = Util.duplicatePatternInfo(selectedPatternInfo);
-        patternInfo.setPattern(inputPatternDialog.getContainsPattern(), inputPatternDialog.getDoNotContainsPattern());
+        patternInfo.setPattern(inputPatternDialog.getAcceptPattern(), inputPatternDialog.getDoNotAcceptPattern());
         patternInfo.description = inputPatternDialog.getDescription();
         pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.add(patternInfo);
 
@@ -676,8 +676,8 @@ public class PatternTabItem
       IStructuredSelection selection = (IStructuredSelection) patternCheckTableViewer.getSelection();
       Stream<PatternInfo> selectedPatternInfoStream = selection.toList().stream().filter(PatternInfo.class::isInstance).map(PatternInfo.class::cast);
       Set<PatternInfo> selectedPatternInfoSet = selectedPatternInfoStream.collect(Collectors.toSet());
-      Set<String> selectedContainsPatternSet = selectedPatternInfoSet.stream().map(patternInfo -> patternInfo.getContainsAndNotContainsPattern()).collect(Collectors.toSet());
-      String selectedPatterns = selectedContainsPatternSet.stream().collect(Collectors.joining("\n"));
+      Set<String> selectedAcceptPatternSet = selectedPatternInfoSet.stream().map(patternInfo -> patternInfo.getAcceptAndNotAcceptPattern()).collect(Collectors.toSet());
+      String selectedPatterns = selectedAcceptPatternSet.stream().collect(Collectors.joining("\n"));
 
       Shell shell = patternCheckTableViewer.getControl().getShell();
       String message = "Do you want to remove the selected pattern:\n" + selectedPatterns + " ?";
