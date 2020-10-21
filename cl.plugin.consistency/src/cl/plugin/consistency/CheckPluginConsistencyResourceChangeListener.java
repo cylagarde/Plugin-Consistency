@@ -3,6 +3,7 @@ package cl.plugin.consistency;
 import java.io.File;
 import java.util.Optional;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -11,6 +12,7 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -24,7 +26,7 @@ import cl.plugin.consistency.model.PluginInfo;
 /**
  * The class <b>CheckPluginConsistencyResourceChangeListener</b> allows to listen resource change and update consistency file, etc...<br>
  */
-class CheckPluginConsistencyResourceChangeListener implements IResourceChangeListener
+public class CheckPluginConsistencyResourceChangeListener implements IResourceChangeListener
 {
   @Override
   public void resourceChanged(IResourceChangeEvent event)
@@ -136,7 +138,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
               File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
               if (consistencyFile != null)
               {
-                savePluginConsistency(pluginConsistency, consistencyFile);
+                savePluginConsistencyAndRefreshIntoWorkspace(pluginConsistency, consistencyFile);
 
                 // check
                 if (pluginInfo.containsInformations())
@@ -227,7 +229,7 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
                 // save
                 File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
                 if (consistencyFile != null)
-                  savePluginConsistency(pluginConsistency, consistencyFile);
+                  savePluginConsistencyAndRefreshIntoWorkspace(pluginConsistency, consistencyFile);
               }
 
               // check
@@ -251,21 +253,23 @@ class CheckPluginConsistencyResourceChangeListener implements IResourceChangeLis
 
   /**
    * Save PluginConsistency
+   *
    * @param pluginConsistency
    */
-  public static void savePluginConsistency(PluginConsistency pluginConsistency, File consistencyFile)
+  public static void savePluginConsistencyAndRefreshIntoWorkspace(PluginConsistency pluginConsistency, File consistencyFile)
   {
     Util.savePluginConsistency(pluginConsistency, consistencyFile);
 
     String consistency_file_path = PluginConsistencyActivator.getDefault().getConsistencyFilePath();
-    IProject project = Util.getWorkspaceProject(consistency_file_path);
-    if (project != null && project.isOpen())
+    IResource consistencyResource = ResourcesPlugin.getWorkspace().getRoot().findMember(consistency_file_path);
+    if (consistencyResource != null)
     {
-      WorkspaceJob job = new WorkspaceJob("Refresh project " + project.getName()) {
+      IContainer parent = consistencyResource.getParent();
+      WorkspaceJob job = new WorkspaceJob("Refresh " + parent.getName()) {
         @Override
         public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException
         {
-          project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+          parent.refreshLocal(IResource.DEPTH_ONE, new NullProgressMonitor());
           return Status.OK_STATUS;
         }
       };

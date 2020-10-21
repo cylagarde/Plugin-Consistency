@@ -1,12 +1,11 @@
+
 package cl.plugin.consistency.preferences;
 
 import java.io.File;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferencePage;
@@ -30,6 +29,7 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 
 import cl.plugin.consistency.Cache;
+import cl.plugin.consistency.CheckPluginConsistencyResourceChangeListener;
 import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
@@ -340,12 +340,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       if (pluginConsistencyFile == null)
         throw new Exception("The path does not exists");
 
-      // save
-      Util.savePluginConsistency(pluginConsistency, pluginConsistencyFile);
-
-      IProject project = Util.getWorkspaceProject(consistency_file_path);
-      if (project != null)
-        project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+      CheckPluginConsistencyResourceChangeListener.savePluginConsistencyAndRefreshIntoWorkspace(pluginConsistency, pluginConsistencyFile);
 
       return pluginConsistency;
     }
@@ -424,23 +419,23 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
         if (!PLUGIN_CONSISTENCY_FILE_EXTENSION.equals(iFile.getFileExtension()))
           return false;
 
-        //        try
-        //        {
-        //          Optional<String> content_type =
-        //          Optional.ofNullable(iFile.getContentDescription())
-        //                  .map(IContentDescription::getContentType)
-        //                  .map(IContentType::getId)
-        //          //                  .filter(plugin_consistency_content_type_id::equals)
-        //                  ;
-        //          System.out.println("getContentType " + content_type + " " + iFile);
-        //        }
-        //        catch(CoreException e)
-        //        {
-        //          e.printStackTrace();
-        //        }
+        //  try
+        //  {
+        //    Optional<String> content_type =
+        //      Optional.ofNullable(iFile.getContentDescription())
+        //        .map(IContentDescription::getContentType)
+        //        .map(IContentType::getId)
+        //    // .filter(plugin_consistency_content_type_id::equals)
+        //    ;
+        //    System.out.println("getContentType " + content_type + " " + iFile);
+        //  }
+        //  catch(CoreException e)
+        //  {
+        //    e.printStackTrace();
+        //  }
 
-        //        File file = iFile.getRawLocation().toFile();
-        //        return Util.canLoadConsistencyFile(file);
+        // File file = iFile.getRawLocation().toFile();
+        // return Util.canLoadConsistencyFile(file);
       }
 
       return true;
