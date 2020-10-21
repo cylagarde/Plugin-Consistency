@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -16,7 +17,6 @@ import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.ToolBarManager;
@@ -56,7 +56,6 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.CheckedTreeSelectionDialog;
-import org.osgi.framework.Bundle;
 
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
@@ -104,7 +103,7 @@ class ForbiddenPluginComposite
     sectionPane.getHeaderSection().setImage(PDEPlugin.getDefault().getLabelProvider().get(PDEPluginImages.DESC_PLUGIN_OBJ));
 
     // Add toolbar to section
-    final ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
+    ToolBarManager toolBarManager = new ToolBarManager(SWT.FLAT);
     toolBar = sectionPane.createToolBar(toolBarManager);
 
     addPluginAction = new AddPluginAction();
@@ -141,19 +140,20 @@ class ForbiddenPluginComposite
     checkedObjects.clear();
     if (pluginInfo != null)
     {
-      for(ForbiddenPlugin forbiddenPluginInfo : pluginInfo.forbiddenPluginList)
-      {
-        Bundle bundle = Platform.getBundle(forbiddenPluginInfo.id);
-        if (bundle != null)
-          checkedObjects.add(bundle);
-        else
-        {
-          Optional<IProject> optional = Stream.of(cache.getValidProjects())
-            .filter(project -> cache.getId(project).equals(forbiddenPluginInfo.id))
-            .findFirst();
-          optional.ifPresent(checkedObjects::add);
-        }
-      }
+      List<IPluginModelBase> checkedElements = pluginInfo.forbiddenPluginList.stream()
+        .map(forbiddenPlugin -> forbiddenPlugin.id)
+        .map(id -> {
+          Optional<IPluginModelBase> optional = pluginModelBases.stream()
+            .filter(pluginModelBase -> id.equals(cache.getId(pluginModelBase)))
+            .findAny();
+          if (!optional.isPresent())
+            PluginConsistencyActivator.logInfo("optional empty for id " + id);
+
+          return optional.orElse(null);
+        })
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+      checkedObjects.addAll(checkedElements);
     }
 
     // toArray: create copy
@@ -365,16 +365,16 @@ class ForbiddenPluginComposite
               if (containsStar)
               {
                 // Ajoute de \Q \E autour de la chaine
-                String regexpPattern = Pattern.quote(text);
+                String regexPattern = Pattern.quote(text);
                 // On remplace toutes les occurences de '*' afin de les interpréter
-                regexpPattern = regexpPattern.replaceAll("\\*", "\\\\E.*\\\\Q");
+                regexPattern = regexPattern.replaceAll("\\*", "\\\\E.*\\\\Q");
                 // On remplace toutes les occurences de '?' afin de les interpréter
-                regexpPattern = regexpPattern.replaceAll("\\?", "\\\\E.\\\\Q");
+                regexPattern = regexPattern.replaceAll("\\?", "\\\\E.\\\\Q");
                 // On supprime tous les \Q \E inutiles
-                regexpPattern = regexpPattern.replaceAll("\\\\Q\\\\E", "");
+                regexPattern = regexPattern.replaceAll("\\\\Q\\\\E", "");
 
                 //
-                pattern = Pattern.compile(regexpPattern);
+                pattern = Pattern.compile(regexPattern);
               }
 
               //
