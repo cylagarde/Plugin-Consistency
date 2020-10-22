@@ -1,12 +1,16 @@
 package cl.plugin.consistency;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.eclipse.pde.internal.core.natures.PDE;
 
 import cl.plugin.consistency.custom.NaturalOrderComparator;
@@ -16,7 +20,10 @@ import cl.plugin.consistency.custom.NaturalOrderComparator;
  */
 public class Cache
 {
+  final Map<Object, String> elementToIdCacheMap = new HashMap<>();
+  final Map<IProject, Boolean> isValidPluginWithCacheMap = new HashMap<>();
   IProject[] validProjects;
+  Map<String, IPluginModelBase> idToPluginModelBases;
 
   /**
    * Return
@@ -31,7 +38,21 @@ public class Cache
     return validProjects;
   }
 
-  Map<Object, String> elementToIdCacheMap = new HashMap<>();
+  /**
+   * Return all plugin model bases
+   */
+  public Map<String, IPluginModelBase> getPluginModelBases()
+  {
+    if (idToPluginModelBases == null)
+    {
+      idToPluginModelBases = new TreeMap<>();
+      for(IPluginModelBase pluginModelBase : PluginRegistry.getActiveModels(false))
+        idToPluginModelBases.put(getId(pluginModelBase), pluginModelBase);
+      idToPluginModelBases = Collections.unmodifiableMap(idToPluginModelBases);
+    }
+
+    return idToPluginModelBases;
+  }
 
   /**
    * Get plugin id from cache
@@ -51,8 +72,6 @@ public class Cache
 
     return id;
   }
-
-  Map<IProject, Boolean> isValidPluginWithCacheMap = new HashMap<>();
 
   /**
    * Return if project is valid (use cache to speed)

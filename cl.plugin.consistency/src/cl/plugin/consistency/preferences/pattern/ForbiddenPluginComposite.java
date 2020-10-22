@@ -1,29 +1,23 @@
 
 package cl.plugin.consistency.preferences.pattern;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
-import org.eclipse.pde.core.plugin.PluginRegistry;
 import org.eclipse.pde.internal.ui.PDEPlugin;
 import org.eclipse.pde.internal.ui.PDEPluginImages;
 import org.eclipse.swt.SWT;
@@ -41,7 +35,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.CheckedTreeSelectionDialog;
 
@@ -51,6 +44,7 @@ import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.ForbiddenPlugin;
 import cl.plugin.consistency.model.PatternInfo;
+import cl.plugin.consistency.preferences.ArrayTreeContentProvider;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
 import cl.plugin.consistency.preferences.SectionPane;
 
@@ -62,12 +56,10 @@ class ForbiddenPluginComposite
   final PatternInfoDetail projectDetail;
   final TableViewer forbiddenPluginTableViewer;
   final ToolBar toolBar;
-  final List<IPluginModelBase> pluginModelBases;
   final IAction addPluginAction;
 
   PatternInfo patternInfo;
   final Cache cache;
-  final Set<Object> checkedObjects;
 
   /**
    * Constructor
@@ -81,8 +73,6 @@ class ForbiddenPluginComposite
     this.projectDetail = projectDetail;
 
     cache = projectDetail.patternTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
-    checkedObjects = new TreeSet<>(cache.getPluginIdComparator());
-    pluginModelBases = Arrays.asList(PluginRegistry.getActiveModels(false));
 
     //
     SectionPane sectionPane = new SectionPane(parent, SWT.NONE);
@@ -115,19 +105,16 @@ class ForbiddenPluginComposite
     // Util.setEnabled(section, patternInfo != null);
 
     // select forbidden plugins for TableViewer
-    checkedObjects.clear();
+    Set<Object> checkedObjects = new TreeSet<>(cache.getPluginIdComparator());
     if (patternInfo != null)
     {
       List<IPluginModelBase> checkedElements = patternInfo.forbiddenPluginList.stream()
         .map(forbiddenPlugin -> forbiddenPlugin.id)
         .map(id -> {
-          Optional<IPluginModelBase> optional = pluginModelBases.stream()
-            .filter(pluginModelBase -> id.equals(cache.getId(pluginModelBase)))
-            .findAny();
-          if (!optional.isPresent())
-            PluginConsistencyActivator.logInfo("optional empty for id " + id);
-
-          return optional.orElse(null);
+          IPluginModelBase pluginModelBase = cache.getPluginModelBases().get(id);
+          if (pluginModelBase == null)
+            PluginConsistencyActivator.logInfo("Plugin not found for id " + id);
+          return pluginModelBase;
         })
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
@@ -157,34 +144,11 @@ class ForbiddenPluginComposite
     public void run()
     {
       Object[] forbiddenPlugins = ((IStructuredContentProvider) forbiddenPluginTableViewer.getContentProvider()).getElements(forbiddenPluginTableViewer.getInput());
-      checkedObjects.clear();
-
-      // retrieve checkedElements
-      List<IPluginModelBase> checkedElements = Stream.of(forbiddenPlugins)
-        .map(cache::getId)
-        .map(id -> pluginModelBases.stream()
-          .filter(pluginModelBase -> id.equals(cache.getId(pluginModelBase)))
-          .findAny().get())
-        .collect(Collectors.toList());
-      checkedObjects.addAll(checkedElements);
 
       //
       BundlesLabelProvider bundlesLabelProvider = new BundlesLabelProvider(cache);
-      CheckedTreeSelectionDialog checkedTreeDialog = new CheckedTreeSelectionDialog(forbiddenPluginTableViewer.getControl().getShell(), bundlesLabelProvider, new BundleTreeContentProvider()) {
+      CheckedTreeSelectionDialog checkedTreeDialog = new CheckedTreeSelectionDialog(forbiddenPluginTableViewer.getControl().getShell(), bundlesLabelProvider, new ArrayTreeContentProvider()) {
         Text searchPluginText;
-
-        @Override
-        protected CheckboxTreeViewer createTreeViewer(Composite parent)
-        {
-          CheckboxTreeViewer checkboxTreeViewer = super.createTreeViewer(parent);
-          checkboxTreeViewer.addCheckStateListener(event -> {
-            if (event.getChecked())
-              checkedObjects.add(event.getElement());
-            else
-              checkedObjects.remove(event.getElement());
-          });
-          return checkboxTreeViewer;
-        }
 
         @Override
         protected Label createMessageArea(Composite parent)
@@ -205,8 +169,7 @@ class ForbiddenPluginComposite
               @Override
               public boolean select(Viewer viewer, Object parentElement, Object element)
               {
-                // boolean result = getTreeViewer().getChecked(element); // slow
-                boolean result = checkedObjects.contains(element);
+                boolean result = getTreeViewer().getChecked(element); // slow
                 return result;
               }
             };
@@ -214,13 +177,6 @@ class ForbiddenPluginComposite
             @Override
             public void widgetSelected(SelectionEvent e)
             {
-              checkedObjects.clear();
-              for(TreeItem treeItem : getTreeViewer().getTree().getItems())
-              {
-                if (treeItem.getChecked())
-                  checkedObjects.add(treeItem.getData());
-              }
-
               // init searchPluginText
               searchPluginText.setText("");
 
@@ -317,14 +273,10 @@ class ForbiddenPluginComposite
       checkedTreeDialog.setTitle("Bundles and worskspace projects");
       checkedTreeDialog.setMessage("Select the forbidden plugins:");
       checkedTreeDialog.setContainerMode(true);
+      checkedTreeDialog.setInitialSelections(forbiddenPlugins);
 
       //
-      TreeSet<Object> treeSet = new TreeSet<>(cache.getPluginIdComparator());
-      treeSet.addAll(pluginModelBases);
-
-      //
-      checkedTreeDialog.setInput(treeSet.toArray());
-      checkedTreeDialog.setInitialSelections(checkedObjects.toArray());
+      checkedTreeDialog.setInput(cache.getPluginModelBases().values().toArray());
 
       //
       if (checkedTreeDialog.open() == IDialogConstants.OK_ID)
@@ -341,39 +293,6 @@ class ForbiddenPluginComposite
         forbiddenPluginTableViewer.setInput(checkedTreeDialog.getResult());
 
         projectDetail.patternTabItem.updateAllPluginInfosWithPatternInfo(oldPatternInfo, patternInfo, true);
-      }
-
-      checkedObjects.clear();
-    }
-
-    /**
-     * The class <b>BundleTreeContentProvider</b> allows to.<br>
-     */
-    class BundleTreeContentProvider implements ITreeContentProvider
-    {
-
-      @Override
-      public Object[] getElements(Object inputElement)
-      {
-        return (Object[]) inputElement;
-      }
-
-      @Override
-      public Object[] getChildren(Object parentElement)
-      {
-        return null;
-      }
-
-      @Override
-      public Object getParent(Object element)
-      {
-        return null;
-      }
-
-      @Override
-      public boolean hasChildren(Object element)
-      {
-        return false;
       }
     }
   }
