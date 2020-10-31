@@ -10,7 +10,6 @@ import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,6 +55,7 @@ import org.eclipse.ui.dialogs.CheckedTreeSelectionDialog;
 
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.Images;
+import cl.plugin.consistency.PatternPredicate;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
 import cl.plugin.consistency.model.ForbiddenPlugin;
@@ -69,6 +69,10 @@ import cl.plugin.consistency.preferences.SectionPane;
  */
 class ForbiddenPluginComposite
 {
+  private static final String PATTERN_SEPARATOR = ";";
+  private final static String FILTER_MESSAGE = "Filter: ('*' and '?' are supported) (multiple patterns must be separated by " + PATTERN_SEPARATOR + ")";
+  private final static String SELECT_FORBIDDEN_MESSAGE = "Select the forbidden plugins:";
+
   final PluginInfoDetail projectDetail;
   final TableViewer forbiddenPluginTableViewer;
   final ToolBar toolBar;
@@ -336,69 +340,53 @@ class ForbiddenPluginComposite
           // create label
           Label label = super.createMessageArea(parent);
 
-          Composite borderComposite = new Composite(parent, SWT.BORDER);
+          Composite searchPluginComposite = new Composite(parent, SWT.BORDER);
           GridLayout withoutMarginLayout = new GridLayout(2, false);
           withoutMarginLayout.marginWidth = withoutMarginLayout.marginHeight = withoutMarginLayout.horizontalSpacing = withoutMarginLayout.verticalSpacing = 0;
-          borderComposite.setLayout(withoutMarginLayout);
-          borderComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+          searchPluginComposite.setLayout(withoutMarginLayout);
+          searchPluginComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
           //
-          searchPluginText = new Text(borderComposite, SWT.SINGLE);
+          searchPluginText = new Text(searchPluginComposite, SWT.SINGLE);
           searchPluginText.setLayoutData(new GridData(GridData.FILL_BOTH));
           searchPluginText.addModifyListener(new ModifyListener() {
             ViewerFilter searchPluginViewerFilter = null;
-            Pattern pattern;
-            String text;
-            boolean containsStar;
+            PatternPredicate patternPredicate;
 
             @Override
             public void modifyText(ModifyEvent e)
             {
-              text = searchPluginText.getText().toLowerCase();
-              if (text.equals("*"))
+              String patterns = searchPluginText.getText();
+              if (patterns.isEmpty())
               {
-                text = "";
+                if (searchPluginViewerFilter != null)
+                {
+                  getTreeViewer().removeFilter(searchPluginViewerFilter);
+                  searchPluginViewerFilter = null;
+                }
               }
-              containsStar = text.contains("*");
-
-              if (containsStar)
+              else
               {
-                // Ajoute de \Q \E autour de la chaine
-                String regexPattern = Pattern.quote(text);
-                // On remplace toutes les occurences de '*' afin de les interpréter
-                regexPattern = regexPattern.replaceAll("\\*", "\\\\E.*\\\\Q");
-                // On remplace toutes les occurences de '?' afin de les interpréter
-                regexPattern = regexPattern.replaceAll("\\?", "\\\\E.\\\\Q");
-                // On supprime tous les \Q \E inutiles
-                regexPattern = regexPattern.replaceAll("\\\\Q\\\\E", "");
-
-                //
-                pattern = Pattern.compile(regexPattern);
-              }
-
-              //
-              if (searchPluginViewerFilter == null)
-              {
-                searchPluginViewerFilter = new ViewerFilter() {
-                  @Override
-                  public boolean select(Viewer viewer, Object parentElement, Object element)
-                  {
-                    if (text.length() == 0)
-                      return true;
-
-                    String lowerCaseText = bundlesLabelProvider.getText(element).toLowerCase();
-                    boolean result = containsStar? pattern.matcher(lowerCaseText).find() : lowerCaseText.contains(text);
-                    return result;
-                  }
-                };
-                getTreeViewer().addFilter(searchPluginViewerFilter);
+                patternPredicate = new PatternPredicate(patterns, PATTERN_SEPARATOR, false);
+                if (searchPluginViewerFilter == null)
+                {
+                  searchPluginViewerFilter = new ViewerFilter() {
+                    @Override
+                    public boolean select(Viewer viewer, Object parentElement, Object element)
+                    {
+                      String text = bundlesLabelProvider.getText(element);
+                      return patternPredicate.test(text);
+                    }
+                  };
+                  getTreeViewer().addFilter(searchPluginViewerFilter);
+                }
               }
 
               getTreeViewer().refresh();
             }
           });
 
-          Label clearLabel = new Label(borderComposite, SWT.NONE);
+          Label clearLabel = new Label(searchPluginComposite, SWT.NONE);
           clearLabel.setImage(Images.CLEAR.getImage());
           clearLabel.setToolTipText("Clear");
           clearLabel.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
@@ -411,11 +399,13 @@ class ForbiddenPluginComposite
             }
           });
 
+          new Label(parent, SWT.NONE).setText(SELECT_FORBIDDEN_MESSAGE);
+
           return label;
         }
       };
       checkedTreeDialog.setTitle("Bundles and worskspace projects");
-      checkedTreeDialog.setMessage("Select the forbidden plugins:");
+      checkedTreeDialog.setMessage(FILTER_MESSAGE);
       checkedTreeDialog.setContainerMode(true);
 
       //

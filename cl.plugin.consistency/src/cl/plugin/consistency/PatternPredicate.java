@@ -5,7 +5,10 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 /**
- * The class <b>PatternPredicate</b> allows to.<br>
+ * The class <b>PatternPredicate</b> allows to predicate text with multiple regexp ('*' and '?' are supported).<br>
+ * PatternPredicate patternPredicate = new PatternPredicate("*.java ; *.class", ";", false);
+ * patternPredicate.test("file.java") -> true
+ * patternPredicate.test("file.class") -> true
  */
 public class PatternPredicate implements Predicate<String>
 {
@@ -23,7 +26,7 @@ public class PatternPredicate implements Predicate<String>
     while(patternsStringTokenizer.hasMoreTokens())
     {
       Predicate<String> predicate;
-      String text = patternsStringTokenizer.nextToken();
+      String text = patternsStringTokenizer.nextToken().trim();
       if (text.contains("*") || text.contains("?"))
       {
         Pattern pattern = createRegexPattern(text);

@@ -66,8 +66,8 @@ public class PatternTabItem
   private Button selectAllButton;
   private PatternInfoDetail patternInfoDetail;
 
-  private final static String ACCEPT_PLUGIN_MESSAGE = "Enter a pattern to accept plugin ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
-  private final static String NOT_ACCEPT_PLUGIN_MESSAGE = "Enter a pattern not to accept plugin ('?' and '*' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
+  private final static String ACCEPT_PLUGIN_MESSAGE = "Enter a pattern to accept plugin ('*' and '?' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
+  private final static String NOT_ACCEPT_PLUGIN_MESSAGE = "Enter a pattern not to accept plugin ('*' and '?' are supported) (multiple patterns must be separated by " + PatternInfo.PATTERN_SEPARATOR + ")";
 
   /**
    * Constructor

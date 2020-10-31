@@ -1,9 +1,8 @@
 package cl.plugin.consistency.model;
 
-import java.util.StringTokenizer;
-import java.util.regex.Pattern;
-
 import javax.xml.bind.annotation.XmlAttribute;
+
+import cl.plugin.consistency.PatternPredicate;
 
 /**
  * The class <b>PatternInfo</b> allows to.<br>
@@ -61,6 +60,10 @@ public class PatternInfo extends AbstractData
     return false;
   }
 
+  /**
+   * Check if plugin id verifies pattern
+   * @param pluginId
+   */
   public boolean acceptPlugin(String pluginId)
   {
     if (!activate)
@@ -68,63 +71,17 @@ public class PatternInfo extends AbstractData
 
     //
     String acceptPatterns = getAcceptPattern();
-    StringTokenizer acceptPatternStringTokenizer = new StringTokenizer(acceptPatterns, PATTERN_SEPARATOR);
-    boolean acceptPlugin = false;
-    while(acceptPatternStringTokenizer.hasMoreTokens())
-    {
-      String acceptPattern = acceptPatternStringTokenizer.nextToken();
-      if (acceptPattern.contains("*") || acceptPattern.contains("?"))
-      {
-        Pattern pattern = createRegexPattern(acceptPattern);
-        if (pattern.matcher(pluginId).matches())
-        {
-          acceptPlugin = true;
-          break;
-        }
-      }
-      else if (acceptPattern.equals(pluginId))
-      {
-        acceptPlugin = true;
-        break;
-      }
-    }
-    if (!acceptPlugin)
+    PatternPredicate acceptPatternPredicate = new PatternPredicate(acceptPatterns, PATTERN_SEPARATOR, false);
+    if (!acceptPatternPredicate.test(pluginId))
       return false;
 
     //
     String doNotAcceptPatterns = getDoNotAcceptPattern();
-    StringTokenizer doNotAcceptPatternsStringTokenizer = new StringTokenizer(doNotAcceptPatterns, PATTERN_SEPARATOR);
-    while(doNotAcceptPatternsStringTokenizer.hasMoreTokens())
-    {
-      String doNotAcceptPattern = doNotAcceptPatternsStringTokenizer.nextToken();
-      if (doNotAcceptPattern.contains("*") || doNotAcceptPattern.contains("?"))
-      {
-        Pattern pattern = createRegexPattern(doNotAcceptPattern);
-        if (pattern.matcher(pluginId).matches())
-          return false;
-      }
-      else if (doNotAcceptPattern.equals(pluginId))
-      {
-        return false;
-      }
-    }
+    PatternPredicate doNotAcceptPatternPredicate = new PatternPredicate(doNotAcceptPatterns, PATTERN_SEPARATOR, false);
+    if (doNotAcceptPatternPredicate.test(pluginId))
+      return false;
 
     return true;
-  }
-
-  private static Pattern createRegexPattern(String text)
-  {
-    // Ajoute de \Q \E autour de la chaine
-    String regexpPattern = Pattern.quote(text);
-    // On remplace toutes les occurences de '*' afin de les interpréter
-    regexpPattern = regexpPattern.replaceAll("\\*", "\\\\E.*\\\\Q");
-    // On remplace toutes les occurences de '?' afin de les interpréter
-    regexpPattern = regexpPattern.replaceAll("\\?", "\\\\E.\\\\Q");
-    // On supprime tous les \Q \E inutiles
-    regexpPattern = regexpPattern.replaceAll("\\\\Q\\\\E", "");
-
-    //
-    return Pattern.compile(regexpPattern);
   }
 
   /**
