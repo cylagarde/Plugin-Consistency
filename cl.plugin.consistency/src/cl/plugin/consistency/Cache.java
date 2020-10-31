@@ -28,14 +28,14 @@ public class Cache
   /**
    * Return
    */
-  public IProject[] getValidProjects()
+  public Stream<IProject> getValidProjects()
   {
     if (validProjects == null)
     {
       IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
       validProjects = Stream.of(projects).filter(this::isValidProject).toArray(IProject[]::new);
     }
-    return validProjects;
+    return Stream.of(validProjects);
   }
 
   /**
@@ -60,15 +60,9 @@ public class Cache
    */
   public String getId(Object o)
   {
-    String id = elementToIdCacheMap.get(o);
+    String id = elementToIdCacheMap.computeIfAbsent(o, Util::getId);
     if (id == null)
-    {
-      id = Util.getId(o);
-      if (id != null)
-        elementToIdCacheMap.put(o, id);
-      else
-        PluginConsistencyActivator.logWarning("id is null for '" + o + "'");
-    }
+      PluginConsistencyActivator.logWarning("id is null for '" + o + "'");
 
     return id;
   }

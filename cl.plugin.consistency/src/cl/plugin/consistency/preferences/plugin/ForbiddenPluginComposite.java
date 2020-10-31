@@ -168,7 +168,7 @@ class ForbiddenPluginComposite
     {
       Supplier<Set<String>> supplier = () -> {
         // find project with id
-        Optional<IProject> optional = Stream.of(cache.getValidProjects())
+        Optional<IProject> optional = cache.getValidProjects()
           .filter(project -> cache.getId(project).equals(pluginInfo.id))
           .findFirst();
 

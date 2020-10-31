@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.dialogs.Dialog;
@@ -316,8 +315,7 @@ class InputPatternDialog extends Dialog
 
       Predicate<IProject> predicate = project -> patternInfo.acceptPlugin(cache.getId(project));
       Comparator<Object> pluginIdComparator = cache.getPluginIdComparator();
-      IProject[] projects = cache.getValidProjects();
-      Map<Boolean, List<IProject>> map = Stream.of(projects)
+      Map<Boolean, List<IProject>> map = cache.getValidProjects()
         .sorted(pluginIdComparator)
         .collect(Collectors.partitioningBy(predicate));
       pluginAcceptedTableViewer.setInput(map.get(Boolean.TRUE));

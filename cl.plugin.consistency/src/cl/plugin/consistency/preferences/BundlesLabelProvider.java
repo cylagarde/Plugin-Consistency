@@ -2,7 +2,6 @@ package cl.plugin.consistency.preferences;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
@@ -78,7 +77,7 @@ public class BundlesLabelProvider extends LabelProvider implements IColorProvide
     if (element instanceof IBundlePluginModelBase)
     {
       // find project
-      Optional<IProject> optional = Stream.of(cache.getValidProjects())
+      Optional<IProject> optional = cache.getValidProjects()
         .filter(project -> cache.getId(project).equals(cache.getId(element)))
         .findAny();
       if (optional.isPresent())

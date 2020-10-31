@@ -229,7 +229,7 @@ public class Util
     Cache cache = new Cache();
 
     // add new project to pluginConsistency
-    IProject[] validPluginProjects = cache.getValidProjects();
+    IProject[] validPluginProjects = cache.getValidProjects().toArray(IProject[]::new);
     for(IProject pluginProject : validPluginProjects)
     {
       String id = cache.getId(pluginProject);
@@ -815,7 +815,7 @@ public class Util
    */
   public static void removeAllCheckProjectConsistency(IProgressMonitor monitor)
   {
-    IProject[] validProjects = new Cache().getValidProjects();
+    IProject[] validProjects = new Cache().getValidProjects().toArray(IProject[]::new);
     monitor.beginTask("Removing consistencies check ...", validProjects.length);
     for(IProject project : validProjects)
     {
@@ -882,7 +882,7 @@ public class Util
         List<IMarker> markerList = new CopyOnWriteArrayList<>();
         Consumer<List<IMarker>> addMarkerConsumer = markerList::addAll;
 
-        IProject[] validProjects = new Cache().getValidProjects();
+        IProject[] validProjects = new Cache().getValidProjects().toArray(IProject[]::new);
         monitor.beginTask("Checking projects consistency ...", validProjects.length);
 
         List<WorkspaceJob> workspaceJobList = new ArrayList<>();
