@@ -1,4 +1,4 @@
-package cl.plugin.consistency.preferences.pluginInfo;
+package cl.plugin.consistency.preferences.plugin;
 
 import java.util.Collection;
 import java.util.Collections;

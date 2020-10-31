@@ -39,7 +39,7 @@ import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
-import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
+import cl.plugin.consistency.preferences.plugin.PluginTabItem;
 
 /**
  * The class <b>TypeTabItem</b> allows to.<br>

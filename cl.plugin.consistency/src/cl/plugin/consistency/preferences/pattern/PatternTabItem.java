@@ -54,7 +54,7 @@ import cl.plugin.consistency.model.Type;
 import cl.plugin.consistency.preferences.DefaultLabelViewerComparator;
 import cl.plugin.consistency.preferences.PluginTabFolder;
 import cl.plugin.consistency.preferences.pattern.InputPatternDialog.IPatternValidator;
-import cl.plugin.consistency.preferences.pluginInfo.PluginTabItem;
+import cl.plugin.consistency.preferences.plugin.PluginTabItem;
 
 /**
  * The class <b>PatternTabItem</b> allows to.<br>
