@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
  */
 public class PatternPredicate implements Predicate<String>
 {
+  final String patterns;
   Predicate<String> delegatePredicate = txt -> false;
 
   /**
@@ -22,6 +23,8 @@ public class PatternPredicate implements Predicate<String>
    */
   public PatternPredicate(String patterns, String patternSeparator, boolean andPredicate)
   {
+    this.patterns = patterns;
+
     StringTokenizer patternsStringTokenizer = new StringTokenizer(patterns, patternSeparator);
     while(patternsStringTokenizer.hasMoreTokens())
     {
@@ -39,6 +42,11 @@ public class PatternPredicate implements Predicate<String>
 
       delegatePredicate = delegatePredicate == null? predicate : andPredicate? delegatePredicate.and(predicate) : delegatePredicate.or(predicate);
     }
+  }
+
+  public String getPatterns()
+  {
+    return patterns;
   }
 
   private static Pattern createRegexPattern(String text)

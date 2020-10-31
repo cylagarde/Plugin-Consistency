@@ -2,6 +2,7 @@ package cl.plugin.consistency.preferences.pattern;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -632,9 +633,9 @@ public class PatternTabItem
         Predicate<PatternInfo> acceptPredicate = patternInfo -> patternInfo.getAcceptPattern().equals(acceptPattern);
         Predicate<PatternInfo> doNotAcceptPredicate = patternInfo -> patternInfo.getDoNotAcceptPattern().equals(doNotAcceptPattern);
         Predicate<PatternInfo> predicate = acceptPredicate.and(doNotAcceptPredicate);
-        if (pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().anyMatch(predicate))
-          return "The pattern already exists";
-        return null;
+        Optional<PatternInfo> optional = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream().filter(predicate).findAny();
+        String message = optional.map(patternInfo -> "The pattern already exists " + patternInfo.description).orElse(null);
+        return message;
       };
 
       Cache cache = pluginTabFolder.pluginConsistencyPreferencePage.getCache();

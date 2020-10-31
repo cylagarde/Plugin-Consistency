@@ -21,6 +21,9 @@ public class PatternInfo extends AbstractData
   private static final String TYPE_PATTERN_SEPARATOR = "#";
   public static final String PATTERN_SEPARATOR = ";";
 
+  private PatternPredicate acceptPatternPredicate = null;
+  private PatternPredicate doNotAcceptPatternPredicate = null;
+
   /*
    * @see java.lang.Object#toString()
    */
@@ -71,13 +74,15 @@ public class PatternInfo extends AbstractData
 
     //
     String acceptPatterns = getAcceptPattern();
-    PatternPredicate acceptPatternPredicate = new PatternPredicate(acceptPatterns, PATTERN_SEPARATOR, false);
+    if (acceptPatternPredicate == null || !acceptPatterns.equals(acceptPatternPredicate.getPatterns()))
+      acceptPatternPredicate = new PatternPredicate(acceptPatterns, PATTERN_SEPARATOR, false);
     if (!acceptPatternPredicate.test(pluginId))
       return false;
 
     //
     String doNotAcceptPatterns = getDoNotAcceptPattern();
-    PatternPredicate doNotAcceptPatternPredicate = new PatternPredicate(doNotAcceptPatterns, PATTERN_SEPARATOR, false);
+    if (doNotAcceptPatternPredicate == null || !doNotAcceptPatterns.equals(doNotAcceptPatternPredicate.getPatterns()))
+      doNotAcceptPatternPredicate = new PatternPredicate(doNotAcceptPatterns, PATTERN_SEPARATOR, false);
     if (doNotAcceptPatternPredicate.test(pluginId))
       return false;
 

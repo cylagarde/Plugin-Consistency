@@ -72,6 +72,8 @@ class InputPatternDialog extends Dialog
 
   private String errorMessage;
 
+  private final PatternInfo patternInfo = new PatternInfo();
+
   /**
      * Creates an input dialog with OK and Cancel buttons. Note that the dialog
      * will have no visual representation (no widgets) until it is told to open.
@@ -310,7 +312,6 @@ class InputPatternDialog extends Dialog
       String doNotAcceptPatternValue = doNotAcceptPatternText.getText();
       errorMessage = patternValidator.getErrorMessage(descriptionValue, acceptPatternValue, doNotAcceptPatternValue);
 
-      PatternInfo patternInfo = new PatternInfo();
       patternInfo.setPattern(acceptPatternValue, doNotAcceptPatternValue);
 
       Predicate<IProject> predicate = project -> patternInfo.acceptPlugin(cache.getId(project));
