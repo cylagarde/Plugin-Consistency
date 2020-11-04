@@ -1,8 +1,6 @@
 package cl.plugin.consistency;
 
 import java.io.File;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -667,63 +665,26 @@ public class Util
 
     // try to find line
     int require_bundle_line_number = -1;
-    StringBuilder buffer = new StringBuilder(1024);
 
     File manifestFile = manifest.getLocation().toFile();
     String content = new String(Files.readAllBytes(manifestFile.toPath()));
-    String lf = content.indexOf("\r\n") != -1? "\r\n" : "\n";
-    int sourceOffset = 0;
+    List<String> findTargetList = Arrays.asList(" " + requireBundle + ",", " " + requireBundle + ";", " " + requireBundle + '\r', " " + requireBundle + '\n');
+
     String requireTag = "Require-Bundle:";
+    int requireTagIndex = content.indexOf(requireTag);
+    int fromIndex = requireTagIndex + requireTag.length();
+    char[] charArray = content.toCharArray();
+    int twoPointIndex = content.indexOf(":", fromIndex);
+    if (twoPointIndex == -1)
+      twoPointIndex = charArray.length;
 
-    try(LineNumberReader br = new LineNumberReader(new InputStreamReader(manifest.getContents())))
+    for(String target : findTargetList)
     {
-      String line = null;
-      while((line = br.readLine()) != null)
+      int[] indices = indexOf(charArray, 0, twoPointIndex, target.toCharArray(), 0, target.length(), fromIndex);
+      if (indices != null)
       {
-        buffer.append(line).append(lf);
-        if (line.startsWith(requireTag))
-        {
-          require_bundle_line_number = br.getLineNumber();
-          line = line.substring(requireTag.length());
-          sourceOffset = buffer.length() - line.length() - lf.length();
-        }
-
-        if (require_bundle_line_number != -1)
-        {
-          // other tag
-          if (line.contains(": "))
-          {
-            buffer.delete(buffer.length() - line.length() - lf.length(), buffer.length());
-            break;
-          }
-
-          // find
-          String target = requireBundle + ",";
-          int[] indices = lastIndexOf(buffer.toString().toCharArray(), sourceOffset, buffer.toString().length(), target.toCharArray(), 0, target.length(), buffer.length());
-          if (indices != null && buffer.charAt(indices[0] - 1) == ' ')
-          {
-            updateMarker(marker, indices[0], indices[1] - 1, br.getLineNumber() - indices[2]);
-            break;
-          }
-
-          // find
-          target = requireBundle + ";";
-          indices = lastIndexOf(buffer.toString().toCharArray(), sourceOffset, buffer.toString().length(), target.toCharArray(), 0, target.length(), buffer.length());
-          if (indices != null && buffer.charAt(indices[0] - 1) == ' ')
-          {
-            updateMarker(marker, indices[0], indices[1] - 1, br.getLineNumber() - indices[2]);
-            break;
-          }
-
-          // find
-          target = requireBundle;
-          indices = lastIndexOf(buffer.toString().toCharArray(), sourceOffset, buffer.toString().length(), target.toCharArray(), 0, target.length(), buffer.length());
-          if (indices != null && buffer.charAt(indices[0] - 1) == ' ' && (buffer.charAt(indices[1]) == ' ' || buffer.charAt(indices[1]) == '\r' || buffer.charAt(indices[1]) == '\n'))
-          {
-            updateMarker(marker, indices[0], indices[1], br.getLineNumber() - indices[2]);
-            break;
-          }
-        }
+        updateMarker(marker, indices[0] + 1, indices[1] - 1, indices[2]);
+        break;
       }
     }
 
@@ -732,11 +693,6 @@ public class Util
 
   /**
    * Update marker
-   *
-   * @param marker
-   * @param char_start
-   * @param char_end
-   * @param line_number
    */
   private static void updateMarker(IMarker marker, Integer char_start, Integer char_end, Integer line_number) throws CoreException
   {
@@ -748,55 +704,72 @@ public class Util
       marker.setAttribute(IMarker.LINE_NUMBER, line_number);
   }
 
-  static int[] lastIndexOf(char[] source, int sourceOffset, int sourceCount, char[] target, int targetOffset, int targetCount, int fromIndex)
+  /**
+   * Search with taking account of line separator
+   */
+  static int[] indexOf(char[] source, int sourceOffset, int sourceCount, char[] target, int targetOffset, int targetCount, int fromIndex)
   {
-    /*
-     * Check arguments; return immediately where possible. For consistency, don't check for null str or empty string.
-     */
-    if (fromIndex < 0 || targetCount == 0)
+    if (fromIndex < 0 || targetCount == 0 || fromIndex >= sourceCount)
       return null;
-    int rightIndex = sourceCount - targetCount;
-    int fromIndexModified = fromIndex;
-    if (fromIndexModified > rightIndex)
-      fromIndexModified = rightIndex;
 
-    int strLastIndex = targetOffset + targetCount - 1;
-    char strLastChar = target[strLastIndex];
-    int min = sourceOffset + targetCount - 1;
-    int i = min * 0 + fromIndex - 1;
+    char first = target[targetOffset];
+    int max = sourceOffset + (sourceCount - targetCount);
 
-    startSearchForLastChar:
-    while(true)
+    for(int i = sourceOffset + fromIndex; i <= max; i++)
     {
-      while(i >= min && source[i] != strLastChar)
-        i--;
-      //      System.out.println(source[i] +" - "+ strLastChar);
-      if (i < min)
-        return null;
-      int last = i + 1;
-      int j = i - 1;
-      int k = strLastIndex - 1;
-
-      int endline = 0;
-      while(k > -1)
+      /* Look for first character. */
+      if (source[i] != first)
       {
-        //        System.out.println(source[j] +" - "+ target[k]);
-        if (source[j] == '\n')
-          endline++;
-        boolean foundSpace = source[j] == ' ' || source[j] == '\r' || source[j] == '\n';
-        if (source[j] != target[k] && !foundSpace)
-        {
-          j--;
-          k--;
-          i--;
-          continue startSearchForLastChar;
-        }
-        j--;
-        if (!foundSpace)
-          k--;
+        while(++i <= max && source[i] != first);
       }
-      return new int[]{j + 1, last, endline};
+
+      /* Found first character, now look at the rest of v2 */
+      if (i <= max)
+      {
+        int j = i + 1;
+        int end = j + targetCount - 1;
+        for(int k = targetOffset + 1; j < end; j++, k++)
+        {
+          if (source[j] != target[k])
+          {
+            if (source[j] == '\r' && j + 1 < end && source[j + 1] == '\n' && j + 2 < end && source[j + 2] == ' ')
+            {
+              j += 3;
+              end += 3;
+            }
+            else if (source[j] == '\n' && j + 1 < end && source[j + 1] == ' ')
+            {
+              j += 2;
+              end += 2;
+            }
+            else
+              break;
+          }
+        }
+
+        if (j == end)
+        {
+          // count line number
+          int lineNumber = 1;
+          for(int c = sourceOffset; c <= i - sourceOffset; c++)
+          {
+            if (source[c] == '\r' && source[c + 1] == '\n')
+            {
+              lineNumber++;
+              c++;
+            }
+            else if (source[c] == '\n')
+            {
+              lineNumber++;
+            }
+          }
+
+          /* Found whole string. */
+          return new int[]{i - sourceOffset, j, lineNumber};
+        }
+      }
     }
+    return null;
   }
 
   /**
