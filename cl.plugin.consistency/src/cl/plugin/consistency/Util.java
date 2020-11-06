@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -25,8 +26,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProduct;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -45,6 +48,7 @@ import org.eclipse.pde.internal.core.iproduct.IProductPlugin;
 import org.eclipse.pde.internal.core.project.PDEProject;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.osgi.framework.Bundle;
 
 import cl.plugin.consistency.model.ForbiddenPlugin;
@@ -194,27 +198,67 @@ public class Util
       if (consistencyFile != null && consistencyFile.exists() && consistencyFile.isFile())
         pluginConsistency = PluginConsistencyLoader.loadPluginConsistency(consistencyFile);
     }
-    catch(Exception e)
+    catch(Throwable e)
     {
+      if (e instanceof UnmarshalException)
+        e = e.getCause();
       PluginConsistencyActivator.logError("Cannot load consistency file", e);
+      MultiStatus status = createMultiStatus(e.getLocalizedMessage(), e);
+      Display.getDefault().asyncExec(() -> ErrorDialog.openError(Display.getDefault().getActiveShell(), "Error", "Cannot load consistency file", status));
     }
 
+    // create default
     if (pluginConsistency == null)
       pluginConsistency = new PluginConsistency();
 
-    // init with default
-    if (pluginConsistency.typeList.isEmpty())
-    {
-      Arrays.asList("API", "IHM", "IMPLEMENTATION", "TEST").stream().map(name -> {
-        Type type = new Type();
-        type.name = name;
-        return type;
-      }).forEach(pluginConsistency.typeList::add);
-    }
+    //      // init with default
+    //      if (pluginConsistency.typeList.isEmpty())
+    //      {
+    //        Arrays.asList("API", "IHM", "IMPLEMENTATION", "TEST").stream().map(name -> {
+    //          Type type = new Type();
+    //          type.name = name;
+    //          return type;
+    //        }).forEach(pluginConsistency.typeList::add);
+    //      }
 
     updatePluginConsistency(pluginConsistency);
 
     return pluginConsistency;
+  }
+
+  /**
+   * Check consistency file path
+   *
+   * @param consistency_file_path
+   */
+  public static String checkConsistencyFilePath(String consistency_file_path, boolean mustExists, boolean checkLoad)
+  {
+    if (consistency_file_path == null || consistency_file_path.isEmpty())
+      return "Define a path for plugin consistency informations";
+
+    File pluginConsistencyFile = getConsistencyFile(consistency_file_path);
+    if (mustExists && (pluginConsistencyFile == null || !pluginConsistencyFile.exists()))
+      return "The path does not exists";
+
+    if (checkLoad)
+      return canLoadConsistencyFile(pluginConsistencyFile);
+
+    return null;
+  }
+
+  private static MultiStatus createMultiStatus(String msg, Throwable throwable)
+  {
+    StackTraceElement[] stackTraces = throwable.getStackTrace();
+    List<Status> childStatuses = new ArrayList<>(stackTraces.length);
+
+    for(StackTraceElement stackTrace : stackTraces)
+    {
+      Status status = new Status(IStatus.ERROR, PluginConsistencyActivator.PLUGIN_ID, stackTrace.toString());
+      childStatuses.add(status);
+    }
+
+    MultiStatus ms = new MultiStatus(PluginConsistencyActivator.PLUGIN_ID, IStatus.ERROR, childStatuses.toArray(new Status[childStatuses.size()]), msg, throwable);
+    return ms;
   }
 
   /**
@@ -529,7 +573,7 @@ public class Util
                 pluginInfo.id = pluginId;
 
                 // save
-                File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+                File consistencyFile = getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
                 savePluginConsistency(pluginConsistency, consistencyFile);
               }
 
@@ -568,7 +612,7 @@ public class Util
             pluginInfo.id = pluginId;
 
             // save
-            File consistencyFile = Util.getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
+            File consistencyFile = getConsistencyFile(PluginConsistencyActivator.getDefault().getConsistencyFilePath());
             savePluginConsistency(pluginConsistency, consistencyFile);
           }
 
@@ -663,9 +707,6 @@ public class Util
       marker.setAttribute(PLUGIN_CONSISTENCY_MARKER_REQUIRE_BUNDLE_ATTRIBUTE, requireBundle);
     }
 
-    // try to find line
-    int require_bundle_line_number = -1;
-
     File manifestFile = manifest.getLocation().toFile();
     String content = new String(Files.readAllBytes(manifestFile.toPath()));
     List<String> findTargetList = Arrays.asList(" " + requireBundle + ",", " " + requireBundle + ";", " " + requireBundle + '\r', " " + requireBundle + '\n');
@@ -678,6 +719,7 @@ public class Util
     if (twoPointIndex == -1)
       twoPointIndex = charArray.length;
 
+    // try to find line
     for(String target : findTargetList)
     {
       int[] indices = indexOf(charArray, 0, twoPointIndex, target.toCharArray(), 0, target.length(), fromIndex);
@@ -798,7 +840,7 @@ public class Util
       try
       {
         monitor.subTask("Removing consistency check for project " + project.getName());
-        Util.removeCheckProjectConsistency(project);
+        removeCheckProjectConsistency(project);
         monitor.worked(1);
       }
       catch(Exception e)
