@@ -162,6 +162,7 @@ public class PluginTabItem
     pluginInfoTableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.BORDER);
     pluginInfoTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     pluginInfoTableViewer.setComparator(new DefaultLabelViewerComparator());
+    pluginInfoTableViewer.setUseHashlookup(true);
 
     Table table = pluginInfoTableViewer.getTable();
     table.setLayout(new TableLayout());
@@ -385,6 +386,18 @@ public class PluginTabItem
           .map(forbiddenPlugin -> forbiddenPlugin.id)
           .sorted()
           .forEach(id -> {
+
+            // limit styledString length
+            if (styledString.length() > 128)
+            {
+              String etc = "  etc...";
+              CharSequence subSequence = styledString.subSequence(styledString.length() - etc.length(), styledString.length());
+              System.out.println(subSequence);
+              if (!subSequence.equals(etc))
+                styledString.append(etc);
+              return;
+            }
+
             if (forbiddenPluginFromPatternInfoSet.contains(id))
               styledString.append(id, StyledString.COUNTER_STYLER);
             else
