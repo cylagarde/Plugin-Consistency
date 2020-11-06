@@ -27,6 +27,8 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 
 import cl.plugin.consistency.Cache;
 import cl.plugin.consistency.CheckPluginConsistencyResourceChangeListener;
@@ -58,7 +60,6 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   {
     setPreferenceStore(PluginConsistencyActivator.getDefault().getPreferenceStore());
     noDefaultAndApplyButton();
-    //    setDescription("Plugin consistency");
 
     // dont use PluginConsistencyActivator.getDefault().getPluginConsistency();
     String consistency_file_path = getPreferenceStore().getString(PluginConsistencyActivator.CONSISTENCY_FILE_PATH);
@@ -81,6 +82,10 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
   @Override
   protected Control createContents(Composite parent)
   {
+    Bundle pluginConsistencyBundle = FrameworkUtil.getBundle(PluginConsistencyPreferencePage.class);
+    String version = pluginConsistencyBundle.getHeaders().get(org.osgi.framework.Constants.BUNDLE_VERSION);
+    version = version.substring(0, version.lastIndexOf('.'));
+    setTitle(getTitle() + " v" + version);
     Composite content = new Composite(parent, SWT.NONE);
 
     GridLayout contentGridLayout = new GridLayout(1, false);
@@ -89,7 +94,7 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
     content.setLayout(contentGridLayout);
 
     GridData layoutData = new GridData(GridData.FILL_BOTH);
-    layoutData.widthHint = 800; // decommenter
+    layoutData.widthHint = 900; // decommenter
     layoutData.heightHint = 500; // commenter
     content.setLayoutData(layoutData);
 
@@ -211,6 +216,9 @@ public class PluginConsistencyPreferencePage extends PreferencePage implements I
       {
         FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
         dialog.setText("Select plugin consistency file");
+        String[] filterExtensions = new String[]{"*." + PLUGIN_CONSISTENCY_FILE_EXTENSION, "*.*"};
+        dialog.setFilterExtensions(filterExtensions);
+        dialog.setFilterNames(new String[]{"Plugin consistency file (" + filterExtensions[0] + ")", "All files (" + filterExtensions[1] + ")"});
 
         String consistency_file_path = pluginConsistencyFileText.getText();
         File file = Util.getConsistencyFile(consistency_file_path);
