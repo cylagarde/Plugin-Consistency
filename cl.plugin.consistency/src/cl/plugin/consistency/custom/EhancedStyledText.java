@@ -3,8 +3,9 @@ package cl.plugin.consistency.custom;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
@@ -21,30 +22,39 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.TextStyle;
+import org.eclipse.swt.graphics.Transform;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-// TODO gerer le add/delete char in link
 /**
  * The class <b>EhancedStyledText</b> allows to.<br>
  *
  * <pre lang="java">
- * EhancedStyledText ehancedStyledText = ...
  * StyledString styledString = new StyledString();
  * styledString.append("text");
  * styledString.append(" (counter)", StyledString.COUNTER_STYLER);
+ *
  * // add image
  * styledString.append(" ", new ImageStyler(image));
+ *
  * // add control
  * styledString.append(" ", new ControlStyler(parent -> {
  *     Button button = new Button(parent, SWT.PUSH);
  *     button.setText("Push");
  *     return button;
  * }));
+ *
  * // add link
- * styledString.append("site", new HyperLinkStyler(mouseEvent -> true, () -> System.out.println("click")));
+ * styledString.append("site", new HyperLinkStyler((mouseEvent, hyperLinkStyler) -> System.out.println("click")));
+ *
+ * // add gc
+ * styledString.append(" ", new GCStyler(0, new Point(16,16), gc -> gc.draw...));
+ *
+ * //
+ * EhancedStyledText ehancedStyledText = ...
+ * ehancedStyledText.setStyledString(styledString);
  * </pre>
  */
 public class EhancedStyledText extends StyledText
@@ -52,6 +62,7 @@ public class EhancedStyledText extends StyledText
   final Set<ImageStyler> imageStylers = new HashSet<>();
   final Set<ControlStyler> controlStylers = new HashSet<>();
   final Set<HyperLinkStyler> hyperLinkStylers = new HashSet<>();
+  final Set<GCStyler> gcStylers = new HashSet<>();
 
   /**
    * Constructor
@@ -69,11 +80,17 @@ public class EhancedStyledText extends StyledText
     addListener(SWT.MouseDown, new StyledLinkMouseListener());
   }
 
+  /**
+   * Set the styledString
+   * @param styledString
+   */
   public void setStyledString(StyledString styledString)
   {
     imageStylers.clear();
+    controlStylers.stream().filter(controlStyler -> controlStyler.control != null && !controlStyler.control.isDisposed()).forEach(controlStyler -> controlStyler.control.dispose());
     controlStylers.clear();
     hyperLinkStylers.clear();
+    gcStylers.clear();
 
     setText(styledString.getString());
 
@@ -123,8 +140,17 @@ public class EhancedStyledText extends StyledText
         hyperLinkStyler.length = styleRange.length;
         hyperLinkStylers.add(hyperLinkStyler);
       }
+      else if (styleRange.data instanceof GCStyler)
+      {
+        if (styleRange.length != 1)
+          throw new RuntimeException("Cannot create " + getClass().getSimpleName() + ": text length for gc != 1");
+        GCStyler gcStyler = (GCStyler) styleRange.data;
+        gcStyler.start = styleRange.start;
+        gcStylers.add(gcStyler);
+      }
     }
 
+    redraw();
   }
 
   /**
@@ -146,8 +172,7 @@ public class EhancedStyledText extends StyledText
             if (style.data instanceof HyperLinkStyler)
             {
               HyperLinkStyler hyperLinkStyler = (HyperLinkStyler) style.data;
-              if (hyperLinkStyler.clickOnEvent.test(event))
-                hyperLinkStyler.runnable.run();
+              hyperLinkStyler.consumer.accept(event, hyperLinkStyler);
             }
           }
         }
@@ -168,6 +193,7 @@ public class EhancedStyledText extends StyledText
     {
       paintImage(e);
       paintControl(e);
+      paintGC(e);
     }
 
     private void paintControl(PaintObjectEvent e)
@@ -216,6 +242,50 @@ public class EhancedStyledText extends StyledText
         }
       }
     }
+
+    private void paintGC(PaintObjectEvent e)
+    {
+      GC gc = e.gc;
+      StyleRange style = e.style;
+      int start = style.start;
+      int x = e.x;
+      int y = e.y + e.ascent;
+
+      for(GCStyler paintStyler : gcStylers)
+      {
+        if (start == paintStyler.start)
+        {
+          if (style.metrics.descent == 0)
+            y -= style.metrics.ascent;
+          else
+            y += style.metrics.descent - paintStyler.size.y;
+
+          Rectangle oldClipping = gc.getClipping();
+          Transform oldTransform = new Transform(gc.getDevice());
+          gc.getTransform(oldTransform);
+
+          Transform newTransform = new Transform(gc.getDevice());
+          newTransform.translate(x, y);
+          gc.setTransform(newTransform);
+          gc.setClipping(0, 0, paintStyler.size.x, paintStyler.size.y);
+
+          try
+          {
+            paintStyler.consumer.accept(gc);
+          }
+          finally
+          {
+            gc.setTransform(oldTransform);
+            gc.setClipping(oldClipping);
+
+            oldTransform.dispose();
+            newTransform.dispose();
+          }
+
+          return;
+        }
+      }
+    }
   }
 
   /**
@@ -229,34 +299,64 @@ public class EhancedStyledText extends StyledText
       verifyImage(e);
       verifyControl(e);
       verifyLink(e);
+      verifyGC(e);
     }
 
     private void verifyLink(VerifyEvent e)
     {
       int start = e.start;
+      int end = e.end;
       int replaceCharCount = e.end - e.start;
       int newCharCount = e.text.length();
 
-      for(Iterator<HyperLinkStyler> iterator = hyperLinkStylers.iterator(); iterator.hasNext();)
-      {
-        HyperLinkStyler hyperLinkStyler = iterator.next();
-
-        if (start <= hyperLinkStyler.start && start + replaceCharCount >= hyperLinkStyler.start + hyperLinkStyler.length)
-        {
-          iterator.remove();
-          continue;
-        }
-        if (start + replaceCharCount < hyperLinkStyler.start + hyperLinkStyler.length)
-        {
-          int newLength = hyperLinkStyler.start + hyperLinkStyler.length - start - replaceCharCount;
-          hyperLinkStyler.length = newLength;
-        }
+      Set<HyperLinkStyler> currentHyperLinkStylers = new HashSet<>(hyperLinkStylers);
+      currentHyperLinkStylers.stream().forEach(hyperLinkStyler -> {
         if (start <= hyperLinkStyler.start)
         {
-          int newStart = start + newCharCount;
-          hyperLinkStyler.start = newStart;
+          if (end <= hyperLinkStyler.start)
+          {
+            hyperLinkStyler.start -= replaceCharCount - newCharCount;
+          }
+          else if (end < hyperLinkStyler.start + hyperLinkStyler.length)
+          {
+            hyperLinkStyler.length -= end - hyperLinkStyler.start;
+            hyperLinkStyler.start = start + newCharCount;
+          }
+          else
+          {
+            hyperLinkStylers.remove(hyperLinkStyler);
+          }
         }
-      }
+        else if (start < hyperLinkStyler.start + hyperLinkStyler.length)
+        {
+          if (end < hyperLinkStyler.start + hyperLinkStyler.length)
+          {
+            if (newCharCount > 0)
+            {
+              HyperLinkStyler newHyperLinkStyler = new HyperLinkStyler(hyperLinkStyler.consumer);
+              newHyperLinkStyler.start = end + newCharCount;
+              newHyperLinkStyler.length = hyperLinkStyler.length - (start - hyperLinkStyler.start);
+              hyperLinkStylers.add(newHyperLinkStyler);
+
+              StyleRange newStyleRange = (StyleRange) getStyleRangeAtOffset(end).clone();
+              newStyleRange.data = newHyperLinkStyler;
+              newStyleRange.start = end;
+              newStyleRange.length = newHyperLinkStyler.length;
+              replaceStyleRanges(newHyperLinkStyler.start, newHyperLinkStyler.length, new StyleRange[]{newStyleRange});
+
+              hyperLinkStyler.length = start - hyperLinkStyler.start;
+            }
+            else
+            {
+              hyperLinkStyler.length -= replaceCharCount;
+            }
+          }
+          else
+          {
+            hyperLinkStyler.length = start - hyperLinkStyler.start;
+          }
+        }
+      });
     }
 
     private void verifyControl(VerifyEvent e)
@@ -279,6 +379,25 @@ public class EhancedStyledText extends StyledText
         }
         if (start <= controlStyler.start)
           controlStyler.start += newCharCount - replaceCharCount;
+      }
+    }
+
+    private void verifyGC(VerifyEvent e)
+    {
+      int start = e.start;
+      int replaceCharCount = e.end - e.start;
+      int newCharCount = e.text.length();
+
+      for(Iterator<GCStyler> iterator = gcStylers.iterator(); iterator.hasNext();)
+      {
+        GCStyler gcStyler = iterator.next();
+        if (start <= gcStyler.start && gcStyler.start < start + replaceCharCount)
+        {
+          iterator.remove();
+          continue;
+        }
+        if (start <= gcStyler.start)
+          gcStyler.start += newCharCount - replaceCharCount;
       }
     }
 
@@ -339,19 +458,19 @@ public class EhancedStyledText extends StyledText
    */
   public static class ControlStyler extends Styler
   {
-    final Function<Composite, Control> controlCreator;
+    final Function<EhancedStyledText, Control> controlCreator;
     final int y_offset;
     int start;
     Control control;
     Set<TextStyle> textStyles = new HashSet<>();
 
-    public ControlStyler(Function<Composite, Control> controlCreator, int y_offset)
+    public ControlStyler(Function<EhancedStyledText, Control> controlCreator, int y_offset)
     {
       this.controlCreator = controlCreator;
       this.y_offset = y_offset;
     }
 
-    public ControlStyler(Function<Composite, Control> controlCreator)
+    public ControlStyler(Function<EhancedStyledText, Control> controlCreator)
     {
       this(controlCreator, 0);
     }
@@ -369,15 +488,13 @@ public class EhancedStyledText extends StyledText
    */
   public static class HyperLinkStyler extends Styler
   {
-    final Predicate<Event> clickOnEvent;
-    final Runnable runnable;
+    final BiConsumer<Event, HyperLinkStyler> consumer;
     public int start;
     public int length;
 
-    public HyperLinkStyler(Predicate<Event> clickOnEvent, Runnable runnable)
+    public HyperLinkStyler(BiConsumer<Event, HyperLinkStyler> consumer)
     {
-      this.clickOnEvent = clickOnEvent;
-      this.runnable = runnable;
+      this.consumer = consumer;
     }
 
     @Override
@@ -392,6 +509,37 @@ public class EhancedStyledText extends StyledText
         start = styleRange.start;
         length = styleRange.length;
       }
+    }
+
+    @Override
+    public String toString()
+    {
+      return "HyperLinkStyler[start=" + start + ", length=" + length + "]";
+    }
+  }
+
+  /**
+   * The class <b>GCStyler</b> allows to.<br>
+   */
+  public static class GCStyler extends Styler
+  {
+    final Consumer<GC> consumer;
+    final int y_offset;
+    final Point size;
+    int start;
+
+    public GCStyler(int y_offset, Point size, Consumer<GC> consumer)
+    {
+      this.y_offset = y_offset;
+      this.size = size;
+      this.consumer = consumer;
+    }
+
+    @Override
+    public void applyStyles(TextStyle style)
+    {
+      style.data = this;
+      style.metrics = new GlyphMetrics(Math.max(0, size.y + y_offset), Math.max(0, -y_offset), size.x);
     }
   }
 }

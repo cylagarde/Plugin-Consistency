@@ -379,29 +379,26 @@ public class PluginTabItem
           .map(forbiddenPlugin -> forbiddenPlugin.id)
           .collect(Collectors.toSet());
 
-        int[] size = {pluginInfo.forbiddenPluginList.size()};
         pluginInfo.forbiddenPluginList.stream()
           .map(forbiddenPlugin -> forbiddenPlugin.id)
           .sorted()
           .forEach(id -> {
-
             // limit styledString length
             if (styledString.length() > 128)
             {
               String etc = "  etc...";
               CharSequence subSequence = styledString.subSequence(styledString.length() - etc.length(), styledString.length());
-              System.out.println(subSequence);
               if (!subSequence.equals(etc))
                 styledString.append(etc);
               return;
             }
 
+            if (styledString.length() != 0)
+              styledString.append(", ");
             if (forbiddenPluginFromPatternInfoSet.contains(id))
               styledString.append(id, StyledString.COUNTER_STYLER);
             else
               styledString.append(id);
-            if (size[0]-- != 1)
-              styledString.append(", ");
           });
 
         return styledString;
