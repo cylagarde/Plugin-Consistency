@@ -2,7 +2,6 @@ package cl.plugin.consistency.preferences.plugin;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +30,7 @@ import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelP
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.jface.viewers.StyledString.Styler;
 import org.eclipse.jface.viewers.TableLayout;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -179,9 +179,9 @@ public class PluginTabItem
         PluginInfo pluginInfo = (PluginInfo) table.getItem(row).getData();
 
         List<PatternInfo> patternList = pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList;
-        Set<PatternInfo> patternInfos = patternList.stream()
+        List<PatternInfo> patternInfos = patternList.stream()
           .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
-          .collect(Collectors.toSet());
+          .collect(Collectors.toList());
 
         if (!patternInfos.isEmpty())
         {
@@ -195,46 +195,44 @@ public class PluginTabItem
 
           if (!typeToPatternInfoMap.isEmpty())
           {
-            StyledString buffer = new StyledString();
+            StyledString styledString = new StyledString();
+            Styler regexStyler = StylerUtilities.createStyler(new Color(null, 0, 128, 0));
 
             boolean[] firstType = new boolean[]{true};
-            typeToPatternInfoMap.forEach((type, list) -> {
+            typeToPatternInfoMap.forEach((type, collectPatternInfos) -> {
               if (!firstType[0])
-                buffer.append("\n\n");
+                styledString.append("\n\n");
               else
                 firstType[0] = false;
-              buffer.append(type + ":\n", StylerUtilities.withBold(StyledString.COUNTER_STYLER));
-
-              // sort
-              list.sort(Comparator.comparing(patternList::indexOf, Integer::compare));
+              styledString.append(type + ":\n", StylerUtilities.withBold(StyledString.COUNTER_STYLER));
 
               //
               boolean[] firstList = new boolean[]{true};
-              list.forEach(patternInfo -> {
+              collectPatternInfos.forEach(patternInfo -> {
                 if (!firstList[0])
-                  buffer.append("\n");
+                  styledString.append("\n");
                 else
                   firstList[0] = false;
 
-                buffer.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
-                buffer.append("  pattern[");
+                styledString.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
+                styledString.append("  pattern[");
 
                 String containsPattern = patternInfo.getAcceptPattern();
                 String doNotContainsPattern = patternInfo.getDoNotAcceptPattern();
                 if (containsPattern != null && !containsPattern.isEmpty())
                 {
-                  buffer.append("contains=").append("\"" + containsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
+                  styledString.append("verify=").append("\"" + containsPattern + "\"", regexStyler);
 
                   if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
-                    buffer.append(", not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
+                    styledString.append(", not verify=").append("\"" + doNotContainsPattern + "\"", regexStyler);
                 }
                 else if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
-                  buffer.append("not contains=").append("\"" + doNotContainsPattern + "\"", StylerUtilities.createStyler(new Color(null, 0, 128, 0)));
-                buffer.append("]");
+                  styledString.append("not verify=").append("\"" + doNotContainsPattern + "\"", regexStyler);
+                styledString.append("]");
               });
             });
 
-            return buffer;
+            return styledString;
           }
         }
       }

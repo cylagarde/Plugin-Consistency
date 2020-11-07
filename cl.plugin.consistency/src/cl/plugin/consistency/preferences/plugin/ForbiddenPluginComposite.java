@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,12 +42,14 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.TreeItem;
@@ -58,7 +61,10 @@ import cl.plugin.consistency.Images;
 import cl.plugin.consistency.PatternPredicate;
 import cl.plugin.consistency.PluginConsistencyActivator;
 import cl.plugin.consistency.Util;
+import cl.plugin.consistency.custom.StyledToolTip;
+import cl.plugin.consistency.custom.StylerUtilities;
 import cl.plugin.consistency.model.ForbiddenPlugin;
+import cl.plugin.consistency.model.PatternInfo;
 import cl.plugin.consistency.model.PluginInfo;
 import cl.plugin.consistency.preferences.ArrayTreeContentProvider;
 import cl.plugin.consistency.preferences.BundlesLabelProvider;
@@ -73,7 +79,7 @@ class ForbiddenPluginComposite
   private final static String FILTER_MESSAGE = "Filter: ('*' and '?' are supported) (multiple patterns must be separated by " + PATTERN_SEPARATOR + ")";
   private final static String SELECT_FORBIDDEN_MESSAGE = "Select the forbidden plugins:";
 
-  final PluginInfoDetail projectDetail;
+  final PluginInfoDetail pluginInfoDetail;
   final TableViewer forbiddenPluginTableViewer;
   final ToolBar toolBar;
   final IAction addPluginAction;
@@ -86,15 +92,15 @@ class ForbiddenPluginComposite
   /**
    * Constructor
    *
-   * @param projectDetail
+   * @param pluginInfoDetail
    * @param parent
    * @param style
    */
-  ForbiddenPluginComposite(PluginInfoDetail projectDetail, Composite parent, int style)
+  ForbiddenPluginComposite(PluginInfoDetail pluginInfoDetail, Composite parent, int style)
   {
-    this.projectDetail = projectDetail;
+    this.pluginInfoDetail = pluginInfoDetail;
 
-    cache = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
+    cache = pluginInfoDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.getCache();
     checkedObjects = new TreeSet<>(cache.getPluginIdComparator());
 
     //
@@ -116,7 +122,7 @@ class ForbiddenPluginComposite
       @Override
       protected Styler getStylerForPluginId(String pluginId)
       {
-        boolean isForbiddenPluginFromPattern = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+        boolean isForbiddenPluginFromPattern = pluginInfoDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
           .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
           .anyMatch(patternInfo -> patternInfo.forbiddenPluginList.stream().anyMatch(forbiddenPlugin -> pluginId.equals(forbiddenPlugin.id)));
         return isForbiddenPluginFromPattern? StyledString.COUNTER_STYLER : null;
@@ -124,6 +130,67 @@ class ForbiddenPluginComposite
     }));
     forbiddenPluginTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     forbiddenPluginTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+
+    Table table = forbiddenPluginTableViewer.getTable();
+    BiFunction<Integer, Integer, StyledString> styledStringFunction = (row, column) -> {
+      if (row < 0 || column < 0)
+        return null;
+
+      // search all patternInfos accepting pluginInfo
+      List<PatternInfo> patternList = pluginInfoDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList;
+      List<PatternInfo> patternInfos = patternList.stream()
+        .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
+        .collect(Collectors.toList());
+
+      if (!patternInfos.isEmpty())
+      {
+        IPluginModelBase pluginModelBase = (IPluginModelBase) table.getItem(row).getData();
+        String forbiddenPluginId = cache.getId(pluginModelBase);
+
+        // search all patternInfos where forbiddenPlugin is in forbiddenPluginList
+        List<PatternInfo> collectPatternInfos = patternInfos.stream()
+          .filter(patternInfo -> patternInfo.forbiddenPluginList.stream().map(forbiddenPlugin -> forbiddenPlugin.id).anyMatch(forbiddenPluginId::equals))
+          .collect(Collectors.toList());
+
+        if (!collectPatternInfos.isEmpty())
+        {
+          StyledString styledString = new StyledString();
+          Styler regexStyler = StylerUtilities.createStyler(new Color(null, 0, 128, 0));
+
+          //
+          collectPatternInfos.forEach(patternInfo -> {
+            if (styledString.length() != 0)
+              styledString.append('\n');
+
+            // patternInfo
+            styledString.append("#" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
+            if (patternInfo.description != null && !patternInfo.description.isEmpty())
+              styledString.append(" " + patternInfo.description, StylerUtilities.boldStyler);
+
+            // regex
+            styledString.append("  pattern[");
+            String containsPattern = patternInfo.getAcceptPattern();
+            String doNotContainsPattern = patternInfo.getDoNotAcceptPattern();
+            if (containsPattern != null && !containsPattern.isEmpty())
+            {
+              styledString.append("verify=").append("\"" + containsPattern + "\"", regexStyler);
+
+              if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
+                styledString.append(", not verify=").append("\"" + doNotContainsPattern + "\"", regexStyler);
+            }
+            else if (doNotContainsPattern != null && !doNotContainsPattern.isEmpty())
+              styledString.append("not verify=").append("\"" + doNotContainsPattern + "\"", regexStyler);
+            styledString.append(']');
+          });
+
+          return styledString;
+        }
+      }
+
+      return null;
+    };
+    new StyledToolTip(table, styledStringFunction);
+
   }
 
   /**
@@ -416,7 +483,7 @@ class ForbiddenPluginComposite
       treeSet.removeIf(o -> cache.getId(o).equals(pluginInfo.id));
 
       // remove plugin/project from pattern
-      Set<String> forbiddenPluginsFromPattern = projectDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
+      Set<String> forbiddenPluginsFromPattern = pluginInfoDetail.pluginTabItem.pluginTabFolder.pluginConsistencyPreferencePage.pluginConsistency.patternList.stream()
         .filter(patternInfo -> patternInfo.acceptPlugin(pluginInfo.id))
         .flatMap(patternInfo -> patternInfo.forbiddenPluginList.stream())
         .map(forbiddenPlugin -> forbiddenPlugin.id)
@@ -455,7 +522,7 @@ class ForbiddenPluginComposite
 
         forbiddenPluginTableViewer.setInput(newInput);
 
-        projectDetail.pluginTabItem.refreshPluginInfo(pluginInfo);
+        pluginInfoDetail.pluginTabItem.refreshPluginInfo(pluginInfo);
       }
 
       checkedObjects.clear();
