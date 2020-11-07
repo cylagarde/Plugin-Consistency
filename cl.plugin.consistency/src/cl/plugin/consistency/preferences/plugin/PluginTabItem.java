@@ -214,7 +214,7 @@ public class PluginTabItem
                 else
                   firstList[0] = false;
 
-                styledString.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
+                styledString.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.BOLD_STYLER);
                 styledString.append("  pattern[");
 
                 String containsPattern = patternInfo.getAcceptPattern();

@@ -13,10 +13,10 @@ import org.eclipse.swt.graphics.TextStyle;
  */
 public class StylerUtilities
 {
-  public final static Font boldFont = JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT);
-  public final static Font italicFont = JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT);
+  public final static Font BOLD_FONT = JFaceResources.getFontRegistry().getBold(JFaceResources.DEFAULT_FONT);
+  public final static Font ITALIC_FONT = JFaceResources.getFontRegistry().getItalic(JFaceResources.DEFAULT_FONT);
 
-  public final static Styler boldStyler = createStyler(null, null, boldFont);
+  public final static Styler BOLD_STYLER = createStyler(null, null, BOLD_FONT);
 
   /**
    * Create Styler
@@ -74,7 +74,7 @@ public class StylerUtilities
       {
         styler.applyStyles(textStyle);
         if (textStyle.font == null)
-          textStyle.font = boldFont;
+          textStyle.font = BOLD_FONT;
         else
         {
           FontData fontData = textStyle.font.getFontData()[0];
@@ -110,7 +110,7 @@ public class StylerUtilities
       {
         styler.applyStyles(textStyle);
         if (textStyle.font == null)
-          textStyle.font = italicFont;
+          textStyle.font = ITALIC_FONT;
         else
         {
           FontData fontData = textStyle.font.getFontData()[0];

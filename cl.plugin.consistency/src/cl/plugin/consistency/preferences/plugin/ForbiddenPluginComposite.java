@@ -163,9 +163,9 @@ class ForbiddenPluginComposite
               styledString.append('\n');
 
             // patternInfo
-            styledString.append("#" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.boldStyler);
+            styledString.append("#" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.BOLD_STYLER);
             if (patternInfo.description != null && !patternInfo.description.isEmpty())
-              styledString.append(" " + patternInfo.description, StylerUtilities.boldStyler);
+              styledString.append(" " + patternInfo.description, StylerUtilities.BOLD_STYLER);
 
             // regex
             styledString.append("  pattern[");
