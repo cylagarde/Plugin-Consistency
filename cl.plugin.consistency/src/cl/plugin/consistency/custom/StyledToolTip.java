@@ -79,22 +79,21 @@ public class StyledToolTip extends ToolTip
   {
     return event -> {
       TableItem item = table.getItem(new Point(event.x, event.y));
+      int row = -1;
+      int column = -1;
       if (item != null)
       {
+        row = table.indexOf(item);
         int columnCount = table.getColumnCount();
-        for(int column = 0; column < columnCount; column++)
+        for(column = 0; column < columnCount; column++)
         {
           Rectangle rect = item.getBounds(column);
           if (rect.contains(event.x, event.y))
-          {
-            int row = table.indexOf(item);
-            StyledString text = styledStringFunction.apply(row, column);
-            if (text != null)
-              return text;
-          }
+            break;
         }
       }
-      return styledStringFunction.apply(-1, -1);
+      StyledString text = styledStringFunction.apply(row, column);
+      return text;
     };
   }
 
