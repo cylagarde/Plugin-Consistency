@@ -27,8 +27,7 @@ public class StylerUtilities
    */
   public static Styler createStyler(Color foreground, Color background, Font font)
   {
-    return new Styler()
-    {
+    return new Styler() {
       @Override
       public void applyStyles(TextStyle textStyle)
       {
@@ -67,12 +66,12 @@ public class StylerUtilities
    */
   public static Styler withBold(Styler styler)
   {
-    return new Styler()
-    {
+    return new Styler() {
       @Override
       public void applyStyles(TextStyle textStyle)
       {
-        styler.applyStyles(textStyle);
+        if (styler != null)
+          styler.applyStyles(textStyle);
         if (textStyle.font == null)
           textStyle.font = BOLD_FONT;
         else
@@ -103,12 +102,12 @@ public class StylerUtilities
    */
   public static Styler withItalic(Styler styler)
   {
-    return new Styler()
-    {
+    return new Styler() {
       @Override
       public void applyStyles(TextStyle textStyle)
       {
-        styler.applyStyles(textStyle);
+        if (styler != null)
+          styler.applyStyles(textStyle);
         if (textStyle.font == null)
           textStyle.font = ITALIC_FONT;
         else
@@ -139,12 +138,12 @@ public class StylerUtilities
    */
   public static Styler withUnderline(Styler styler)
   {
-    return new Styler()
-    {
+    return new Styler() {
       @Override
       public void applyStyles(TextStyle textStyle)
       {
-        styler.applyStyles(textStyle);
+        if (styler != null)
+          styler.applyStyles(textStyle);
         textStyle.underline = true;
       }
     };
@@ -158,12 +157,12 @@ public class StylerUtilities
    */
   public static Styler withUnderline(Styler styler, Color underlineColor)
   {
-    return new Styler()
-    {
+    return new Styler() {
       @Override
       public void applyStyles(TextStyle textStyle)
       {
-        styler.applyStyles(textStyle);
+        if (styler != null)
+          styler.applyStyles(textStyle);
         textStyle.underline = true;
         textStyle.underlineColor = underlineColor;
       }
