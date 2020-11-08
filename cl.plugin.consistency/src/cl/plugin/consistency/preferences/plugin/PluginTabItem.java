@@ -199,7 +199,12 @@ public class PluginTabItem
             Styler regexStyler = StylerUtilities.createStyler(new Color(null, 0, 128, 0));
 
             boolean[] firstType = new boolean[]{true};
+            int maxStyledStringLength = 512;
             typeToPatternInfoMap.forEach((type, collectPatternInfos) -> {
+
+              if (styledString.length() > maxStyledStringLength)
+                return;
+
               if (!firstType[0])
                 styledString.append("\n\n");
               else
@@ -231,6 +236,9 @@ public class PluginTabItem
                 styledString.append("]");
               });
             });
+
+            if (styledString.length() > maxStyledStringLength)
+              styledString.append("\n\netc...");
 
             return styledString;
           }
@@ -379,27 +387,27 @@ public class PluginTabItem
           .map(forbiddenPlugin -> forbiddenPlugin.id)
           .collect(Collectors.toSet());
 
+        int maxStyledStringLength = 128;
+
         pluginInfo.forbiddenPluginList.stream()
           .map(forbiddenPlugin -> forbiddenPlugin.id)
           .sorted()
           .forEach(id -> {
             // limit styledString length
-            if (styledString.length() > 128)
-            {
-              String etc = "  etc...";
-              CharSequence subSequence = styledString.subSequence(styledString.length() - etc.length(), styledString.length());
-              if (!subSequence.equals(etc))
-                styledString.append(etc);
+            if (styledString.length() > maxStyledStringLength)
               return;
-            }
 
             if (styledString.length() != 0)
               styledString.append(", ");
+
             if (forbiddenPluginFromPatternInfoSet.contains(id))
               styledString.append(id, StyledString.COUNTER_STYLER);
             else
               styledString.append(id);
           });
+
+        if (styledString.length() > maxStyledStringLength)
+          styledString.append(", etc...");
 
         return styledString;
       }

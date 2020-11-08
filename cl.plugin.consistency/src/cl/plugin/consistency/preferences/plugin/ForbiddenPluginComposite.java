@@ -158,13 +158,15 @@ class ForbiddenPluginComposite
           StyledString styledString = new StyledString();
           Styler regexStyler = StylerUtilities.createStyler(new Color(null, 0, 128, 0));
 
+          styledString.append(forbiddenPluginId + ":", StylerUtilities.withBold(StyledString.COUNTER_STYLER));
+
           //
           collectPatternInfos.forEach(patternInfo -> {
             if (styledString.length() != 0)
               styledString.append('\n');
 
             // patternInfo
-            styledString.append("#" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.BOLD_STYLER);
+            styledString.append("    #" + (patternList.indexOf(patternInfo) + 1), StylerUtilities.BOLD_STYLER);
             if (patternInfo.description != null && !patternInfo.description.isEmpty())
               styledString.append(" " + patternInfo.description, StylerUtilities.BOLD_STYLER);
 

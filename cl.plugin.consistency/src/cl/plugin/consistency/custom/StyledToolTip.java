@@ -78,9 +78,9 @@ public class StyledToolTip extends ToolTip
   private static Function<Event, StyledString> getFunction(Table table, BiFunction<Integer, Integer, StyledString> styledStringFunction)
   {
     return event -> {
-      TableItem item = table.getItem(new Point(event.x, event.y));
       int row = -1;
       int column = -1;
+      TableItem item = table.getItem(new Point(event.x, event.y));
       if (item != null)
       {
         row = table.indexOf(item);
@@ -100,6 +100,26 @@ public class StyledToolTip extends ToolTip
   /**
    * Constructor
    *
+   * @param table
+   * @param styledStringFunction Give the styledString for tooltip from tableItem
+   */
+  public StyledToolTip(Table table, Function<TableItem, StyledString> styledStringFunction)
+  {
+    this(table, getFunction(table, styledStringFunction));
+  }
+
+  private static Function<Event, StyledString> getFunction(Table table, Function<TableItem, StyledString> styledStringFunction)
+  {
+    return event -> {
+      TableItem item = table.getItem(new Point(event.x, event.y));
+      StyledString text = styledStringFunction.apply(item);
+      return text;
+    };
+  }
+
+  /**
+   * Constructor
+   *
    * @param tree
    * @param styledStringFunction Give the styledString for tooltip from row and column
    */
@@ -111,23 +131,42 @@ public class StyledToolTip extends ToolTip
   private static Function<Event, StyledString> getFunction(Tree tree, BiFunction<Integer, Integer, StyledString> styledStringFunction)
   {
     return event -> {
+      int row = -1;
+      int column = -1;
       TreeItem item = tree.getItem(new Point(event.x, event.y));
       if (item != null)
       {
+        row = tree.indexOf(item);
         int columnCount = tree.getColumnCount();
-        for(int column = 0; column < columnCount; column++)
+        for(column = 0; column < columnCount; column++)
         {
           Rectangle rect = item.getBounds(column);
           if (rect.contains(event.x, event.y))
-          {
-            int row = tree.indexOf(item);
-            StyledString text = styledStringFunction.apply(row, column);
-            if (text != null)
-              return text;
-          }
+            break;
         }
       }
-      return styledStringFunction.apply(-1, -1);
+      StyledString text = styledStringFunction.apply(row, column);
+      return text;
+    };
+  }
+
+  /**
+   * Constructor
+   *
+   * @param tree
+   * @param styledStringFunction Give the styledString for tooltip from treeItem
+   */
+  public StyledToolTip(Tree tree, Function<TreeItem, StyledString> styledStringFunction)
+  {
+    this(tree, getFunction(tree, styledStringFunction));
+  }
+
+  private static Function<Event, StyledString> getFunction(Tree tree, Function<TreeItem, StyledString> styledStringFunction)
+  {
+    return event -> {
+      TreeItem item = tree.getItem(new Point(event.x, event.y));
+      StyledString text = styledStringFunction.apply(item);
+      return text;
     };
   }
 

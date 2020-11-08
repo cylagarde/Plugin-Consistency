@@ -5,7 +5,7 @@ import java.util.Collection;
 import org.eclipse.swt.graphics.Image;
 
 /**
- * The class <b>ITypeManagerDataModel</b> allows to.<br>
+ * The class <b>IElementManagerDataModel</b> allows to.<br>
  */
 public interface IElementManagerDataModel<E, T>
 {

@@ -235,16 +235,16 @@ class InputPatternDialog extends Dialog
 
     GridData fillBothGridData = new GridData(GridData.FILL_BOTH);
     fillBothGridData.widthHint = 300;
-    fillBothGridData.heightHint = 300;
+    fillBothGridData.heightHint = 200;
     BundlesLabelProvider labelProvider = new BundlesLabelProvider(cache);
 
-    pluginAcceptedTableViewer = new TableViewer(listComposite, SWT.HIDE_SELECTION | SWT.BORDER);
+    pluginAcceptedTableViewer = new TableViewer(listComposite, SWT.BORDER);
     pluginAcceptedTableViewer.getTable().setLayoutData(fillBothGridData);
     pluginAcceptedTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     pluginAcceptedTableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(labelProvider));
     pluginAcceptedTableViewer.getTable().addListener(SWT.Selection, e -> pluginAcceptedTableViewer.getTable().deselectAll());
 
-    pluginNotAcceptedTableViewer = new TableViewer(listComposite, SWT.HIDE_SELECTION | SWT.BORDER);
+    pluginNotAcceptedTableViewer = new TableViewer(listComposite, SWT.BORDER);
     pluginNotAcceptedTableViewer.getTable().setLayoutData(fillBothGridData);
     pluginNotAcceptedTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     pluginNotAcceptedTableViewer.setLabelProvider(new DelegatingStyledCellLabelProvider(labelProvider));

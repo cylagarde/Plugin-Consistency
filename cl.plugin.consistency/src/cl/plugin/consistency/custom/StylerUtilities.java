@@ -138,15 +138,7 @@ public class StylerUtilities
    */
   public static Styler withUnderline(Styler styler)
   {
-    return new Styler() {
-      @Override
-      public void applyStyles(TextStyle textStyle)
-      {
-        if (styler != null)
-          styler.applyStyles(textStyle);
-        textStyle.underline = true;
-      }
-    };
+    return withUnderline(styler, null, SWT.UNDERLINE_SINGLE);
   }
 
   /**
@@ -157,6 +149,18 @@ public class StylerUtilities
    */
   public static Styler withUnderline(Styler styler, Color underlineColor)
   {
+    return withUnderline(styler, underlineColor, SWT.UNDERLINE_SINGLE);
+  }
+
+  /**
+   * Create Styler with underline color
+   *
+   * @param styler
+   * @param underlineColor
+   * @param underlineStyle
+   */
+  public static Styler withUnderline(Styler styler, Color underlineColor, int underlineStyle)
+  {
     return new Styler() {
       @Override
       public void applyStyles(TextStyle textStyle)
@@ -165,6 +169,7 @@ public class StylerUtilities
           styler.applyStyles(textStyle);
         textStyle.underline = true;
         textStyle.underlineColor = underlineColor;
+        textStyle.underlineStyle = underlineStyle;
       }
     };
   }
