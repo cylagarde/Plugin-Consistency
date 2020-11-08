@@ -209,7 +209,7 @@ public class PatternTabItem
       {
         IPatternValidator patternValidator = (description, acceptPattern, doNotAcceptPattern) -> {
           if (acceptPattern.isEmpty() && doNotAcceptPattern.isEmpty())
-            return "No entry";
+            return "No pattern defined";
           Predicate<PatternInfo> acceptPredicate = patternInfo -> patternInfo.getAcceptPattern().equals(acceptPattern);
           Predicate<PatternInfo> doNotAcceptPredicate = patternInfo -> patternInfo.getDoNotAcceptPattern().equals(doNotAcceptPattern);
           Predicate<PatternInfo> predicate = acceptPredicate.and(doNotAcceptPredicate);
