@@ -96,6 +96,7 @@ class ForbiddenPluginComposite
     forbiddenPluginTableViewer.setLabelProvider(new BundlesLabelProvider(cache));
     forbiddenPluginTableViewer.setContentProvider(ArrayContentProvider.getInstance());
     forbiddenPluginTableViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+    forbiddenPluginTableViewer.getTable().addListener(SWT.Selection, e -> forbiddenPluginTableViewer.getTable().deselectAll());
   }
 
   /**
